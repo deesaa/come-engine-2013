@@ -15,7 +15,8 @@ window_class* windows;			   //Windows-окна (GUI)
 object_settings* objectSettings;   //Окна настроек объектов
 botStatusBar_Class* BStatBar;
 topEditingBar_Class* TEditingBar;
-rendStateEditor_class* RendStateSetts;
+rendStateTypes_class* rendStateTypes;
+rendStateEditor_class* rendStateEditor;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -39,11 +40,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	TEditingBar = new topEditingBar_Class;
 	TEditingBar->initTEBar(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
 
-	RendStateSetts = new rendStateEditor_class;
-	RendStateSetts->initRendStateEditor(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
+	rendStateTypes = new rendStateTypes_class;
+	rendStateTypes->initRendStateStructs();
+
+	rendStateEditor = new rendStateEditor_class;
+	rendStateEditor->initRendStateEditor(windows->getWindowHandle(GET_MAINWINDOW), hInstance, rendStateTypes);
 
 	manager = new object_manager;	//Выделяем память на менеджер объектов
-	manager->initManager(device, hInstance, windows->getWindowHandle(GET_MAINWINDOW), BStatBar, TEditingBar);	//Инициализируем менеджер объектов
+	manager->initManager(device, hInstance, windows->getWindowHandle(GET_MAINWINDOW), BStatBar, TEditingBar, rendStateTypes);	//Инициализируем менеджер объектов
 
 	OC = new object_creator;		//Выделяем память на редактор объектов
 	OC->initObjectCreator(device, windows->getWindowHandle(GET_MAINWINDOW), hInstance, manager, objectSettings, BStatBar);	//Инициализируем редактор объектов
@@ -98,7 +102,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	delete objectSettings;
 	delete BStatBar;
 	delete TEditingBar;
-	delete RendStateSetts;
+	delete rendStateEditor;
+	delete rendStateTypes;
 	return msg.wParam;
 }
 
@@ -150,10 +155,14 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);	
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_NORMAL);
 			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_NORMAL);
+			rendStateEditor->showRSSettingsButton();
 
 			objectSettings->showOSButton(SW_NORMAL);
 			if(OC->getMaterialClass())
 				objectSettings->fillObjectSettings(OC->getMaterialClass());
+
+			rendStateEditor->fillRSEditor(OC->getRendState());
+
 			return 0;
 
 		case ID_BUTTON4:	
@@ -163,6 +172,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);
 			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_HIDE);
+			rendStateEditor->hideRSSettingsButton();
 
 			objectSettings->showLSButton(SW_NORMAL);
 			objectSettings->fillLightSettings(OC->getLightStruct());
@@ -175,6 +185,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);
 			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_HIDE);
+			rendStateEditor->hideRSSettingsButton();
 
 			objectSettings->showLSButton(SW_NORMAL);
 			objectSettings->fillLightSettings(OC->getLightStruct());
@@ -187,6 +198,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);	
 			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_HIDE);
+			rendStateEditor->hideRSSettingsButton();
 
 			objectSettings->showLSButton(SW_NORMAL);
 			objectSettings->fillLightSettings(OC->getLightStruct());
@@ -199,6 +211,9 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);
 			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_HIDE);
+			rendStateEditor->hideRSSettingsButton();
+			objectSettings->showOSButton(SW_HIDE);
+			objectSettings->showLSButton(SW_HIDE);
 			return 0;
 
 		case ID_LISTBOX1:
@@ -208,6 +223,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Объект, выбранный из листа объектов, принимает управление 
 				OC->pickObject(windows->takeObjectFromList());
 				objectSettings->showOSButton(SW_NORMAL);
+				rendStateEditor->showRSSettingsButton();
 				if(OC->getMaterialClass())
 					objectSettings->fillObjectSettings(OC->getMaterialClass());
 				return 0;
@@ -220,7 +236,9 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Объект света, выбранный из листа объектов света, принимает управление 
 				OC->pickLight(windows->takeLightFromList());
 				manager->setOnlyPickedLight(OC->getPickedLight());	//И в действующие устанавливается только он
+				objectSettings->showOSButton(SW_HIDE);
 				objectSettings->showLSButton(SW_NORMAL);
+				rendStateEditor->hideRSSettingsButton();
 				objectSettings->fillLightSettings(OC->getLightStruct());
 				return 0;
 			}
@@ -232,6 +250,8 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			case LBN_SELCHANGE:
 				//Объект света, выбранный из листа объектов света, принимает управление 
 				OC->pickCam(windows->takeCamFromList());
+				objectSettings->showOSButton(SW_HIDE);
+				objectSettings->showLSButton(SW_HIDE);
 				manager->resetCam(OC->getPickedCam());
 				return 0;
 			}
@@ -276,8 +296,8 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case ID_OSBUTTON2:
 			objectSettings->showLSettingsWnd();
 			return 0;
-		case ID_ESSBUTTON2:
-			RendStateSetts->showRSSettingsWnd();
+		case ID_ESSBUTTON1:
+			rendStateEditor->showRSSettingsWnd();
 			return 0;
 		case ID_EDIT1:
 			return 0;

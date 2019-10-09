@@ -5,6 +5,7 @@ private:
 	IDirect3DDevice9* device;			//Устройство
 	botStatusBar_Class* BSBar;
 	topEditingBar_Class* TEBar;
+	rendStateTypes_class* rendStateTypes;
 	HINSTANCE hInstance;
 	HWND window;
 
@@ -24,11 +25,12 @@ public:
 	object_manager(){}
 
 	void initManager(IDirect3DDevice9* bDevice, HINSTANCE bhInstance, HWND bWindow, botStatusBar_Class* bBSBar,
-		topEditingBar_Class* bTEBar)
+		topEditingBar_Class* bTEBar, rendStateTypes_class* bRendStateTypes)
 	{
 		device = bDevice;						//Сохранение устройства
 		BSBar = bBSBar;
 		TEBar = bTEBar;
+		rendStateTypes = bRendStateTypes;
 		hInstance = bhInstance;
 		window = bWindow;
 		numObject = 0;					//Установка начального кол-ва объектов
@@ -42,7 +44,7 @@ public:
 	UINT createNewObject(HWND objectList, HWND subsetsList)
 	{
 		object[numObject] = new object_class;	//Выделение памяти для объекта
-		object[numObject]->initObjectBase(device, numObject, subsetsList, BSBar); //Создание базы нового объекта
+		object[numObject]->initObjectBase(device, numObject, subsetsList, BSBar, rendStateTypes); //Создание базы нового объекта
 		SendMessage(objectList, LB_INSERTSTRING, numObject, (LPARAM)object[numObject]->getObjectName());
 		numObject++; 
 		numGlobal++;
@@ -260,6 +262,12 @@ public:
 	{
 		objectNumber--;
 		return object[objectNumber]->getMaterial();
+	}
+
+	rendState_class* getRendState(DWORD objectNumber)
+	{
+		objectNumber--;
+		return object[objectNumber]->getRendState();
 	}
 
 	D3DLIGHT9* getLightStruct(DWORD lightNumber)

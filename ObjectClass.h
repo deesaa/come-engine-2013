@@ -6,6 +6,7 @@ class object_class
 private:
 	IDirect3DDevice9* device;
 	botStatusBar_Class* BSBar;
+	rendStateTypes_class* rendStateTypes;
 	DWORD pickedSubset;
 	HWND subsetsList;
 
@@ -27,7 +28,7 @@ private:
 
 	material_class* material[64];
 	texture_class* texture[64];
-	renderState_class* renderState[64];
+	rendState_class* rendState[64];
 	sphere_struct* vertexSphere[512];
 	triangle* triangles[512];
 	IDirect3DVertexBuffer9* vpb;
@@ -44,10 +45,12 @@ private:
 	DWORD numRendState;
 
 public:
-	void initObjectBase(IDirect3DDevice9* bDevice, DWORD numObject, HWND bSubsetsList, botStatusBar_Class* bBSBar)
+	void initObjectBase(IDirect3DDevice9* bDevice, DWORD numObject, HWND bSubsetsList, botStatusBar_Class* bBSBar,
+		rendStateTypes_class* bRendStateTypes)
 	{
 		device = bDevice;
 		BSBar = bBSBar;
+		rendStateTypes = bRendStateTypes;
 		ObjectID = numObject;
 		subsetsList = bSubsetsList;
 		objectName = L"Object";	
@@ -100,8 +103,12 @@ public:
 		texture[numTextures] = new texture_class;
 		texture[numTextures]->initBaseForTexture(device);
 
-		renderState[numRendState] = new renderState_class;
-		renderState[numRendState]->initRendStateClass(device);
+		rendState[numRendState] = new rendState_class;
+		rendState[numRendState]->initRendStateClass(device, rendStateTypes);
+		rendState[numRendState]->addRendState(0, 0);
+		rendState[numRendState]->addRendState(1, 0);
+		rendState[numRendState]->addRendState(2, 0);
+		rendState[numRendState]->addRendState(3, 0);
 
 		SendMessage(subsetsList, LB_INSERTSTRING, numSubsets, (LPARAM)(LPCTSTR)L"Subset");
 		pickedSubset = numSubsets;
@@ -327,12 +334,19 @@ public:
 				texture[numSubsets] = new texture_class;
 				texture[numSubsets]->initBaseForTexture(device);
 
+				rendState[numRendState] = new rendState_class;
+				rendState[numRendState]->initRendStateClass(device, rendStateTypes);
+				rendState[numRendState]->addRendState(0, 0);
+				rendState[numRendState]->addRendState(1, 0);
+				rendState[numRendState]->addRendState(2, 1);
+
 				SendMessage(subsetsList, LB_INSERTSTRING, numSubsets, (LPARAM)(LPCTSTR)L"Subset");
 			
 				pickedSubset = numSubsets;
 				numSubsets	 += 1;
 				numMaterials += 1;
 				numTextures  += 1;
+				numRendState += 1;
 			}
 		}
 	}
@@ -601,6 +615,12 @@ public:
 	{
 		return material[pickedSubset]->getMaterial();
 	}
+
+	rendState_class* getRendState()
+	{
+		return rendState[pickedSubset];
+	}
+
 	void renameObject(HWND objectsList, HWND nameEditor, UINT objectNumber)
 	{
 		SendMessage(nameEditor, EM_LIMITTEXT, (WPARAM)80, NULL);
@@ -715,7 +735,7 @@ public:
 			if(numTextures)
 				texture[subset]->resetTexture();
 			if(numRendState)
-				renderState[subset]->setRenderState();
+				rendState[subset]->setRendState();
 
 			mesh->DrawSubset(subset);
 		}
@@ -733,18 +753,18 @@ public:
 			material[numMaterials] = NULL;
 		}
 
+		for(;numRendState != 0;)
+		{
+			numRendState -= 1;
+			delete rendState[numRendState];
+			rendState[numRendState] = NULL;
+		}
+
 		for(;numTextures != 0;)
 		{
 			numTextures--;
 			delete texture[numTextures];
 			texture[numTextures] = NULL;
-		}
-
-		for(;numRendState != 0;)
-		{
-			numRendState--;
-			delete renderState[numRendState];
-			renderState[numRendState] = NULL;
 		}
 
 		for(;numCreatedFaces != 0;)

@@ -200,6 +200,11 @@ public:
 	{
 		return manager->getMaterialClass(pickedObject);
 	}
+	
+	rendState_class* getRendState()
+	{
+		return manager->getRendState(pickedObject);
+	}
 
 	D3DLIGHT9* getLightStruct()
 	{
