@@ -41,6 +41,8 @@ private:
 	bool NewSubsetButtonLocked;
 	bool SaveObjectButtonLocked;
 	bool LoadTextureButtonLocked;
+	bool cutVerticesButtonLocked;
+	bool uniteVerticesButtonLocked;
 public:
 	object_creator(){}
 
@@ -59,11 +61,13 @@ public:
 		KBDevice = d3dInput.getKBDevice();
 		MDevice = d3dInput.getMDevice();
 
-		NewTriButtonLocked	    = FALSE;
-		SwapVertsButtonLocked   = FALSE;
-		NewSubsetButtonLocked   = FALSE;
-		SaveObjectButtonLocked  = FALSE;
-		LoadTextureButtonLocked = FALSE;
+		NewTriButtonLocked			= FALSE;
+		SwapVertsButtonLocked		= FALSE;
+		NewSubsetButtonLocked		= FALSE;
+		SaveObjectButtonLocked		= FALSE;
+		LoadTextureButtonLocked		= FALSE;
+		cutVerticesButtonLocked		= FALSE;
+		uniteVerticesButtonLocked   = FALSE;
 
 		manager = bManager;						//Сохранение дескриптора менеджера объектов
 		pickedObject = NULL;					
@@ -316,6 +320,30 @@ public:
 		}
 		else
 			LoadTextureButtonLocked = FALSE;
+
+		if (KBBuffer[DIK_Z] & 0x8000f)
+		{
+			if(cutVerticesButtonLocked == FALSE)
+			{
+				if(pickType == Object)
+					manager->cutVertices(pickedObject);
+			}
+			cutVerticesButtonLocked = TRUE;
+		}
+		else
+			cutVerticesButtonLocked = FALSE;
+
+		if (KBBuffer[DIK_Q] & 0x8000f)
+		{
+			if(uniteVerticesButtonLocked == FALSE)
+			{
+				if(pickType == Object)
+					manager->uniteVertices(pickedObject);
+			}
+			uniteVerticesButtonLocked = TRUE;
+		}
+		else
+			uniteVerticesButtonLocked = FALSE;
 	}
 
 	~object_creator() 

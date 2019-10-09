@@ -147,7 +147,7 @@ public:
 		bool found[3] = {FALSE, FALSE, FALSE};
 		DWORD vertsID[3];
 		
-		this->findRelevantVertices(found, vertsID);
+		this->findOneRelevantVert(found, vertsID, 3);
 
 		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE)
 		{
@@ -250,62 +250,67 @@ public:
 	void simplyLoadTexture()
 	{
 		DWORD vertsID[4];
+		DWORD textureVerts[4];
 		bool found[4];
-		this->findFourRelevantVertices(found, vertsID);
+		this->findOneRelevantVert(found, vertsID, 4);
 		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE && found[3] == TRUE)
 		{
-			texture[pickedSubset]->loadTexture(vertsID, vertices, vertexSphere);	
+			DWORD relevantTriangle[24];
+			DWORD numRelevantTris = this->findRelevantTriangle(vertsID, relevantTriangle, 3);
+
+			for(short counter(0); counter != 3;)
+			{
+				textureVerts[counter] = triangles[relevantTriangle[0]]->verticesID[counter];
+				counter += 1;
+			}
+			textureVerts[3] = triangles[relevantTriangle[2]]->verticesID[0];
+
+			texture[pickedSubset]->loadTexture(textureVerts, vertices, vertexSphere);
 		}
 	}
 
 	void swapIndices()
 	{
-		int counter(0);
-		bool found[3] = {FALSE, FALSE, FALSE};
-		DWORD vertsID[3];
+		bool found[72];
+		DWORD vertsID[72];
 
-		this->findRelevantVertices(found, vertsID);
+		this->findOneRelevantVert(found, vertsID, 3);
 
-		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE)   //Три вершины найдены
+		DWORD relevantTriangle[24];
+		DWORD numRelevantTris = this->findRelevantTriangle(vertsID, relevantTriangle, 3);
+
+		if(numPickedVerts >= 3)
 		{
-			DWORD relevantTriangle[24];
-			DWORD numRelevantTris(0);
-			this->findRelevantTriangles(vertsID, relevantTriangle, &numRelevantTris);
-
-			if(numPickedVerts == 3)
-			{
-				DWORD indexBuffer;										
+			DWORD indexBuffer;										
 				
-				mesh->LockIndexBuffer(0, (void**)&indices);
-				for(DWORD counter(0); counter != numRelevantTris;)
-				{
-					indexBuffer = indices[relevantTriangle[counter]*3+2];					//Меняем местами второй и третий индекс
-					indices[relevantTriangle[counter]*3+2] = indices[relevantTriangle[counter]*3+1];
-					indices[relevantTriangle[counter]*3+1] = indexBuffer;
-					counter += 1;
-				}
-				mesh->UnlockIndexBuffer();
-
-				mesh->GenerateAdjacency(0.001f, adjacencyInfo);
-				D3DXComputeNormals(mesh, adjacencyInfo);
+			mesh->LockIndexBuffer(0, (void**)&indices);
+			for(DWORD counter(0); counter != numRelevantTris;)
+			{
+				indexBuffer = indices[relevantTriangle[counter]*3+1];					//Меняем местами второй и третий индекс
+				indices[relevantTriangle[counter]*3+1] = indices[relevantTriangle[counter]*3+2];
+				indices[relevantTriangle[counter]*3+2] = indexBuffer;
+				counter += 1;
 			}
+			mesh->UnlockIndexBuffer();
+
+			mesh->GenerateAdjacency(0.001f, adjacencyInfo);
+			D3DXComputeNormals(mesh, adjacencyInfo);
 		}
 	}
 
 	void newSubset()
 	{
-		bool found[3] = {FALSE, FALSE, FALSE};
-		DWORD vertsID[3];
+		bool found[72];
+		DWORD vertsID[72];
 
-		this->findRelevantVertices(found, vertsID);
+		this->findOneRelevantVert(found, vertsID, 3);
 
 		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE)   //Три вершины найдены
 		{
 			DWORD relevantTriangle[24];
-			DWORD numRelevantTris(0);
-			this->findRelevantTriangles(vertsID, relevantTriangle, &numRelevantTris);
+			DWORD numRelevantTris = this->findRelevantTriangle(vertsID, relevantTriangle, 3);
 
-			if(numPickedVerts == 3)
+			if(numPickedVerts >= 3)
 			{
 				mesh->LockAttributeBuffer(0, &attributeBuffer); 
 				for(DWORD counter(0); counter != numRelevantTris;)
@@ -387,6 +392,69 @@ public:
 		}
 	}
 
+	void cutVertices()
+	{
+		bool found;
+		DWORD vertsID;
+
+		this->findOneRelevantVert(&found, &vertsID, 1);
+		if(found == TRUE && vertexSphere[vertsID]->numLinkedVerts != 0)
+		{
+			for(DWORD counter(0); counter != vertexSphere[vertsID]->numLinkedVerts;)
+			{
+				vertexSphere[vertexSphere[vertsID]->linkedVertices[counter]]->vertType = Father;
+
+				vertexSphere[vertsID]->linkedVertices[counter] = 0;
+				counter += 1;
+			}
+
+			DWORD relevantTris[24];
+			DWORD numFoundTris = this->findRelevantTriangle(&vertsID, relevantTris, 1);
+			for(DWORD counter_2(0); counter_2 != numFoundTris;)
+			{
+				for(DWORD counter_3(0); counter_3 != 3;)
+				{
+					if(triangles[relevantTris[counter_2]]->fathers[counter_3] == vertsID)
+					{
+						triangles[relevantTris[counter_2]]->fathers[counter_3] = triangles[relevantTris[counter_2]]->verticesID[counter_3];
+					}
+					counter_3 += 1;
+				}
+				counter_2 += 1;
+			}
+			vertexSphere[vertsID]->numLinkedVerts = 0;
+		}
+	}
+	void uniteVertices()
+	{
+		bool found[2];
+		DWORD vertsID[2];
+
+		this->findOneRelevantVert(found, vertsID, 2);
+		if(found[0] == TRUE && found[1] == TRUE)
+		{
+			vertexSphere[vertsID[0]]->linkVert(vertsID[1]);
+			vertexSphere[vertsID[1]]->vertType = Child;
+			vertexSphere[vertsID[1]]->isPicked = FALSE;
+
+			particles[vertsID[1]].pos = vertexSphere[vertsID[1]]->center = vertices[vertsID[1]].pos;
+
+			for(DWORD counter(0); counter != vertexSphere[vertsID[1]]->numLinkedVerts;)
+			{
+				vertexSphere[vertsID[0]]->linkVert(vertexSphere[vertsID[1]]->linkedVertices[counter]);
+				vertexSphere[vertsID[1]]->linkedVertices[counter] = 0;
+				vertexSphere[vertexSphere[vertsID[1]]->linkedVertices[counter]]->isPicked = FALSE;
+
+				particles[vertexSphere[vertsID[1]]->linkedVertices[counter]].pos = 
+				vertexSphere[vertexSphere[vertsID[1]]->linkedVertices[counter]]->center = 
+				vertices[vertexSphere[vertsID[1]]->linkedVertices[counter]].pos =
+				vertexSphere[vertsID[1]]->center;
+
+				counter += 1;
+			}
+			vertexSphere[vertsID[1]]->numLinkedVerts = 0;
+		}
+	}
 	void rotateXObject(float Angle)
 	{	worldMatrices.worldMatrixRotateX(Angle);}
 
@@ -447,13 +515,12 @@ public:
 							bool found[3] = {FALSE, FALSE, FALSE};
 							DWORD vertsID[3];
 
-							this->findRelevantVertices(found, vertsID);
+							this->findOneRelevantVert(found, vertsID, 3);
 	
 							if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE)   //Три вершины найдены
 							{
 								DWORD relevantTriangle[24];
-								DWORD numRelevantTris(0);
-								this->findRelevantTriangles(vertsID, relevantTriangle, &numRelevantTris);
+								DWORD numRelevantTris = this->findRelevantTriangle(vertsID, relevantTriangle, 3);
 
 								if(numPickedVerts == 3)
 								{
@@ -465,7 +532,8 @@ public:
 								}
 							}
 						}
-						return vertexSphere[counter]->vertexID+1;
+						if(vertexSphere[counter]->vertType == Father)
+							return vertexSphere[counter]->vertexID+1;
 					}
 				}
 				counter++;
@@ -501,10 +569,10 @@ public:
 		SendMessage(objectsList, LB_INSERTSTRING, (WPARAM)objectNumber, (LPARAM)objectName);
 	}
 
-	void findFourRelevantVertices(bool found[], DWORD vertsID[])
+	void findOneRelevantVert(bool found[], DWORD vertsID[], DWORD numNeededVerts)
 	{
 		int counter(0);
-		for(short i(0); i != 4;)
+		for(short i(0); i != numNeededVerts;)
 		{
 			for(;counter != numCreatedVerts;)
 			{
@@ -520,30 +588,10 @@ public:
 			i++;
 		}
 	}
-
-	void findRelevantVertices(bool found[], DWORD vertsID[])
-	{
-		int counter(0);
-		for(short i(0); i != 3;)
-		{
-			for(;counter != numCreatedVerts;)
-			{
-				if(vertexSphere[counter]->isPicked)
-				{
-					vertsID[i] = vertexSphere[counter]->startVertex;
-					found[i] = TRUE;
-					counter++;
-					break;
-				}
-				counter++;
-			}
-			i++;
-		}
-	}
-
-	void findRelevantTriangles(DWORD vertsID[], DWORD relevantTriangle[], DWORD* numRelevantTris)
+	DWORD findRelevantTriangle(DWORD vertsID[], DWORD relevantTriangle[], DWORD numNeededRelevant)
 	{
 		DWORD relevantVerts(0);
+		DWORD numRelevantTris(0);
 		for(DWORD counter(0); counter != numCreatedFaces;)
 		{
 			for(short counter_2(0); counter_2 != 3;)
@@ -555,14 +603,16 @@ public:
 				if(triangles[counter]->fathers[2] == vertsID[counter_2])
 					relevantVerts += 1;
 
-				if(relevantVerts == 3)
-				{	relevantTriangle[*numRelevantTris] = counter;
-					*numRelevantTris += 1;}
+				if(relevantVerts == numNeededRelevant)
+				{	relevantTriangle[numRelevantTris] = counter;
+					numRelevantTris += 1;
+					break;}
 				counter_2 += 1;
 			}
 			relevantVerts = 0;
 			counter += 1;
 		}
+		return numRelevantTris;
 	}
 	LPCTSTR getObjectName()
 	{	return objectName;}

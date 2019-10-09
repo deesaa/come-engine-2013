@@ -224,13 +224,25 @@ public:
 	{
 		camNumber--;
 		if(camNumber < numCam)
-			camera[camNumber]->resetMatrices();
+			 camera[camNumber]->resetMatrices();
 	}
 
 	void loadTexture(DWORD objectNumber)
 	{
 		objectNumber--;
-		return object[objectNumber]->simplyLoadTexture();
+		object[objectNumber]->simplyLoadTexture();
+	}
+
+	void cutVertices(DWORD objectNumber)
+	{
+		objectNumber--;
+		object[objectNumber]->cutVertices();
+	}
+
+	void uniteVertices(DWORD objectNumber)
+	{
+		objectNumber--;
+		object[objectNumber]->uniteVertices();
 	}
 
 	D3DMATERIAL9* getMaterialClass(DWORD objectNumber)
