@@ -110,7 +110,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 			OC->applyKBMChanges();
 			
-			manager->redrawAllObjects();
+			manager->redrawObject(OC->getPickedObject());
 			manager->redrawObjectOfLight(OC->getPickedLight());
 				
 			device->EndScene();

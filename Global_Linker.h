@@ -55,7 +55,8 @@ void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
 void saveProject(HWND mainWindow);
 std::vector<float> getArrayFlValue(std::string* name, std::string* file);
 DWORD getDwValue(std::string* name, std::string* file);
-bool openObjectVertices(object_class* object, std::string* file);
+bool openObjects(temp_manager* manager, std::wstring fileName);
+bool openObjectVertices(tempObject_class* object, std::string* file);
 bool openProjectInfo(temp_manager* manager, std::string* file);
 bool openProject(object_manager* manager);
 

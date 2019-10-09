@@ -37,19 +37,19 @@ bool openProject(object_manager* manager)
 		OFSTRUCT fileInfo;
 		hFile = CreateFile(ofn.lpstrFile, GENERIC_READ, FILE_SHARE_READ, NULL,  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-		
-
 		//std::ifstream fileStream(ofn.lpstrFile);
 		ReadFile(hFile, chBuffer, sizeof(chBuffer), &numOfBytes, NULL);
 
 		wstrBuffer.append(chBuffer);
 
 		openProjectInfo(&tempManager, &wstrBuffer);
+		openObjects(&tempManager, ofn.lpstrFile);
 	}
 	else
 		return false;
 
-	CloseHandle((HANDLE)hFile);
+	CloseHandle(hFile);
+	tempManager.~temp_manager();
 	return true;
 }
 
@@ -84,6 +84,70 @@ bool openProjectInfo(temp_manager* manager, std::string* file)
 
 }
 
+bool openObjects(temp_manager* manager, std::wstring fileName)
+{
+	std::wstring projectPath;
+	std::wstring pathToFile;
+	std::wstring pathToObjects;
+	std::string  file;
+	DWORD objectNumber(0);
+	WIN32_FIND_DATAW findData;
+	OFSTRUCT fileInfo;
+	char chBuffer[1024];
+	HANDLE hFileFind, hFile;
+	DWORD numOfBytes(0);
+	DWORD nameSize = fileName.size();
+	DWORD bDistTo(0), distTo(0);
+	while(TRUE)
+	{
+		bDistTo = fileName.find(L"\\", distTo);
+		if(bDistTo != std::wstring::npos)
+			distTo = bDistTo+1;
+		else
+			break;
+	}
+	pathToFile = projectPath = pathToObjects = (fileName.erase(distTo, nameSize-distTo));
+	pathToObjects.append(L"Objects\\");
+	projectPath.append(L"Objects\\*.cbj");
+	
+	hFileFind = FindFirstFile(projectPath.c_str(), &findData);
+	if (hFileFind == INVALID_HANDLE_VALUE)
+	{	return FALSE;}
+
+	pathToFile.append(L"Objects\\");
+	pathToFile.append(findData.cFileName);
+
+	hFile = CreateFile(pathToFile.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL,  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	ReadFile(hFile, chBuffer, sizeof(chBuffer), &numOfBytes, NULL);
+	file.clear();
+	file = chBuffer;
+	manager->addObject(&file);
+	objectNumber += 1;
+
+
+	while(TRUE)
+	{
+		if(FindNextFile(hFileFind, &findData) == NULL)
+			break;
+
+		pathToFile = pathToObjects;
+		pathToFile.append(findData.cFileName);
+
+		hFile = CreateFile(pathToFile.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL,  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		ReadFile(hFileFind, chBuffer, sizeof(chBuffer), &numOfBytes, NULL);
+		file.clear();
+		file = chBuffer;
+		manager->addObject(&file);
+
+
+		objectNumber += 1;
+	}
+
+
+	FindClose(hFileFind);
+	CloseHandle(hFile);
+	return TRUE;
+}
 bool openObjectVertices(tempObject_class* object, std::string* file)
 {
 	std::string str;
@@ -106,7 +170,7 @@ bool openObjectVertices(tempObject_class* object, std::string* file)
 		{
 			return false;
 		}
-
+		object->loadVertex(values);
 		vertexNumber += 1;
 	}
 }
@@ -315,6 +379,8 @@ void saveFullObject(object_class* object, std::wstring file)
 		sprintf(chBuffer, "v", vertices[counter].pos.x);
 		strVertices.append(chBuffer);
 		sprintf(chBuffer, "%d:", counter);
+		strVertices.append(chBuffer);
+		sprintf(chBuffer, "%.4f,", vertices[counter].pos.x);
 		strVertices.append(chBuffer);
 		sprintf(chBuffer, "%.4f,", vertices[counter].pos.y);
 		strVertices.append(chBuffer);

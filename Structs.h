@@ -122,6 +122,12 @@ struct vertex
 		nX = bnX; nY = bnY; nZ = bnZ;
 		u = bU; v = bV;
 	}
+	vertex(float bX, float bY, float bZ, float bnX, float bnY, float bnZ)
+	{
+		pos = D3DXVECTOR3(bX, bY, bZ);
+		nX = bnX; nY = bnY; nZ = bnZ;
+		u = 1; v = 0;
+	}
 };
 const DWORD vertex::FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1;
 
