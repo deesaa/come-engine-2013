@@ -53,6 +53,7 @@ void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
 #include "Texture_Class.h"
 #include "Light_Class.h"
 #include "BotStatus_Bar.h"
+#include "TopEditing_Bar.h"
 #include "ObjectClass.h"
 #include "ObjectManager.h"
 #include "DialogWndClass.h"

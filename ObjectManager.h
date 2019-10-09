@@ -4,6 +4,7 @@ class object_manager
 private:
 	IDirect3DDevice9* device;			//Устройство
 	botStatusBar_Class* BSBar;
+	topEditingBar_Class* TEBar;
 	HINSTANCE hInstance;
 	HWND window;
 
@@ -22,10 +23,12 @@ private:
 public:
 	object_manager(){}
 
-	void initManager(IDirect3DDevice9* bDevice, HINSTANCE bhInstance, HWND bWindow, botStatusBar_Class* bBSBar)
+	void initManager(IDirect3DDevice9* bDevice, HINSTANCE bhInstance, HWND bWindow, botStatusBar_Class* bBSBar,
+		topEditingBar_Class* bTEBar)
 	{
 		device = bDevice;						//Сохранение устройства
 		BSBar = bBSBar;
+		TEBar = bTEBar;
 		hInstance = bhInstance;
 		window = bWindow;
 		numObject = 0;					//Установка начального кол-ва объектов

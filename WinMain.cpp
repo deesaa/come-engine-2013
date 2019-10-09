@@ -14,6 +14,7 @@ object_creator* OC;				   //Создатель и редактор объектов
 window_class* windows;			   //Windows-окна (GUI)
 object_settings* objectSettings;   //Окна настроек объектов
 botStatusBar_Class* BStatBar;
+topEditingBar_Class* TEditingBar;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -34,11 +35,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	BStatBar = new botStatusBar_Class;
 	BStatBar->initBStatBar(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
 
+	TEditingBar = new topEditingBar_Class;
+	TEditingBar->initTEBar(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
+
 	manager = new object_manager;	//Выделяем память на менеджер объектов
-	manager->initManager(device, hInstance, windows->getWindowHandle(GET_MAINWINDOW), BStatBar);	//Инициализируем менеджер объектов
+	manager->initManager(device, hInstance, windows->getWindowHandle(GET_MAINWINDOW), BStatBar, TEditingBar);	//Инициализируем менеджер объектов
 
 	OC = new object_creator;		//Выделяем память на редактор объектов
-	OC->initObjectCreator(device, objectCreatorWindow, hInstance, manager, objectSettings, BStatBar);	//Инициализируем редактор объектов
+	OC->initObjectCreator(device, windows->getWindowHandle(GET_MAINWINDOW), hInstance, manager, objectSettings, BStatBar);	//Инициализируем редактор объектов
 
 	device->SetRenderState(D3DRS_LIGHTING, true);
 	device->SetRenderState(D3DRS_NORMALIZENORMALS, true);
@@ -89,6 +93,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	delete windows;
 	delete objectSettings;
 	delete BStatBar;
+	delete TEditingBar;
 	return msg.wParam;
 }
 
@@ -109,6 +114,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ShowWindow(windows->getWindowHandle(GET_NEWSPOTLIGHTBUTTON), SW_HIDE);
 				ShowWindow(windows->getWindowHandle(GET_NEWCAMOBJECTBUTTON), SW_HIDE);
 				BStatBar->hideBar();
+				TEditingBar->hideBar();
 			}
 			else
 			{
@@ -119,7 +125,17 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ShowWindow(windows->getWindowHandle(GET_NEWSPOTLIGHTBUTTON), SW_NORMAL);
 				ShowWindow(windows->getWindowHandle(GET_NEWCAMOBJECTBUTTON), SW_NORMAL);
 				BStatBar->showBar();
+				TEditingBar->showBar();
 			}
+			return 0;
+		case ID_TEBBUTTON1:
+			OC->xAxis();
+			return 0;
+		case ID_TEBBUTTON2:
+			OC->yAxis();
+			return 0;
+		case ID_TEBBUTTON3:
+			OC->zAxis();
 			return 0;
 		case ID_BUTTON2:
 			//Созданный объект принимает управление и добавляется в лист объектов
@@ -256,6 +272,14 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			objectSettings->showLSettingsWnd();
 			return 0;
 		case ID_EDIT1:
+			return 0;
+		case ID_BSBSTATIC2:
+			return 0;
+		case ID_BSBSTATIC4:
+			return 0;
+		case ID_BSBSTATIC6:
+			return 0;
+		case ID_BSBSTATIC8:
 			return 0;
 		}
 	case WM_LBUTTONDOWN:

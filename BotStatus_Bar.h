@@ -31,29 +31,30 @@ public:
 		BSBStatic1 = CreateWindow(L"static", L"Num Picked Verts", WS_CHILD|SS_CENTER, 
 			217, 805, 120, 15, mainWindow, (HMENU)ID_BSBSTATIC1, hInstance, NULL);
 
-		BSBStatic2 = CreateWindow(L"static", L"0", WS_CHILD|ES_CENTER|ES_AUTOHSCROLL, 
+		BSBStatic2 = CreateWindow(L"edit", L"0", WS_CHILD|ES_CENTER|ES_AUTOHSCROLL, 
 			338, 805, 45, 15, mainWindow, (HMENU)ID_BSBSTATIC2, hInstance, NULL);
 
 
 		BSBStatic3 = CreateWindow(L"static", L"X", WS_CHILD|SS_CENTER, 
 			417, 805, 15, 15, mainWindow, (HMENU)ID_BSBSTATIC3, hInstance, NULL);
 
-		BSBStatic4 = CreateWindow(L"static", L"0", WS_CHILD|ES_CENTER|ES_AUTOHSCROLL, 
+		BSBStatic4 = CreateWindow(L"edit", L"0", WS_CHILD|ES_CENTER|ES_AUTOHSCROLL, 
 			434, 805, 125, 15, mainWindow, (HMENU)ID_BSBSTATIC4, hInstance, NULL);
 
 
 		BSBStatic5 = CreateWindow(L"static", L"Y", WS_CHILD|SS_CENTER, 
 			563, 805, 15, 15, mainWindow, (HMENU)ID_BSBSTATIC5, hInstance, NULL);
 
-		BSBStatic6 = CreateWindow(L"static", L"0", WS_CHILD|ES_CENTER|ES_AUTOHSCROLL, 
+		BSBStatic6 = CreateWindow(L"edit", L"0", WS_CHILD|ES_CENTER|ES_AUTOHSCROLL, 
 			580, 805, 125, 15, mainWindow, (HMENU)ID_BSBSTATIC6, hInstance, NULL);
 
 
 		BSBStatic7 = CreateWindow(L"static", L"Z", WS_CHILD|SS_CENTER, 
 			709, 805, 15, 15, mainWindow, (HMENU)ID_BSBSTATIC7, hInstance, NULL);
 
-		BSBStatic8 = CreateWindow(L"static", L"0", WS_CHILD|ES_CENTER|ES_AUTOHSCROLL, 
+		BSBStatic8 = CreateWindow(L"edit", L"0", WS_CHILD|ES_CENTER|ES_AUTOHSCROLL, 
 			726, 805, 125, 15, mainWindow, (HMENU)ID_BSBSTATIC8, hInstance, NULL);
+
 	}
 
 	void writeVertPos(D3DXVECTOR3* pos)
@@ -75,10 +76,11 @@ public:
 		if(numPickedVerts != lastNumPickedVerts)
 		{
 			lastNumPickedVerts = numPickedVerts;
-			char chBuffer[32];
-			WCHAR* objectName;
-			objectName = (WCHAR*)_itow(lastNumPickedVerts, (WCHAR*)chBuffer, radix);
-			SendMessage(BSBStatic2, WM_SETTEXT, NULL, (LPARAM)objectName);
+
+			WCHAR textBuffer[32];
+
+			swprintf((LPWSTR)textBuffer, 32, L"%d", lastNumPickedVerts); 
+			SendMessage(BSBStatic2, WM_SETTEXT, NULL, (LPARAM)textBuffer);
 		}
 	}
 	void showBar()

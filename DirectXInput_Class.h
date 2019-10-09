@@ -29,11 +29,14 @@ public:
 	{
 		di->CreateDevice(GUID_SysKeyboard, &diDeviceKB, NULL);
 		diDeviceKB->SetDataFormat(&c_dfDIKeyboard);
-		diDeviceKB->SetCooperativeLevel(windowHandle, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+		diDeviceKB->SetCooperativeLevel(windowHandle, DISCL_FOREGROUND   | DISCL_NONEXCLUSIVE);
 
 		di->CreateDevice(GUID_SysMouse, &diDeviceM, NULL);
 		diDeviceM->SetDataFormat(&c_dfDIMouse);
-		diDeviceM->SetCooperativeLevel(windowHandle, DISCL_FOREGROUND | DISCL_EXCLUSIVE);	
+		diDeviceM->SetCooperativeLevel(windowHandle, DISCL_FOREGROUND   | DISCL_NONEXCLUSIVE);	
+
+		diDeviceKB->Acquire();
+		diDeviceM->Acquire();
 	}
 	
 	//Получить клавиотуру

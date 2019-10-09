@@ -23,6 +23,7 @@ private:
 	char KBBuffer[256];					//Буфер для хранения состояния клавиотуры
 	DIMOUSESTATE MBuffer;				//Буфер для хранения состояния мыши
 
+	bool axisX, axisY, axisZ;
 	float dX, dY, dZ;					//Статическое храниние информации о передвижении мыши (для передвижения объектов)
 	float AngleX, AngleY, AngleZ;		//Углы для поворота объектов
 	POINT clickedPoint; 
@@ -55,6 +56,7 @@ public:
 		BSBar = bBSBar;
 		windowHandle = bWindowHandle;
 		hInstace = bhInstance;
+		axisX = axisY = axisZ = FALSE;
 		dX = dY = dZ = 0.0f;
 		AngleX = AngleY = 0.0f;
 		clickX = clickY = 0.0f;
@@ -130,6 +132,24 @@ public:
 	UINT getPickedVertex()
 	{	return pickedVertex;}
 
+	void xAxis()
+	{	if(axisX)
+			axisX = FALSE;
+		else
+			axisX = TRUE;}
+
+	void yAxis()
+	{	if(axisY)
+			axisY = FALSE;
+		else
+			axisY = TRUE;}
+
+	void zAxis()
+	{	if(axisZ)
+			axisZ = FALSE;
+		else
+			axisZ = TRUE;}
+
 	void renameObject(HWND objectsList, HWND nameEditor)
 	{
 		manager->renameObject(pickedObject, objectsList, nameEditor);
@@ -195,6 +215,7 @@ public:
 
 	void applyKBMChanges()
 	{
+
 		if(FAILED(KBDevice->GetDeviceState(sizeof(KBBuffer), KBBuffer)))
 			KBDevice->Acquire();
 
@@ -205,6 +226,16 @@ public:
 		{
 			dX = MBuffer.lX * 0.02f;
 			dY = MBuffer.lY * 0.02f;
+
+			if(axisX || axisY || axisZ)
+			{
+				if(axisX)
+					dX = 0.0f;
+				if(axisY)
+					dY = 0.0f;
+				if(axisZ)
+					dZ = 0.0f;		
+			}
 
 			if(pickType == Object)
 				manager->moveObject(pickedObject, dX, dY, dZ);	
