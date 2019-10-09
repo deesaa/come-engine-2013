@@ -121,6 +121,11 @@ public:
 		return GetDlgItem(modelessDlgWnd, itemID);
 	}
 
+	HWND getHWND()
+	{
+		 return modelessDlgWnd;
+	}
+
 	bool isVisible()
 	{
 		return IsWindowVisible(modelessDlgWnd);

@@ -32,8 +32,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	OC->initObjectCreator(device, objectCreatorWindow, hInstance, manager);	//Инициализируем редактор объектов
 
 	objectSettings = new object_settings;
-	objectSettings->initObjectSettings(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
-	objectSettings->initLightSettings(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
+	objectSettings->initSettings(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
+	objectSettings->initObjectSettings();
+	objectSettings->initLightSettings();
 
 	device->SetRenderState(D3DRS_LIGHTING, true);
 	device->SetRenderState(D3DRS_NORMALIZENORMALS, true);
@@ -198,7 +199,18 @@ LRESULT CALLBACK OSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case ID_EOBUTTON1:
 			objectSettings->applyEOChanges();
 			return 0;
-
+		case ID_EOCEDIT1:
+			objectSettings->editODiffuseColor();
+			return 0;
+		case ID_EOCEDIT2:
+			objectSettings->editOAmbientColor();
+			return 0;
+		case ID_EOCEDIT3:
+			objectSettings->editOSpecularColor();
+			return 0;
+		case ID_EOCEDIT4:
+			objectSettings->editOEmissiveColor();
+			return 0;
 		case IDCANCEL:
 			EndDialog(hwnd, TRUE);
 			return 0;
@@ -218,11 +230,38 @@ LRESULT CALLBACK LSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			objectSettings->applyELChanges();
 			manager->resetLight(OC->getPickedLight());
 			return 0;
-
+		case ID_ELCEDIT1:
+			objectSettings->editLDiffuseColor();
+			manager->resetLight(OC->getPickedLight());
+			return 0;
+		case ID_ELCEDIT2:
+			objectSettings->editLAmbientColor();
+			manager->resetLight(OC->getPickedLight());
+			return 0;
+		case ID_ELCEDIT3:
+			objectSettings->editLSpecularColor();
+			manager->resetLight(OC->getPickedLight());
+			return 0;
 		case IDCANCEL:
 			EndDialog(hwnd, TRUE);
 			return 0;
 		}
+	}
+	return 0;
+}
+
+LRESULT CALLBACK CEDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch(msg)
+	{
+	case WM_COMMAND:
+		switch(LOWORD(wParam))
+		{
+		case IDOK:
+			EndDialog(hwnd, TRUE);
+			return 0;
+		}
+		return 0;
 	}
 	return 0;
 }
