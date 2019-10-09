@@ -11,16 +11,18 @@ char buffer[256];
 
 object_manager* manager;
 object_creator* OC;
+window_class* windows;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	window_class windows(windowName, className, hInstance, MainProc);			//Создания базового GUI
+	windows = new window_class;
+	windows->initWindows(windowName, className, hInstance, MainProc);	//Создания базового GUI
 
-	directx9_class device1(windows.getWindowHandle(), hInstance);				//Подключение точки вывода DirectX к окну
+	directx9_class device1(windows->getWindowHandle(), hInstance);				//Подключение точки вывода DirectX к окну
 
 	device = device1.getDevice();							//Вывод выше сделанных объектов в глобальную видимость 
-	objectCreatorWindow = windows.getWindowHandle();		//Получение дескриптора окна, в которое идет вывод DirectX
-	COButton			= windows.getCOButtonHandle();		//Получение дескриптора кнопки, создающей новый объект
+	objectCreatorWindow = windows->getWindowHandle();		//Получение дескриптора окна, в которое идет вывод DirectX
+	COButton			= windows->getCOButtonHandle();		//Получение дескриптора кнопки, создающей новый объект
 
 	manager = new object_manager;	//Выделяем память на менеджер объектов
 	manager->initManager(device);	//Инициализируем менеджер объектов
@@ -80,7 +82,15 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			return 0;
 		case ID_BUTTON2:
-			OC->TakeCreatedObject(manager->createNewObject());
+			OC->pickObject(manager->createNewObject(windows->getObjectsList()));
+			return 0;
+		case ID_LISTBOX1:
+			switch(HIWORD(wParam))
+			{
+			case LBN_SELCHANGE:
+				OC->pickObject(windows->takeObjectFromList());
+				return 0;
+			}
 			return 0;
 		}
 	case WM_DESTROY:

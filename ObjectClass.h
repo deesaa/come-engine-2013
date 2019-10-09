@@ -16,6 +16,7 @@ class object_class
 private:
 	IDirect3DDevice9* device;
 	UINT ObjectID;
+	LPCTSTR objectName;
 
 	IDirect3DVertexBuffer9* vb;
 	IDirect3DIndexBuffer9* ib;
@@ -31,6 +32,7 @@ public:
 		ib = bIb;
 		device = bDevice;
 		ObjectID = numObject;
+		objectName = L"Object";
 
 		worldMatrices.fillMatrix(0, 0, 0, device);
 		worldMatrices.worldMatrixRotateX(0.0f);		//Установка углов наклона в 0 (для правильного начального отображения)
@@ -88,6 +90,11 @@ public:
 	void rotateZObject(float Angle)
 	{
 		worldMatrices.worldMatrixRotateZ(Angle);
+	}
+
+	LPCTSTR getObjctName()
+	{
+		return objectName;
 	}
 
 	void redraw()

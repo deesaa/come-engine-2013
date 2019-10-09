@@ -1,14 +1,17 @@
-#define ID_BUTTON1 1001
-#define ID_BUTTON2 1002
-#define ID_STATIC1 2001
+#define ID_BUTTON1  1001
+#define ID_BUTTON2  1002
+#define ID_STATIC1  2001
+
+#define ID_LISTBOX1 3001
 
 class window_class
 {
 private:
 	HWND mainWindow, OCButton, COButton, directXWindow;
+	HWND objectsList;
 	LPCTSTR mainWindowName, OCButtonName;
 public:
-	window_class(LPCTSTR windowName, LPCTSTR className, HINSTANCE hInstance, WNDPROC proc)
+	void initWindows(LPCTSTR windowName, LPCTSTR className, HINSTANCE hInstance, WNDPROC proc)
 	{
 		RegWndClass(proc, hInstance, className);
 
@@ -23,6 +26,14 @@ public:
 
 		directXWindow = CreateWindow(L"static", NULL, WS_CHILD|WS_BORDER, 
 			217, 100, DirectXWidth, DirectXHeight, mainWindow, (HMENU)ID_STATIC1, hInstance, NULL);
+
+		objectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD|WS_VISIBLE, 
+			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX1, hInstance, NULL);
+	}
+
+	UINT takeObjectFromList()
+	{
+		return ((UINT)SendMessage(objectsList, LB_GETCURSEL, 0, 0L) + 1);
 	}
 
 	HWND getWindowHandle()
@@ -32,6 +43,10 @@ public:
 	HWND getCOButtonHandle()
 	{
 		return COButton;
+	}
+	HWND getObjectsList()
+	{
+		return objectsList;
 	}
 };
 

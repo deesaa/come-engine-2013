@@ -90,7 +90,7 @@ public:
 			0);
 	}
 
-	void TakeCreatedObject(UINT bPickedObject)
+	void pickObject(UINT bPickedObject)
 	{
 		pickedObject = bPickedObject;
 	}

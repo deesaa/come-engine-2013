@@ -41,10 +41,11 @@ public:
 	}
 
 	//Создание абсолютно нового объекта
-	UINT createNewObject()
+	UINT createNewObject(HWND objectList)
 	{
 		object[numObject] = new object_class;	//Выделение памяти для объекта
 		object[numObject]->initObjectBase(device, numObject, vb, ib); //Создание базы нового объекта
+		SendMessage(objectList, LB_ADDSTRING, 0, (LPARAM)object[numObject]->getObjctName());
 		numObject++; //Инкремент счетчика объектов
 		return numObject;
 	}
