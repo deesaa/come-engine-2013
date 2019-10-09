@@ -34,8 +34,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	objectSettings = new object_settings;
 	objectSettings->initObjectSettings(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
 
-	device->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
-
+	device->SetRenderState(D3DRS_LIGHTING, true);
+	device->SetRenderState(D3DRS_NORMALIZENORMALS, true);
+	device->SetRenderState(D3DRS_SPECULARENABLE, true);
 	
 	while(true)
 	{
@@ -50,12 +51,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		else
 		{
 			device->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
-				0x0000fff0, 1.0f, 0);
+				0x00000000, 1.0f, 0);
 			device->BeginScene();
 
 			OC->applyKBMChanges();
 			OC->redraw();
-			manager->redrawObject(OC->getPickedObjct());
+			manager->redrawAllObjects();
 				
 			device->EndScene();
 			device->Present(0, 0, 0, 0); 
@@ -88,7 +89,17 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case ID_BUTTON2:
 			//Созданный объект принимает управление и добавляется в лист объектов
 			OC->pickObject(manager->createNewObject(windows->getWindowHandle(GET_OBJECTLIST)));
+
+			if(IsWindowVisible(windows->getWindowHandle(GET_LIGHTOBJECTLIST)))		
+				ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);							
+			if(!IsWindowVisible(windows->getWindowHandle(GET_OBJECTLIST)))	
+				ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_NORMAL);							
 			return 0;
+
+		case ID_BUTTON4:	
+			OC->pickLight(manager->createNewDirectionLight(windows->getWindowHandle(GET_LIGHTOBJECTLIST)));
+			return 0;
+
 		case ID_LISTBOX1:
 			switch(HIWORD(wParam))
 			{

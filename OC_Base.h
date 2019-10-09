@@ -40,6 +40,7 @@ private:
 
 	object_manager* manager;			//Дескриптор менеджера объектов
 	UINT pickedObject;					//Выбранный в данный момент объект(на него переключается управление)
+	UINT pickedLight;
 
 public:
 	object_creator(){}
@@ -91,14 +92,12 @@ public:
 	}
 
 	void pickObject(UINT bPickedObject)
-	{
-		pickedObject = bPickedObject;
-	}
+	{	pickedLight = NULL;
+		pickedObject = bPickedObject;}
 
-	UINT getPickedObjct()
-	{
-		return pickedObject;
-	}
+	void pickLight(UINT bPickedLight)
+	{	pickedObject = NULL;
+		pickedLight = bPickedLight;}
 
 	void renameObject(HWND objectsList, HWND nameEditor)
 	{
@@ -108,7 +107,6 @@ public:
 
 	void applyKBMChanges()
 	{
-		
 		if(FAILED(KBDevice->GetDeviceState(sizeof(KBBuffer), KBBuffer)))
 			KBDevice->Acquire();
 
@@ -118,10 +116,8 @@ public:
 		if (KBBuffer[DIK_W] & 0x80)
 		{
 			AngleX = 0.001f;
-			if(pickedObject == NULL)
-				matrices.worldMatrixRotateX(AngleX);
-			else
-				manager->rotateObject(pickedObject, ROTATION_AXIS_X, AngleX);
+			if(pickedObject != NULL)
+				manager->rotateObject(pickedObject, ROTATION_AXIS_X, AngleX);		
 		}
 
 		if (KBBuffer[DIK_S] & 0x80)
@@ -156,10 +152,16 @@ public:
 			dX = MBuffer.lX * 0.02f;
 			dY = MBuffer.lY * 0.02f;
 
+			LPPOINT  lipPoint;
+			GetCursorPos(lipPoint); 
+
 			if(pickedObject == NULL)
-				matrices.worldMatrixMove(dX, dY, 0);
+				matrices.worldMatrixMove(dX, dY, dZ);
 			else
-				manager->moveObject(pickedObject, dX, dY, 0);
+			{
+				if(pickedObject != NULL)
+					manager->moveObject(pickedObject, dX, dY, dZ);	
+			}
 		}
 		
 		if (MBuffer.rgbButtons[RIGHT_BUTTON] & 0x80)

@@ -3,10 +3,12 @@
 #define ID_BUTTON1  1001
 #define ID_BUTTON2  1002
 #define ID_BUTTON3  1003
+#define ID_BUTTON4  1004
 //Статические окна 
 #define ID_STATIC1  2001
 //Окна списков
 #define ID_LISTBOX1 3001
+#define ID_LISTBOX2 3002
 //Окна текстовых редакторов
 #define ID_EDIT1    4001
 
@@ -16,12 +18,13 @@
 #define GET_OBJECTLIST			3
 #define GET_OBJECTNAMEEDITOR	4
 #define GET_MAINWINDOW			5
+#define GET_LIGHTOBJECTLIST     6
 
 class window_class
 {
 private:
-	HWND mainWindow, OCButton, COButton, directXWindow;   //Окна, относящиеся к созданию объекта
-	HWND objectsList;   //Список, содержащий созданные объекты
+	HWND mainWindow, OCButton, COButton, CLButton, directXWindow;   //Окна, относящиеся к созданию объекта
+	HWND objectsList, lightObjectsList;   //Список, содержащий созданные объекты
 	HWND OSButton1, OSEdit1;   //Окна, относящиеся к редактированию объектов
 	LPCTSTR mainWindowName;	   //Название окна
 
@@ -36,20 +39,26 @@ public:
 			0, 0, Width, Height, NULL, NULL, hInstance, NULL);
 
 		//Кнопка, открывающая создатель/редактор объектов
-		OCButton   = CreateWindow(L"button", L"Object Creator", WS_CHILD|WS_VISIBLE|BS_CENTER, 
+		OCButton = CreateWindow(L"button", L"Object Creator", WS_CHILD|WS_VISIBLE|BS_CENTER, 
 			12, 100, 190, 35, mainWindow, (HMENU)ID_BUTTON1, hInstance, NULL);
 
 		//Кнопка, создающая новый объект
-		COButton   = CreateWindow(L"button", L"Create Object", WS_CHILD|BS_CENTER, 
-			102, 135, 100, 17, mainWindow, (HMENU)ID_BUTTON2, hInstance, NULL);
+		COButton = CreateWindow(L"button", L"Create Object", WS_CHILD|BS_CENTER, 
+			61, 135, 100, 20, mainWindow, (HMENU)ID_BUTTON2, hInstance, NULL);
+
+		CLButton = CreateWindow(L"button", L"Create Directional Light", WS_CHILD|BS_CENTER|WS_VISIBLE, 
+			26, 155, 170, 20, mainWindow, (HMENU)ID_BUTTON4, hInstance, NULL);
 
 		//Окно, подключаемое к DirectX
 		directXWindow = CreateWindow(L"static", NULL, WS_CHILD|WS_BORDER, 
 			217, 100, DirectXWidth, DirectXHeight, mainWindow, (HMENU)ID_STATIC1, hInstance, NULL);
 
 		//Глобальный перечень всех созданных объектов
-		objectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD|WS_VISIBLE, 
+		objectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
 			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX1, hInstance, NULL);
+
+		lightObjectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
+			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX2, hInstance, NULL);
 
 		//Текстовый редактор для редактирования названия объекта
 		OSEdit1 = CreateWindow(L"edit", NULL, WS_CHILD|WS_BORDER|WS_VISIBLE|ES_LEFT|ES_AUTOHSCROLL, 
@@ -75,6 +84,8 @@ public:
 			return COButton;
 		case GET_OBJECTLIST:
 			return objectsList;
+		case GET_LIGHTOBJECTLIST:
+			return lightObjectsList;
 		case GET_OBJECTNAMEEDITOR:
 			return OSEdit1;
 		case GET_MAINWINDOW:

@@ -4,8 +4,11 @@ class object_manager
 private:
 	IDirect3DDevice9* device;			//Устройство
 	UINT numObject;						//Счетчик объектов
+	UINT numLight;						//Счетчик объектов света
+	UINT numGlobal;
 
 	object_class* object[64];			//Массив сылок на объекты
+	light_class* light[64];				//Массив сылок на объекты света
 
 	IDirect3DVertexBuffer9* vb;			//Буфер вершин
 	IDirect3DIndexBuffer9* ib;			//Буфер индексов
@@ -17,6 +20,8 @@ public:
 	{
 		device = bDevice;				//Сохранение устройства
 		numObject = 0;					//Установка начального кол-ва объектов
+		numLight = 0;
+		numGlobal = 0;
 		this->createBuffers();			//Создание буфера вершин и индексов
 	}
 
@@ -45,9 +50,20 @@ public:
 	{
 		object[numObject] = new object_class;	//Выделение памяти для объекта
 		object[numObject]->initObjectBase(device, numObject, vb, ib); //Создание базы нового объекта
-		SendMessage(objectList, LB_ADDSTRING, 0, (LPARAM)object[numObject]->getObjectName());
+		SendMessage(objectList, LB_INSERTSTRING, numObject, (LPARAM)object[numObject]->getObjectName());
 		numObject++; //Инкремент счетчика объектов
+		numGlobal++;
 		return numObject;
+	}
+
+	UINT createNewDirectionLight(HWND lightObjectList)
+	{
+		light[numLight] = new light_class;
+		light[numLight]->initDirectionLightBase(device, numLight);
+		SendMessage(lightObjectList, LB_INSERTSTRING, numLight, (LPARAM)light[numLight]->getLightName());
+		numLight++;
+		numGlobal++;
+		return numLight;
 	}
 
 	void renameObject(UINT objectNumber, HWND objectsList, HWND nameEditor)
@@ -55,7 +71,6 @@ public:
 		objectNumber--;
 		if(objectNumber < numObject)
 			object[objectNumber]->renameObject(objectsList, nameEditor, objectNumber);
-		
 	}
 
 	void moveObject(UINT objectNumber, float x, float y, float z)
@@ -86,7 +101,7 @@ public:
 	}
 
 	//Перерисовать объект
-	void redrawObject(UINT objectNumber)
+	void redrawObject(UINT objectNumber, UINT lightObjectNumber)
 	{
 		objectNumber--;
 		if (objectNumber < numObject)			//Если данный объект создан
