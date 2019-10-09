@@ -83,7 +83,7 @@ public:
 		return numCam;
 	}
 
-	DWORD checkIntersectionWithObjects(ray_struct clickRay)
+	DWORD checkIntersectionWithObjects(ray_struct clickRay, interType intersectedType)
 	{
 		DWORD intersectedObject = 0;
 		D3DXMATRIX viewMatrix;
@@ -95,7 +95,7 @@ public:
 
 		for(DWORD numObjectC = 0; numObjectC != numObject; numObjectC++)
 		{	
-			intersectedObject = object[numObjectC]->checkIntersection(clickRay);
+			intersectedObject = object[numObjectC]->checkIntersection(clickRay, intersectedType);
 			if(intersectedObject != NULL)
 				return intersectedObject;
 		}
@@ -168,6 +168,12 @@ public:
 		camNumber--;
 		if(camNumber < numCam)
 			camera[camNumber]->move(moveType);
+	}
+
+	void moveVertex(DWORD objectNumber, DWORD vertexNumber, float x, float y, float z)
+	{
+		objectNumber--;
+		object[objectNumber]->moveVertex(vertexNumber, x, y, z);
 	}
 
 	void rotateCam(DWORD camNumber, float dX, float dY)

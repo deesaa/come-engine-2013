@@ -1,3 +1,6 @@
+
+enum interType{interObject, interVertex};
+
 struct vertex	
 {
 	float x, y, z;
@@ -35,8 +38,12 @@ private:
 
 	DWORD numSubsetsAttributes;
 	DWORD numSubsets;
+	DWORD numMaterials;
+
 	DWORD numVertices;
 	DWORD numFaces;
+	DWORD numCreatedVerts;
+	DWORD numCreatedFaces;
 
 	material_class* material[64];
 	worldMatrices_class worldMatrices;
@@ -48,18 +55,23 @@ public:
 		ObjectID = numObject;
 		objectName = L"Object";	
 		numSubsets = 0;
+		numCreatedVerts = 0;
+		numCreatedFaces = 0;
 
-		D3DXCreateMeshFVF(32, 64, D3DXMESH_MANAGED, vertex::FVF, device, &mesh);
+		D3DXCreateMeshFVF(256, 512, D3DXMESH_MANAGED, vertex::FVF, device, &mesh);
+	
 		this->baseObject();
-		numVertices = mesh->GetNumVertices();
-		this->spheresOfVertices();
 
+		numVertices = mesh->GetNumVertices();
 		numFaces = mesh->GetNumFaces();
+
 		adjacencyInfo = new DWORD [numFaces * 3];
 		mesh->GenerateAdjacency(0.0001f, adjacencyInfo);
 
+		D3DXComputeNormals(mesh, adjacencyInfo);
+
 		optimizedAdjacencyInfo = new DWORD [numFaces * 3];
-		mesh->OptimizeInplace(D3DXMESHOPT_ATTRSORT|D3DXMESHOPT_COMPACT|D3DXMESHOPT_VERTEXCACHE,
+		mesh->OptimizeInplace(D3DXMESHOPT_ATTRSORT|D3DXMESHOPT_COMPACT|D3DXMESHOPT_IGNOREVERTS,
 			adjacencyInfo, optimizedAdjacencyInfo, 0, 0);
 
 
@@ -67,69 +79,103 @@ public:
 		attributeTable = new D3DXATTRIBUTERANGE [numSubsetsAttributes];
 		mesh->GetAttributeTable(attributeTable, &numSubsetsAttributes);
 
-
-		material[numSubsets] = new material_class;
-		material[numSubsets]->initMaterialBase(device);
-		numSubsets++;
-
 		worldMatrices.fillMatrix(0, 0, 0, device);
 		worldMatrices.worldMatrixRotateX(0.0f);		//Установка углов наклона в 0 (для правильного начального отображения)
 		worldMatrices.worldMatrixRotateY(0.0f);
 		worldMatrices.worldMatrixRotateZ(0.0f);
 	}
 
-	void baseObject()
+	void createFoundation()
 	{
 		mesh->LockVertexBuffer(0, (void**)&vertices);
-		vertices[0] = vertex(-1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
-		vertices[1] = vertex( 0.0f, 1.0f,  0.0f, 0.0f, 0.707f, -0.707f);
-		vertices[2] = vertex( 1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
-
-		// левая грань
-		vertices[3] = vertex(-1.0f, 0.0f,  1.0f, -0.707f, 0.707f, 0.0f);
-		vertices[4] = vertex( 0.0f, 1.0f,  0.0f, -0.707f, 0.707f, 0.0f);
-		vertices[5] = vertex(-1.0f, 0.0f, -1.0f, -0.707f, 0.707f, 0.0f);
-
-		// правая грань
-		vertices[6] = vertex( 1.0f, 0.0f, -1.0f, 0.707f, 0.707f, 0.0f);
-		vertices[7] = vertex( 0.0f, 1.0f,  0.0f, 0.707f, 0.707f, 0.0f);
-		vertices[8] = vertex( 1.0f, 0.0f,  1.0f, 0.707f, 0.707f, 0.0f);
-
-		// задняя грань
-		vertices[9]  = vertex( 1.0f, 0.0f, 1.0f, 0.0f, 0.707f, 0.707f);
-		vertices[10] = vertex( 0.0f, 1.0f, 0.0f, 0.0f, 0.707f, 0.707f);
-		vertices[11] = vertex(-1.0f, 0.0f, 1.0f, 0.0f, 0.707f, 0.707f);
+		vertices[numCreatedVerts  ] = vertex( 0.0f, 1.0f,  0.0f, 0.0f, 0.0f, 0.0f);
+		vertices[numCreatedVerts+1] = vertex( 1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f);	
+		vertices[numCreatedVerts+2] = vertex(-1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f);
 		mesh->UnlockVertexBuffer();
 
 		mesh->LockIndexBuffer(0, (void**)&indices);
-		indices[0] = 0; indices[1] = 1; indices[2] = 2;
-		indices[3] = 3; indices[4] = 4; indices[5] = 5;
-		indices[6] = 6; indices[7] = 7; indices[8] = 8;
-		indices[9] = 9; indices[10] = 10; indices[11] = 11;
+		indices[numCreatedVerts  ] = numCreatedVerts; 
+		indices[numCreatedVerts+1] = numCreatedVerts+1; 
+		indices[numCreatedVerts+2] = numCreatedVerts+2;
 		mesh->UnlockIndexBuffer();
 
-		mesh->LockAttributeBuffer(0, &attributeBuffer);
-		for(int a = 0; a < 4; a++)   
-			attributeBuffer[a] = 0; 
-
+		mesh->LockAttributeBuffer(0, &attributeBuffer); 
+		attributeBuffer[numCreatedFaces] = 0; 
 		mesh->UnlockAttributeBuffer();
+
+		vertexSphere[numCreatedVerts] = new sphere_struct;
+		vertexSphere[numCreatedVerts]->center.x = vertices[numCreatedVerts].x;
+		vertexSphere[numCreatedVerts]->center.y = vertices[numCreatedVerts].y;
+		vertexSphere[numCreatedVerts]->center.z = vertices[numCreatedVerts].z;
+		vertexSphere[numCreatedVerts]->radius   = 0.6f;
+		vertexSphere[numCreatedVerts]->vertexID = numCreatedVerts;
+		vertexSphere[numCreatedVerts+1] = new sphere_struct;
+		vertexSphere[numCreatedVerts+1]->center.x = vertices[numCreatedVerts+1].x;
+		vertexSphere[numCreatedVerts+1]->center.y = vertices[numCreatedVerts+1].y;
+		vertexSphere[numCreatedVerts+1]->center.z = vertices[numCreatedVerts+1].z;
+		vertexSphere[numCreatedVerts+1]->radius   = 0.6f;
+		vertexSphere[numCreatedVerts+1]->vertexID = numCreatedVerts+1;
+		vertexSphere[numCreatedVerts+2] = new sphere_struct;
+		vertexSphere[numCreatedVerts+2]->center.x = vertices[numCreatedVerts+2].x;
+		vertexSphere[numCreatedVerts+2]->center.y = vertices[numCreatedVerts+2].y;
+		vertexSphere[numCreatedVerts+2]->center.z = vertices[numCreatedVerts+2].z;
+		vertexSphere[numCreatedVerts+2]->radius   = 0.6f;
+		vertexSphere[numCreatedVerts+2]->vertexID = numCreatedVerts+2;
+
+		numCreatedFaces++;
+		numCreatedVerts += 3;
 	}
 
-	void spheresOfVertices()
+	void createVertex()
 	{
-		for (DWORD v = 0; v != numVertices;)
-		{
-			vertexSphere[v] = new sphere_struct;
-			vertexSphere[v]->center.x = vertices[v].x;
-			vertexSphere[v]->center.y = vertices[v].y;
-			vertexSphere[v]->center.z = vertices[v].z;
-			vertexSphere[v]->radius	  = 0.5f; 
-			v++;
-		}
+		mesh->LockVertexBuffer(0, (void**)&vertices);
+		vertices[numCreatedVerts] = vertex(-1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 0.0f); //New 
+		mesh->UnlockVertexBuffer();
+
+		mesh->LockIndexBuffer(0, (void**)&indices);
+		indices[numCreatedVerts  ] = numCreatedVerts; 
+		indices[numCreatedVerts+1] = numCreatedVerts-3; 
+		indices[numCreatedVerts+2] = numCreatedVerts-1;
+		mesh->UnlockIndexBuffer();
+
+		mesh->LockAttributeBuffer(0, &attributeBuffer); 
+		attributeBuffer[numCreatedFaces] = 0; 
+		mesh->UnlockAttributeBuffer();
+
+		vertexSphere[numCreatedVerts] = new sphere_struct;
+		vertexSphere[numCreatedVerts]->center.x = vertices[numCreatedVerts].x;
+		vertexSphere[numCreatedVerts]->center.y = vertices[numCreatedVerts].y;
+		vertexSphere[numCreatedVerts]->center.z = vertices[numCreatedVerts].z;
+		vertexSphere[numCreatedVerts]->radius   = 0.6f;
+		vertexSphere[numCreatedVerts]->vertexID = numCreatedVerts;
+
+		numCreatedVerts++;
+		numCreatedFaces++;	
+	}
+
+	void baseObject()
+	{
+		this->createFoundation();
+		this->createVertex();
+
+		material[numSubsets] = new material_class;
+		material[numSubsets]->initMaterialBase(device);
+		numSubsets++;
 	}
 
 	void moveObject(float x, float y, float z)
 	{	worldMatrices.worldMatrixMove(x, y, z);}
+
+	void moveVertex(DWORD vertexNumber, float x, float y, float z)
+	{
+		vertexNumber--;
+		
+		mesh->LockVertexBuffer(0, (void**)&vertices);
+		vertices[vertexNumber].x += x;
+		vertices[vertexNumber].y -= y;
+		vertices[vertexNumber].z += z;
+		mesh->UnlockVertexBuffer();	
+	}
 
 	void rotateXObject(float Angle)
 	{	worldMatrices.worldMatrixRotateX(Angle);}
@@ -140,7 +186,7 @@ public:
 	void rotateZObject(float Angle)
 	{	worldMatrices.worldMatrixRotateZ(Angle);}
 
-	DWORD checkIntersection(ray_struct clickRay)
+	DWORD checkIntersection(ray_struct clickRay, interType intersectedType)
 	{
 		BOOL  hit;	DWORD pFaceIndex; FLOAT pU; FLOAT pV; FLOAT pDist;
 
@@ -151,12 +197,42 @@ public:
 		D3DXVec3TransformNormal(&clickRay.direction, &clickRay.direction, &worldMatrix);
 		D3DXVec3Normalize(&clickRay.direction, &clickRay.direction);
 
-		D3DXIntersect(mesh, &clickRay.origin, &clickRay.direction,
-			&hit, &pFaceIndex, &pU, &pV, &pDist, NULL, NULL);
-		if(hit == TRUE)
-			return ObjectID + 1;
-		else
+		if(intersectedType == interVertex)
+		{
+			for(int counter = 0; counter != numCreatedVerts;)
+			{
+				D3DXVECTOR3 v = clickRay.origin - vertexSphere[counter]->center;
+
+				float b = 2.0f * D3DXVec3Dot(&clickRay.direction, &v);
+				float c = D3DXVec3Dot(&v, &v) - (vertexSphere[counter]->radius * vertexSphere[counter]->radius);
+
+				float discriminant = (b * b) - (4.0f * c);
+
+				if(discriminant > 0.0f)
+				{
+					discriminant = sqrtf(discriminant);
+
+					float s0 = (-b + discriminant) / 2.0f;
+					float s1 = (-b - discriminant) / 2.0f;
+
+					if(s0 >= 0.0f || s1 >= 0.0f)
+						return vertexSphere[counter]->vertexID+1;
+				}
+				counter++;
+			}
 			return 0;
+		}
+
+		if(intersectedType == interObject)
+		{
+			D3DXIntersect(mesh, &clickRay.origin, &clickRay.direction,
+				&hit, &pFaceIndex, &pU, &pV, &pDist, NULL, NULL);
+	
+			if(hit == TRUE)
+				return ObjectID + 1;
+			else
+				return 0;
+		}
 	}
 
 	D3DMATERIAL9* getMaterial()
@@ -184,7 +260,8 @@ public:
 		for(DWORD subset = 0; subset != numSubsets; subset++)
 		{
 			material[subset]->resetMaterial();
-			mesh->DrawSubset(0);
+			worldMatrices.resetMatrices();
+			mesh->DrawSubset(subset);
 		}
 	}
 
@@ -197,11 +274,10 @@ public:
 			material[numSubsets] = NULL;
 		}
 
-		for (; numVertices != NULL;)
+		for(;numCreatedVerts != 0;)
 		{
-			numVertices--;
-			delete vertexSphere[numVertices];
-			vertexSphere[numVertices] = NULL;
+			delete vertexSphere[numCreatedVerts];
+			numCreatedVerts--;
 		}
 
 		delete adjacencyInfo;

@@ -184,6 +184,13 @@ public:
 		finallyWorldMatrix  = finallyRotateMatrix * worldMatrix;
 		device->SetTransform(D3DTS_WORLD, &finallyWorldMatrix);
 	}
+
+	void resetWithoutRotate()
+	{
+		finallyRotateMatrix = rotateXMatrix * rotateYMatrix * rotateZMatrix;
+		finallyWorldMatrix  = finallyRotateMatrix * worldMatrix;
+		device->SetTransform(D3DTS_WORLD, &finallyWorldMatrix);
+	}
 };
 
 void setAllMatrices(D3DXMATRIX* worldMatrix, D3DXMATRIX* viewMatrix, D3DXMATRIX* projMatrix, IDirect3DDevice9* device)

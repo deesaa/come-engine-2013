@@ -2,6 +2,7 @@ struct sphere_struct
 {
 	D3DXVECTOR3 center;
 	float radius;
+	DWORD vertexID;
 };
 
 struct ray_struct

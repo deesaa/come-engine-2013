@@ -1,6 +1,6 @@
 
 
-enum picked{Nothing, Object, Light, Cam};
+enum picked{Nothing, Object, Light, Cam, Vertex};
 
 class object_creator
 {
@@ -31,6 +31,7 @@ private:
 	DWORD pickedObject;					//Выбранный в данный момент объект(на него переключается управление)
 	DWORD pickedLight;
 	DWORD pickedCam;
+	DWORD pickedVertex;
 
 	picked pickType;
 
@@ -55,6 +56,7 @@ public:
 		pickedObject = NULL;					
 		pickedLight = NULL;
 		pickedCam = NULL;
+		pickedVertex = NULL;
 		pickType = Nothing;
 	}
 
@@ -90,6 +92,10 @@ public:
 	{	pickType = Cam;
 		pickedCam = bPickedCam;}
 
+	void pickVertex(UINT bPickedVertex)
+	{	pickType = Vertex;
+		pickedVertex = bPickedVertex;}
+
 	UINT getPickedObject()
 	{	return pickedObject;}
 
@@ -98,6 +104,9 @@ public:
 
 	UINT getPickedCam()
 	{	return pickedCam;}
+
+	UINT getPickedVertex()
+	{	return pickedVertex;}
 
 	void renameObject(HWND objectsList, HWND nameEditor)
 	{
@@ -120,12 +129,25 @@ public:
 
 	bool pickIntersectedObject()
 	{
-		DWORD bPickedObject = manager->checkIntersectionWithObjects(clickRay);
+		DWORD bPickedObject = manager->checkIntersectionWithObjects(clickRay, interObject);
 
 		if(bPickedObject != 0)
 		{
 			pickedObject = bPickedObject;
 			pickType = Object;
+			return true;
+		}
+		return false;
+	}
+
+	bool pickIntersectedVertex()
+	{
+		DWORD bPickedVertex = manager->checkIntersectionWithObjects(clickRay, interVertex);
+
+		if(bPickedVertex != 0)
+		{
+			pickedVertex = bPickedVertex;
+			pickType = Vertex;
 			return true;
 		}
 		return false;
@@ -167,7 +189,8 @@ public:
 				manager->moveLight(pickedLight, dX, dY, dZ);
 			if (pickType == Cam)
 				manager->rotateCam(pickedCam, dX, dY);	
-
+			if(pickType == Vertex)
+				manager->moveVertex(pickedObject, pickedVertex, dX, dY, dZ);
 		}
 		
 		if (KBBuffer[DIK_W] & 0x80)

@@ -238,11 +238,18 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		GetCursorPos(&pOc);
 		ScreenToClient(windows->getWindowHandle(GET_D3DWINDOW), &pOc);
 		OC->createRayOfClick(pOc);
+		if(OC->pickIntersectedVertex())
+		{
+			objectSettings->showOSButton(SW_NORMAL);
+			objectSettings->fillObjectSettings(OC->getMaterialClass());
+		}
+
 		if(OC->pickIntersectedObject())
 		{
 			objectSettings->showOSButton(SW_NORMAL);
 			objectSettings->fillObjectSettings(OC->getMaterialClass());
 		}
+
 		if(OC->checkPickType(Cam))
 		{
 			RECT rect;
