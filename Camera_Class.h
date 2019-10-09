@@ -94,6 +94,15 @@ public:
 	LPCTSTR getCamName()
 	{	return camName; }
 
+	D3DXVECTOR3* getPtRight()
+	{	return &right;}
+
+	D3DXVECTOR3* getPtUp()
+	{	return &up;}
+
+	D3DXVECTOR3* getPtLook()
+	{	return &look;}
+
 	void resetMatrices()
 	{
 		D3DXVec3Normalize(&look, &look);

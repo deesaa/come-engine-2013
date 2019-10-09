@@ -83,6 +83,7 @@ public:
 		worldMatrices.worldMatrixRotateX(0.0f);		//Установка углов наклона в 0 (для правильного начального отображения)
 		worldMatrices.worldMatrixRotateY(0.0f);
 		worldMatrices.worldMatrixRotateZ(0.0f);
+		
 	}
 
 	void createFoundation()
@@ -163,8 +164,17 @@ public:
 		numSubsets++;
 	}
 
-	void moveObject(float x, float y, float z)
-	{	worldMatrices.worldMatrixMove(x, y, z);}
+	void moveObject(float dX, float dY, float dZ)
+	{	
+		if(dX > 0)
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_RIGHT);
+		if(dX < 0)
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_LEFT);
+		if(dY > 0)
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_BACK);
+		if(dY < 0)
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_FORVARD);
+	}
 
 	void moveVertex(DWORD vertexNumber, float x, float y, float z)
 	{

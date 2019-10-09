@@ -1,3 +1,4 @@
+
 class viewMatrices_class
 {
 private:
@@ -127,6 +128,12 @@ private:
 	float moveX, moveY, moveZ;
 	float AngleX, AngleY, AngleZ;
 
+	D3DXMATRIX view;
+	D3DXVECTOR3 right;
+	D3DXVECTOR3 up;
+	D3DXVECTOR3 look;
+	D3DXVECTOR3 pos;
+
 	D3DXMATRIX worldMatrix, rotateXMatrix, rotateYMatrix, rotateZMatrix;
 	D3DXMATRIX finallyRotateMatrix;
 	D3DXMATRIX finallyWorldMatrix;
@@ -134,15 +141,34 @@ public:
 	worldMatrices_class() {}
 	void fillMatrix(float x, float y, float z, IDirect3DDevice9* bDevice)
 	{
+		pos = D3DXVECTOR3(x, y, z);
+
 		device = bDevice;
+
 		D3DXMatrixTranslation(&worldMatrix, x, y, z);
 	}
-	void worldMatrixMove(float x, float y, float z)
+
+	void worldMatrixMove(float x, float y, float z, short moveType)
 	{
-		moveX += x;
-		moveY -= y;
-		moveZ += z;
-		D3DXMatrixTranslation(&worldMatrix, moveX, moveY, moveZ);
+		switch(moveType)
+		{
+		case MOVE_FORVARD:
+			pos += up * fabs(y);
+			break;
+		case MOVE_BACK:
+			pos -= up * fabs(y);
+			break;
+		case MOVE_UP:
+			break;
+		case MOVE_DOWN:
+			break;
+		case MOVE_RIGHT:
+			pos += right * fabs(x);
+			break;
+		case MOVE_LEFT:
+			pos -= right * fabs(x);
+			break;
+		}
 	}
 
 	void worldMatrixRotateX(float Angle)
@@ -180,13 +206,31 @@ public:
 
 	void resetMatrices()
 	{
-		finallyRotateMatrix = rotateXMatrix * rotateYMatrix * rotateZMatrix;
-		finallyWorldMatrix  = finallyRotateMatrix * worldMatrix;
-		device->SetTransform(D3DTS_WORLD, &finallyWorldMatrix);
-	}
+		device->GetTransform(D3DTS_VIEW, &view);
 
-	void resetWithoutRotate()
-	{
+		right.x = (view)(0, 0);
+		up.x    = (view)(0, 1);
+		look.x  = (view)(0, 2);
+
+		right.y = (view)(1, 0);
+		up.y    = (view)(1, 1);
+		look.y  = (view)(1, 2);
+
+		right.z = (view)(2, 0);
+		up.z    = (view)(2, 1);
+		look.z  = (view)(2, 2);
+
+		D3DXVec3Normalize(&look, &look);
+
+		D3DXVec3Cross(&up, &look, &right);
+		D3DXVec3Normalize(&up, &up);
+
+		D3DXVec3Cross(&right, &up, &look);
+		D3DXVec3Normalize(&right, &right);
+
+		// Строим матрицу вида:
+		D3DXMatrixTranslation(&worldMatrix, pos.x, pos.y, pos.z);
+
 		finallyRotateMatrix = rotateXMatrix * rotateYMatrix * rotateZMatrix;
 		finallyWorldMatrix  = finallyRotateMatrix * worldMatrix;
 		device->SetTransform(D3DTS_WORLD, &finallyWorldMatrix);
