@@ -1,4 +1,5 @@
-#define ID_ESSBUTTON1   31001
+#define ID_ESSBUTTON1   30001
+#define ID_ESSBUTTON2   30002
 
 class rendStateEditor_class
 {
@@ -6,6 +7,7 @@ private:
 	HWND mainWindow;
 	HINSTANCE hInstance;
 	rendStateTypes_class* RSTypes;
+	rendState_class* rendState;
 	DWORD numInitedTypes;
 
 	DWORD RSEComboboxID;
@@ -29,11 +31,13 @@ public:
 			25, 480, 170, 23, mainWindow, (HMENU)ID_ESSBUTTON1, hInstance, NULL);
 
 		RSEWindow = new dlgWnd;
-		RSEWindow->initDlgWnd(mainWindow, (DLGPROC)RSSDlgWndProc, hInstance);
+		RSEWindow->initDlgWnd(mainWindow, (DLGPROC)RSEDlgWndProc, hInstance);
 		RSEWindow->dlgTemplate(WS_SIZEBOX|WS_POPUP|WS_CHILD|WS_OVERLAPPEDWINDOW,
 			109, 50, 410, 400, "Render State");
 
 		int x = 5;
+		RSEWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE, 187, 5, 30, 380, ID_ESSBUTTON2, "button", "Set");
+		
 		for(DWORD counter(0); counter != numInitedTypes;)
 		{
 			RSEWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|SS_CENTER|WS_BORDER, 
@@ -47,6 +51,7 @@ public:
 			x += 15;
 			counter += 1;
 		}
+
 		RSEWindow->createModelessDlgWindow();
 
 		DWORD indent(0);
@@ -63,8 +68,9 @@ public:
 		}
 	}
 
-	void fillRSEditor(rendState_class* rendState)
+	void fillRSEditor(rendState_class* bRendState)
 	{
+		rendState = bRendState;
 		DWORD indent(1);
 		for(DWORD counter(0); counter != rendState->numElements;)
 		{
@@ -72,8 +78,20 @@ public:
 			indent += 2;
 			counter += 1;
 		}
-		rendState->rendStateType[0];
-		rendState->rendStateValue[0];
+	}
+
+	void setChanges()
+	{
+		DWORD indent(0);
+		DWORD el;
+		for(DWORD counter(0); counter != numInitedTypes;)
+		{
+			el = SendMessage(RSEWindow->getItemHWND(RSEComboboxStartID + indent + 1), CB_GETCURSEL, 0, 0L);
+
+			*rendState->rendStateValue[counter] = el;
+			indent += 2;
+			counter += 1;
+		}
 	}
 
 	void showRSSettingsButton()

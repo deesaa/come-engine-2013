@@ -7,6 +7,7 @@ class object_creator
 private:
 	IDirect3DDevice9* device;
 	object_settings* objectSettings;
+	rendStateEditor_class* RSEditor;
 	botStatusBar_Class* BSBar;
 	HWND windowHandle;
 	HINSTANCE hInstace;
@@ -49,11 +50,12 @@ public:
 	object_creator(){}
 
 	void initObjectCreator(IDirect3DDevice9* bDevice, HWND bWindowHandle, HINSTANCE bhInstance, object_manager* bManager, 
-		object_settings* bObjectSettings, botStatusBar_Class* bBSBar)
+		object_settings* bObjectSettings, botStatusBar_Class* bBSBar, rendStateEditor_class* bRSEditor)
 	{
 		device = bDevice;					//Сохранение дестрипторов устройства, окна, приложения
 		objectSettings = bObjectSettings;
 		BSBar = bBSBar;
+		RSEditor = bRSEditor;
 		windowHandle = bWindowHandle;
 		hInstace = bhInstance;
 		axisX = axisY = axisZ = FALSE;
@@ -329,6 +331,7 @@ public:
 				{
 					manager->newSubset(pickedObject);
 					objectSettings->fillObjectSettings(this->getMaterialClass());
+					RSEditor->fillRSEditor(this->getRendState());
 				}
 			}
 			NewSubsetButtonLocked = TRUE;

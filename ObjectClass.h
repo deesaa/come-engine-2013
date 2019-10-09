@@ -338,7 +338,8 @@ public:
 				rendState[numRendState]->initRendStateClass(device, rendStateTypes);
 				rendState[numRendState]->addRendState(0, 0);
 				rendState[numRendState]->addRendState(1, 0);
-				rendState[numRendState]->addRendState(2, 1);
+				rendState[numRendState]->addRendState(2, 0);
+				rendState[numRendState]->addRendState(3, 0);
 
 				SendMessage(subsetsList, LB_INSERTSTRING, numSubsets, (LPARAM)(LPCTSTR)L"Subset");
 			

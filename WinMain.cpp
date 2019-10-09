@@ -50,7 +50,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	manager->initManager(device, hInstance, windows->getWindowHandle(GET_MAINWINDOW), BStatBar, TEditingBar, rendStateTypes);	//Инициализируем менеджер объектов
 
 	OC = new object_creator;		//Выделяем память на редактор объектов
-	OC->initObjectCreator(device, windows->getWindowHandle(GET_MAINWINDOW), hInstance, manager, objectSettings, BStatBar);	//Инициализируем редактор объектов
+	OC->initObjectCreator(device, windows->getWindowHandle(GET_MAINWINDOW), hInstance, manager, objectSettings, BStatBar, rendStateEditor);	//Инициализируем редактор объектов
 
 	device->SetRenderState(D3DRS_LIGHTING, true);
 	device->SetRenderState(D3DRS_NORMALIZENORMALS, true);
@@ -226,6 +226,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				rendStateEditor->showRSSettingsButton();
 				if(OC->getMaterialClass())
 					objectSettings->fillObjectSettings(OC->getMaterialClass());
+				rendStateEditor->fillRSEditor(OC->getRendState());
 				return 0;
 			}
 			return 0;
@@ -322,12 +323,14 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			objectSettings->showOSButton(SW_NORMAL);
 			if(OC->getMaterialClass())
 				objectSettings->fillObjectSettings(OC->getMaterialClass());
+			rendStateEditor->fillRSEditor(OC->getRendState());
 		}
 		if(OC->pickIntersectedVertex())
 		{
 			objectSettings->showOSButton(SW_NORMAL);
 			if(OC->getMaterialClass())
 				objectSettings->fillObjectSettings(OC->getMaterialClass());
+			rendStateEditor->fillRSEditor(OC->getRendState());
 		}
 
 		if(OC->checkPickType(Cam))
@@ -439,13 +442,16 @@ LRESULT CALLBACK CEDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-LRESULT CALLBACK RSSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK RSEDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg)
 	{
 	case WM_COMMAND:
 		switch(LOWORD(wParam))
 		{
+		case ID_ESSBUTTON2:
+			rendStateEditor->setChanges();
+			return 0;
 		case IDCANCEL:
 			EndDialog(hwnd, TRUE);
 			return 0;
