@@ -8,11 +8,14 @@
 #define ID_BUTTON6  1006
 #define ID_BUTTON7  1007
 #define ID_BUTTON8  1008
+#define ID_BUTTON9  1009
+#define ID_BUTTON10 1010
 //Статические окна 
 #define ID_STATIC1  2001
 //Окна списков
 #define ID_LISTBOX1 3001
 #define ID_LISTBOX2 3002
+#define ID_LISTBOX3 3003
 //Окна текстовых редакторов
 #define ID_EDIT1    4001
 
@@ -26,13 +29,16 @@
 #define GET_NEWDIRLIGHTBUTTON	7
 #define GET_NEWPOINTLIGHTBUTTON 8
 #define GET_NEWSPOTLIGHTBUTTON	9
+#define GET_CAMOBJECTLIST		10
+#define GET_NEWCAMOBJECTBUTTON  11
+
 
 class window_class
 {
 private:
-	HWND mainWindow, OCButton, COButton, CDLButton, CPLButton, CSLButton, directXWindow;   //Окна, относящиеся к созданию объектов
-	HWND objectsList, lightObjectsList, showOList, showLList;   //Окна, относящиеся к спискам
-	HWND OSButton1, OSEdit1;   //Окна, относящиеся к редактированию объектов
+	HWND mainWindow, OCButton, COButton, CDLButton, CPLButton, CSLButton, CCButton, directXWindow;   //Окна, относящиеся к созданию объектов
+	HWND objectsList, lightObjectsList, camObjectsList, showOList, showLList, showCList;   //Окна, относящиеся к спискам
+	HWND OSButton1, OSEdit1;   //Редактирование названия
 	LPCTSTR mainWindowName;	   //Название окна
 
 public:
@@ -54,24 +60,30 @@ public:
 			61, 135, 100, 20, mainWindow, (HMENU)ID_BUTTON2, hInstance, NULL);
 
 		CDLButton = CreateWindow(L"button", L"Create Directional Light", WS_CHILD|BS_CENTER, 
-			26, 155, 170, 20, mainWindow, (HMENU)ID_BUTTON4, hInstance, NULL);
+			26, 175, 170, 20, mainWindow, (HMENU)ID_BUTTON4, hInstance, NULL);
 
 		CPLButton = CreateWindow(L"button", L"Create Point Light", WS_CHILD|BS_CENTER, 
-			26, 175, 170, 20, mainWindow, (HMENU)ID_BUTTON7, hInstance, NULL);
+			26, 195, 170, 20, mainWindow, (HMENU)ID_BUTTON7, hInstance, NULL);
 
 		CSLButton = CreateWindow(L"button", L"Create Spot Light", WS_CHILD|BS_CENTER, 
-			26, 195, 170, 20, mainWindow, (HMENU)ID_BUTTON8, hInstance, NULL);
+			26, 215, 170, 20, mainWindow, (HMENU)ID_BUTTON8, hInstance, NULL);
+
+		CCButton = CreateWindow(L"button", L"Create Camera", WS_CHILD|BS_CENTER, 
+			26, 155, 170, 20, mainWindow, (HMENU)ID_BUTTON9, hInstance, NULL);
 
 		//Окно, подключаемое к DirectX
 		directXWindow = CreateWindow(L"static", NULL, WS_CHILD|WS_BORDER, 
-			217, 100, DirectXWidth, DirectXHeight, mainWindow, (HMENU)ID_STATIC1, hInstance, NULL);
+			DirectXLeft, DirectXTop, DirectXWidth, DirectXHeight, mainWindow, (HMENU)ID_STATIC1, hInstance, NULL);
 
 		//Глобальный перечень всех созданных объектов
-		objectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD|WS_VISIBLE, 
+		objectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
 			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX1, hInstance, NULL);
 
-		lightObjectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD|WS_VISIBLE, 
+		lightObjectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
 			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX2, hInstance, NULL);
+
+		camObjectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
+			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX3, hInstance, NULL);  
 
 		//Текстовый редактор для редактирования названия объекта
 		OSEdit1 = CreateWindow(L"edit", NULL, WS_CHILD|WS_BORDER|WS_VISIBLE|ES_LEFT|ES_AUTOHSCROLL, 
@@ -86,6 +98,9 @@ public:
 
 		showLList    = CreateWindow(L"button", L"Lighting", WS_CHILD|WS_VISIBLE, 
 			1430, 79, 70, 20, mainWindow, (HMENU)ID_BUTTON6, hInstance, NULL);
+
+		showCList	 = CreateWindow(L"button", L"Cams", WS_CHILD|WS_VISIBLE, 
+			1500, 79, 70, 20, mainWindow, (HMENU)ID_BUTTON10, hInstance, NULL); 
 	}
 
 	UINT takeObjectFromList()
@@ -96,6 +111,11 @@ public:
 	UINT takeLightFromList()
 	{
 		return ((UINT)SendMessage(lightObjectsList, LB_GETCURSEL, 0, 0L) + 1);
+	}
+
+	UINT takeCamFromList()
+	{
+		return ((UINT)SendMessage(camObjectsList, LB_GETCURSEL, 0, 0L) + 1);
 	}
 
 	HWND getWindowHandle(int windowType)
@@ -120,6 +140,10 @@ public:
 			return CPLButton;
 		case GET_NEWSPOTLIGHTBUTTON:
 			return CSLButton;
+		case GET_CAMOBJECTLIST:
+			return camObjectsList;
+		case GET_NEWCAMOBJECTBUTTON:
+			return CCButton;
 		}
 	}
 };

@@ -39,7 +39,7 @@ private:
 	DWORD numFaces;
 
 	material_class* material[64];
-	worldMatrix_class worldMatrices;
+	worldMatrices_class worldMatrices;
 
 public:
 	void initObjectBase(IDirect3DDevice9* bDevice, DWORD numObject)
@@ -66,6 +66,7 @@ public:
 		mesh->GetAttributeTable(0, &numSubsetsAttributes);
 		attributeTable = new D3DXATTRIBUTERANGE [numSubsetsAttributes];
 		mesh->GetAttributeTable(attributeTable, &numSubsetsAttributes);
+
 
 		material[numSubsets] = new material_class;
 		material[numSubsets]->initMaterialBase(device);
@@ -110,6 +111,7 @@ public:
 		mesh->LockAttributeBuffer(0, &attributeBuffer);
 		for(int a = 0; a < 4; a++)   
 			attributeBuffer[a] = 0; 
+
 		mesh->UnlockAttributeBuffer();
 	}
 
@@ -178,7 +180,7 @@ public:
 
 	void redraw()
 	{
-		worldMatrices.resetWorldMatrices();
+		worldMatrices.resetMatrices();
 		for(DWORD subset = 0; subset != numSubsets; subset++)
 		{
 			material[subset]->resetMaterial();

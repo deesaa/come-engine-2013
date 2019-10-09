@@ -20,7 +20,7 @@ private:
 	COVertex* vertices;					//Вершины сетки редактора объектов
 	WORD* indices;						//Индексы сетки редактора объектов
 	material_class material;
-	worldMatrix_class worldMatrices;
+	worldMatrices_class worldMatrices;
 	D3DXVECTOR3 directionBuffer, positionBuffer;
 	D3DXVECTOR4 direction, position;
 
@@ -124,7 +124,7 @@ public:
 		switch(light.Type)
 		{
 		case D3DLIGHT_SPOT:
-			worldMatrices.resetWorldMatrices();
+			worldMatrices.resetMatrices();
 			material.resetMaterial();
 
 			D3DXVec3Transform(&direction, &directionBuffer, &worldMatrices.getFinallyRotateMatrix());
@@ -144,7 +144,7 @@ public:
 			device->SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
 			break;
 		case D3DLIGHT_POINT:
-			worldMatrices.resetWorldMatrices();
+			worldMatrices.resetMatrices();
 			material.resetMaterial();
 
 			D3DXVec3Transform(&position, &positionBuffer, &worldMatrices.getWorldMatrix());
@@ -161,7 +161,7 @@ public:
 			device->SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
 			break;
 		case D3DLIGHT_DIRECTIONAL:
-			worldMatrices.resetWorldMatrices();
+			worldMatrices.resetMatrices();
 			material.resetMaterial();
 
 			D3DXVec3Transform(&direction, &directionBuffer, &worldMatrices.getFinallyRotateMatrix());

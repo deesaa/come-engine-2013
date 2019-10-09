@@ -3,12 +3,16 @@ class object_manager
 {
 private:
 	IDirect3DDevice9* device;			//Устройство
-	DWORD numObject;						//Счетчик объектов
+	DWORD numObject;					//Счетчик объектов
 	DWORD numLight;						//Счетчик объектов света
+	DWORD numCam;
 	DWORD numGlobal;
 
-	object_class* object[64];			//Массив сылок на объекты
-	light_class* light[64];				//Массив сылок на объекты света
+	float* timeDelta;
+
+	object_class* object[512];				//Массив сылок на объекты
+	light_class*  light[128];				//Массив сылок на объекты света
+	camera_class* camera[64];
 
 public:
 	object_manager(){}
@@ -19,6 +23,7 @@ public:
 		numObject = 0;					//Установка начального кол-ва объектов
 		numLight = 0;
 		numGlobal = 0;
+		numCam = 0;
 	}
 
 	//Создание абсолютно нового объекта
@@ -66,6 +71,16 @@ public:
 		numLight++;
 		numGlobal++;
 		return numLight;
+	}
+
+	UINT createNewCam(HWND camObjectList)
+	{
+		camera[numCam] = new camera_class;
+		camera[numCam]->initCamBase(device);
+		SendMessage(camObjectList, LB_INSERTSTRING, numCam, (LPARAM)camera[numCam]->getCamName());
+		numCam++;
+		numGlobal++;
+		return numCam;
 	}
 
 	DWORD checkIntersectionWithObjects(ray_struct clickRay)
@@ -148,6 +163,27 @@ public:
 		}
 	}
 
+	void moveCam(DWORD camNumber, short moveType)
+	{
+		camNumber--;
+		if(camNumber < numCam)
+			camera[camNumber]->move(moveType);
+	}
+
+	void rotateCam(DWORD camNumber, float dX, float dY)
+	{
+		camNumber--;
+		if(camNumber < numCam)
+			camera[camNumber]->rotate(dX, dY);		
+	}
+
+	void resetCam(DWORD camNumber)
+	{
+		camNumber--;
+		if(camNumber < numCam)
+			camera[camNumber]->resetMatrices();
+	}
+
 	D3DMATERIAL9* getMaterialClass(DWORD objectNumber)
 	{
 		objectNumber--;
@@ -159,6 +195,9 @@ public:
 		lightNumber--;
 		return light[lightNumber]->getLight();
 	}
+
+	void setPointerToTimeDelta(float* bTimeDelta)
+	{	timeDelta = bTimeDelta;}
 
 	void resetLight(DWORD bPickedLight)
 	{
@@ -216,6 +255,13 @@ public:
 			numLight--;
 			delete light[numLight];
 			light[numLight] = NULL;
+		}
+
+		for(;numCam != 0;)
+		{
+			numCam--;
+			delete camera[numCam];
+			camera[numCam] = NULL;
 		}
 	}
 };

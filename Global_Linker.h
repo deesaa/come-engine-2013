@@ -6,12 +6,16 @@
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "D3dx9.lib")
+#pragma comment(lib, "winmm.lib")
 
 #include <windows.h>
+#include <winuser.h>
 #include <d3d9.h>
 #include <dinput.h>
 #include <d3dx9.h>
 #include <D3dx9tex.h>
+
+#include "mmsystem.h"
 
 #include <string>
 
@@ -23,13 +27,15 @@ LRESULT CALLBACK LSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 LRESULT CALLBACK CEDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 void RegWndClass(WNDPROC proc, HINSTANCE hInstance, LPCTSTR className);
-void setMatrices(D3DXMATRIX* worldMatrix, D3DXMATRIX* viewMatrix, D3DXMATRIX* projMatrix, IDirect3DDevice9* device);
+void setAllMatrices(D3DXMATRIX* worldMatrix, D3DXMATRIX* viewMatrix, D3DXMATRIX* projMatrix, IDirect3DDevice9* device);
+void setViewMatrices(D3DXMATRIX* viewMatrix, D3DXMATRIX* projMatrix, IDirect3DDevice9* device);
 BOOL initPalette(HWND hwnd, D3DCOLORVALUE* mtrComponent);
 
 //Собственно включение всех компонентов "движка"
 #include "Constants.h"
 #include "Structs.h"
 #include "Matrices_Class.h"
+#include "Camera_Class.h"
 #include "DirectXInput_Class.h"
 #include "Material_Class.h"
 #include "Light_Class.h"

@@ -1,7 +1,7 @@
 #include "Global_Linker.h"
 
-LPCTSTR  className  = L"C.O.M.E. Engine"; 
-LPCTSTR  windowName = L"C.O.M.E. Engine, Build 1.006.16";
+LPCTSTR  className  = L"C-O.M.E. Engine"; 
+LPCTSTR  windowName = L"C-O.M.E. Engine, Build 1.6.23";
 
 MSG  msg;
 IDirect3DDevice9* device;
@@ -39,7 +39,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	device->SetRenderState(D3DRS_LIGHTING, true);
 	device->SetRenderState(D3DRS_NORMALIZENORMALS, true);
 	device->SetRenderState(D3DRS_SPECULARENABLE, true);
-	
+	device->SetRenderState(D3DRS_ZENABLE, TRUE);
+	device->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+
+	static float lastTime = (float)timeGetTime();
+	float currTime, timeDelta;
+	manager->setPointerToTimeDelta(&timeDelta);
+
+	manager->createNewCam(windows->getWindowHandle(GET_CAMOBJECTLIST));
+
 	while(true)
 	{
 		if(PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -52,20 +60,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		else
 		{
+			currTime = (float)timeGetTime();
+			timeDelta = (currTime - lastTime) * 0.001f;
+	
 			device->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
 				0x00000000, 1.0f, 0);
+
 			device->BeginScene();
 
 			OC->applyKBMChanges();
-			OC->redraw();
 			
 			manager->redrawAllObjects();
 			manager->redrawObjectOfLight(OC->getPickedLight());
 				
 			device->EndScene();
 			device->Present(0, 0, 0, 0); 
+
+			lastTime = currTime;
 		}
 	}
+
 	delete manager;
 	delete OC;
 	delete windows;
@@ -88,6 +102,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ShowWindow(windows->getWindowHandle(GET_NEWDIRLIGHTBUTTON), SW_HIDE);
 				ShowWindow(windows->getWindowHandle(GET_NEWPOINTLIGHTBUTTON), SW_HIDE);
 				ShowWindow(windows->getWindowHandle(GET_NEWSPOTLIGHTBUTTON), SW_HIDE);
+				ShowWindow(windows->getWindowHandle(GET_NEWCAMOBJECTBUTTON), SW_HIDE);
 			}
 			else
 			{
@@ -96,13 +111,15 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ShowWindow(windows->getWindowHandle(GET_NEWDIRLIGHTBUTTON), SW_NORMAL);
 				ShowWindow(windows->getWindowHandle(GET_NEWPOINTLIGHTBUTTON), SW_NORMAL);
 				ShowWindow(windows->getWindowHandle(GET_NEWSPOTLIGHTBUTTON), SW_NORMAL);
+				ShowWindow(windows->getWindowHandle(GET_NEWCAMOBJECTBUTTON), SW_NORMAL);
 			}
 			return 0;
 		case ID_BUTTON2:
 			//Созданный объект принимает управление и добавляется в лист объектов
 			OC->pickObject(manager->createNewObject(windows->getWindowHandle(GET_OBJECTLIST)));
 	
-			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);							
+			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);	
+			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);	
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_NORMAL);
 
 			objectSettings->showOSButton(SW_NORMAL);
@@ -114,6 +131,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
+			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);	
 
 			objectSettings->showLSButton(SW_NORMAL);
 			objectSettings->fillLightSettings(OC->getLightStruct());
@@ -124,6 +142,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
+			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);	
 
 			objectSettings->showLSButton(SW_NORMAL);
 			objectSettings->fillLightSettings(OC->getLightStruct());
@@ -134,9 +153,19 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
+			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);	
 
 			objectSettings->showLSButton(SW_NORMAL);
 			objectSettings->fillLightSettings(OC->getLightStruct());
+			return 0;
+
+		case ID_BUTTON9:
+			OC->pickCam(manager->createNewCam(windows->getWindowHandle(GET_CAMOBJECTLIST)));
+
+			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_NORMAL);							
+			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
+			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);
+			return 0;
 
 		case ID_LISTBOX1:
 			switch(HIWORD(wParam))
@@ -146,8 +175,6 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				OC->pickObject(windows->takeObjectFromList());
 				objectSettings->showOSButton(SW_NORMAL);
 				objectSettings->fillObjectSettings(OC->getMaterialClass());
-				return 0;
-			default:
 				return 0;
 			}
 			return 0;
@@ -161,23 +188,40 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				objectSettings->showLSButton(SW_NORMAL);
 				objectSettings->fillLightSettings(OC->getLightStruct());
 				return 0;
-			default:
+			}
+			return 0;
+
+		case ID_LISTBOX3:
+			switch(HIWORD(wParam))
+			{
+			case LBN_SELCHANGE:
+				//Объект света, выбранный из листа объектов света, принимает управление 
+				OC->pickCam(windows->takeCamFromList());
+				manager->resetCam(OC->getPickedCam());
 				return 0;
 			}
 			return 0;
+
 		case ID_BUTTON3:
-			MessageBox(windows->getWindowHandle(GET_D3DWINDOW), L"THIS SHIT DOESN'T WORK!", L"STAAAPH", MB_ICONSTOP);
+			MessageBox(windows->getWindowHandle(GET_D3DWINDOW), L"Error because I said so!", L"Staaaph", MB_ICONSTOP);
 			//У выбранного в данный момент объекта изменяется навзвание /*НЕ РАБОТАЕТ*/
 			//OC->renameObject(windows->getWindowHandle(GET_OBJECTLIST), windows->getWindowHandle(GET_OBJECTNAMEEDITOR));
 			SetFocus(windows->getWindowHandle(GET_D3DWINDOW));
 			return 0;
 		case ID_BUTTON5:
-			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_NORMAL);
+			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);	
+			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);		
 			return 0;
 		case ID_BUTTON6:	
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
+			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);
+			return 0;
+		case ID_BUTTON10:
+			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_NORMAL);							
+			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
+			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);
 			return 0;
 		case ID_OSBUTTON1:
 			objectSettings->showOSettingsWnd();
@@ -199,8 +243,28 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			objectSettings->showOSButton(SW_NORMAL);
 			objectSettings->fillObjectSettings(OC->getMaterialClass());
 		}
-		wsprintf (textBuffer, L"pX: %d pY: %d", pOc.x, pOc.y);
-		SetWindowText (windows->getWindowHandle(GET_MAINWINDOW), textBuffer);
+		if(OC->checkPickType(Cam))
+		{
+			RECT rect;
+			rect.top	= (Height*0.5f)-30;
+			rect.left	= (Width*0.5f)-30;
+			rect.bottom = (Height*0.5f)+30;
+			rect.right	= (Width*0.5f)+30;
+			ClipCursor(&rect);
+			ShowCursor(FALSE);
+		}
+		return 0;
+	case WM_LBUTTONUP:
+		if(OC->checkPickType(Cam))
+		{
+			RECT rect;
+			rect.top	= 0;
+			rect.left	= 0;
+			rect.bottom = Height;
+			rect.right	= Width;
+			ClipCursor(&rect);
+			ShowCursor(TRUE);
+		}
 		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
