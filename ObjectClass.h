@@ -27,8 +27,8 @@ private:
 
 	vertex* vertices;
 	WORD* indices;
-
 	DWORD* attributeBuffer;
+
 	DWORD* adjacencyInfo;
 	DWORD* optimizedAdjacencyInfo;
 	D3DXATTRIBUTERANGE* attributeTable; 
@@ -152,7 +152,7 @@ public:
 		D3DXIntersect(mesh, &clickRay.origin, &clickRay.direction,
 			&hit, &pFaceIndex, &pU, &pV, &pDist, NULL, NULL);
 		if(hit == TRUE)
-			return ObjectID + 2;
+			return ObjectID + 1;
 		else
 			return 0;
 	}
@@ -187,17 +187,22 @@ public:
 		{
 			numSubsets--;
 			delete material[numSubsets];
+			material[numSubsets] = NULL;
 		}
 
 		for (; numVertices != NULL;)
 		{
 			numVertices--;
 			delete vertexSphere[numVertices];
+			vertexSphere[numVertices] = NULL;
 		}
 
 		delete adjacencyInfo;
+		adjacencyInfo			 = NULL;
 		delete optimizedAdjacencyInfo;
+		optimizedAdjacencyInfo   = NULL;
 		delete attributeTable;
+		attributeTable			 = NULL;
 
 		mesh->Release();
 	}

@@ -9,9 +9,9 @@ HWND objectCreatorWindow, COButton;
 
 char buffer[256];
 
-object_manager* manager;	//Менеджер объектов
-object_creator* OC;			//Создатель и редактор объектов
-window_class* windows;		//Windows-окна (GUI)
+object_manager* manager;		   //Менеджер объектов
+object_creator* OC;				   //Создатель и редактор объектов
+window_class* windows;			   //Windows-окна (GUI)
 object_settings* objectSettings;   //Окна настроек объектов
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -65,6 +65,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 	delete manager;
 	delete OC;
+	delete windows;
+	delete objectSettings;
 	return msg.wParam;
 }
 

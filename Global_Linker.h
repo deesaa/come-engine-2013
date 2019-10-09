@@ -12,8 +12,11 @@
 #include <d3dx9.h>
 #include <D3dx9tex.h>
 
+#include <string>
+
 //Прототипы всяких функций
 HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK OSWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void RegWndClass(WNDPROC proc, HINSTANCE hInstance, LPCTSTR className);
 void setMatrices(D3DXMATRIX* worldMatrix, D3DXMATRIX* viewMatrix, D3DXMATRIX* projMatrix, IDirect3DDevice9* device);
 

@@ -53,6 +53,7 @@ public:
 		D3DXVec3TransformCoord(&clickRay.origin, &clickRay.origin, &viewMatrix);
 		D3DXVec3TransformNormal(&clickRay.direction, &clickRay.direction, &viewMatrix);
 		D3DXVec3Normalize(&clickRay.direction, &clickRay.direction);
+
 		for(DWORD numObjectC = 0; numObjectC != numObject; numObjectC++)
 		{	
 			intersectedObject = object[numObjectC]->checkIntersection(clickRay);
@@ -136,12 +137,14 @@ public:
 		{
 			numObject--;
 			delete object[numObject];
+			object[numObject] = NULL;
 		}
 		
 		for(;numLight != 0;)
 		{
 			numLight--;
 			delete light[numLight];
+			light[numLight] = NULL;
 		}
 	}
 };

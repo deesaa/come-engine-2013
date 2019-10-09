@@ -134,7 +134,7 @@ public:
 		DWORD bPickedObject = manager->checkIntersectionWithObjects(clickRay);
 
 		if(bPickedObject != 0)
-			pickedObject = bPickedObject - 1;		
+			pickedObject = bPickedObject;		
 	}
 
 	void applyKBMChanges()
@@ -222,7 +222,9 @@ public:
 	{
 		d3dInput.Release();		//Потеря доступа и удаление устройств(клавиотуры, мыши)
 		ib->Release();			//Удаление буфера индексов
+		ib = NULL;
 		vb->Release();			//Удаление буфера вершин
+		vb = NULL;
 	}
 };
 
