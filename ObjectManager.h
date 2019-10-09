@@ -7,6 +7,7 @@ private:
 	DWORD numLight;						//Счетчик объектов света
 	DWORD numCam;
 	DWORD numGlobal;
+	bool i;
 
 	float* timeDelta;
 
@@ -24,6 +25,7 @@ public:
 		numLight = 0;
 		numGlobal = 0;
 		numCam = 0;
+		i = true;
 	}
 
 	//Создание абсолютно нового объекта
@@ -174,6 +176,12 @@ public:
 	{
 		objectNumber--;
 		object[objectNumber]->moveVertex(vertexNumber, x, y, z);
+	}
+
+	void createNewTriangle(DWORD objectNumber)
+	{
+		objectNumber--;
+		object[objectNumber]->createNewTriangle();
 	}
 
 	void rotateCam(DWORD camNumber, float dX, float dY)

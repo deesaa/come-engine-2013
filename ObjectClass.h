@@ -23,10 +23,10 @@ private:
 	DWORD ObjectID;
 	char buffer[256];
 	LPCTSTR objectName;
-	sphere_struct* vertexSphere[64];
 	ray_struct rayOfPicking;
 
 	ID3DXMesh* mesh;
+	worldMatrices_class worldMatrices;
 
 	vertex* vertices;
 	WORD* indices;
@@ -36,17 +36,13 @@ private:
 	DWORD* optimizedAdjacencyInfo;
 	D3DXATTRIBUTERANGE* attributeTable; 
 
+	material_class* material[64];
+	sphere_struct* vertexSphere[512];
+
 	DWORD numSubsetsAttributes;
 	DWORD numSubsets;
-	DWORD numMaterials;
-
-	DWORD numVertices;
-	DWORD numFaces;
-	DWORD numCreatedVerts;
 	DWORD numCreatedFaces;
-
-	material_class* material[64];
-	worldMatrices_class worldMatrices;
+	DWORD numCreatedVerts;
 
 public:
 	void initObjectBase(IDirect3DDevice9* bDevice, DWORD numObject)
@@ -54,7 +50,7 @@ public:
 		device = bDevice;
 		ObjectID = numObject;
 		objectName = L"Object";	
-		numSubsets = 0;
+		numSubsets      = 0;
 		numCreatedVerts = 0;
 		numCreatedFaces = 0;
 
@@ -62,8 +58,8 @@ public:
 	
 		this->baseObject();
 
-		numVertices = mesh->GetNumVertices();
-		numFaces = mesh->GetNumFaces();
+		DWORD numVertices = mesh->GetNumVertices();
+		DWORD numFaces = mesh->GetNumFaces();
 
 		adjacencyInfo = new DWORD [numFaces * 3];
 		mesh->GenerateAdjacency(0.0001f, adjacencyInfo);
@@ -86,7 +82,17 @@ public:
 		
 	}
 
-	void createFoundation()
+
+	void baseObject()
+	{
+		this->createNewFoundation();
+		
+		material[numSubsets] = new material_class;
+		material[numSubsets]->initMaterialBase(device);
+		numSubsets += 1;
+	}
+
+	void createNewFoundation()
 	{
 		mesh->LockVertexBuffer(0, (void**)&vertices);
 		vertices[numCreatedVerts  ] = vertex( 0.0f, 1.0f,  0.0f, 0.0f, 0.0f, 0.0f);
@@ -95,7 +101,7 @@ public:
 		mesh->UnlockVertexBuffer();
 
 		mesh->LockIndexBuffer(0, (void**)&indices);
-		indices[numCreatedVerts  ] = numCreatedVerts; 
+		indices[numCreatedVerts  ] = numCreatedVerts;
 		indices[numCreatedVerts+1] = numCreatedVerts+1; 
 		indices[numCreatedVerts+2] = numCreatedVerts+2;
 		mesh->UnlockIndexBuffer();
@@ -104,64 +110,79 @@ public:
 		attributeBuffer[numCreatedFaces] = 0; 
 		mesh->UnlockAttributeBuffer();
 
-		vertexSphere[numCreatedVerts] = new sphere_struct;
-		vertexSphere[numCreatedVerts]->center.x = vertices[numCreatedVerts].x;
-		vertexSphere[numCreatedVerts]->center.y = vertices[numCreatedVerts].y;
-		vertexSphere[numCreatedVerts]->center.z = vertices[numCreatedVerts].z;
-		vertexSphere[numCreatedVerts]->radius   = 0.6f;
-		vertexSphere[numCreatedVerts]->vertexID = numCreatedVerts;
-		vertexSphere[numCreatedVerts+1] = new sphere_struct;
-		vertexSphere[numCreatedVerts+1]->center.x = vertices[numCreatedVerts+1].x;
-		vertexSphere[numCreatedVerts+1]->center.y = vertices[numCreatedVerts+1].y;
-		vertexSphere[numCreatedVerts+1]->center.z = vertices[numCreatedVerts+1].z;
-		vertexSphere[numCreatedVerts+1]->radius   = 0.6f;
-		vertexSphere[numCreatedVerts+1]->vertexID = numCreatedVerts+1;
-		vertexSphere[numCreatedVerts+2] = new sphere_struct;
-		vertexSphere[numCreatedVerts+2]->center.x = vertices[numCreatedVerts+2].x;
-		vertexSphere[numCreatedVerts+2]->center.y = vertices[numCreatedVerts+2].y;
-		vertexSphere[numCreatedVerts+2]->center.z = vertices[numCreatedVerts+2].z;
-		vertexSphere[numCreatedVerts+2]->radius   = 0.6f;
-		vertexSphere[numCreatedVerts+2]->vertexID = numCreatedVerts+2;
+		for(short i(0); i != 3;)
+		{
+			vertexSphere[numCreatedVerts+i] = new sphere_struct;
+			vertexSphere[numCreatedVerts+i]->center.x = vertices[numCreatedVerts+i].x;
+			vertexSphere[numCreatedVerts+i]->center.y = vertices[numCreatedVerts+i].y;
+			vertexSphere[numCreatedVerts+i]->center.z = vertices[numCreatedVerts+i].z;
+			vertexSphere[numCreatedVerts+i]->vertexID = numCreatedVerts+i;
+			vertexSphere[numCreatedVerts+i]->radius   = 0.5f;
+			vertexSphere[numCreatedVerts+i]->isPicked = FALSE;
 
-		numCreatedFaces++;
+			i++;
+		}
+
 		numCreatedVerts += 3;
+		numCreatedFaces += 1;
 	}
 
-	void createVertex()
+	void createNewTriangle()
 	{
-		mesh->LockVertexBuffer(0, (void**)&vertices);
-		vertices[numCreatedVerts] = vertex(-1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 0.0f); //New 
-		mesh->UnlockVertexBuffer();
+		int counter = 0;
+		bool firstFound(FALSE), secondFound(FALSE);
+		DWORD firstVertID, secondVertID;
 
-		mesh->LockIndexBuffer(0, (void**)&indices);
-		indices[numCreatedVerts  ] = numCreatedVerts; 
-		indices[numCreatedVerts+1] = numCreatedVerts-3; 
-		indices[numCreatedVerts+2] = numCreatedVerts-1;
-		mesh->UnlockIndexBuffer();
+		for(;counter != numCreatedVerts;)
+		{
+			if(vertexSphere[counter]->isPicked)
+			{
+				firstVertID = vertexSphere[counter]->vertexID;
+				firstFound = TRUE;
+				counter++;
+				break;
+			}
+			counter++;
+		}
 
-		mesh->LockAttributeBuffer(0, &attributeBuffer); 
-		attributeBuffer[numCreatedFaces] = 0; 
-		mesh->UnlockAttributeBuffer();
+		for(;counter != numCreatedVerts;)
+		{
+			if(vertexSphere[counter]->isPicked)
+			{
+				secondVertID = vertexSphere[counter]->vertexID;
+				secondFound = TRUE;
+				break;
+			}
+			counter++;
+		}
 
-		vertexSphere[numCreatedVerts] = new sphere_struct;
-		vertexSphere[numCreatedVerts]->center.x = vertices[numCreatedVerts].x;
-		vertexSphere[numCreatedVerts]->center.y = vertices[numCreatedVerts].y;
-		vertexSphere[numCreatedVerts]->center.z = vertices[numCreatedVerts].z;
-		vertexSphere[numCreatedVerts]->radius   = 0.6f;
-		vertexSphere[numCreatedVerts]->vertexID = numCreatedVerts;
+		if(firstFound == TRUE && secondFound == TRUE)
+		{
+			mesh->LockVertexBuffer(0, (void**)&vertices);
+			vertices[numCreatedVerts] = vertex(-3.0f, 0.0f,  1.0f, 0.0f, 0.0f, 0.0f); //New Vertex
+			mesh->UnlockVertexBuffer();
 
-		numCreatedVerts++;
-		numCreatedFaces++;	
-	}
+			mesh->LockIndexBuffer(0, (void**)&indices);
+			indices[numCreatedFaces*3  ] = numCreatedVerts;
+			indices[numCreatedFaces*3+1] = firstVertID;
+			indices[numCreatedFaces*3+2] = secondVertID;
+			mesh->UnlockIndexBuffer();
 
-	void baseObject()
-	{
-		this->createFoundation();
-		this->createVertex();
+			mesh->LockAttributeBuffer(0, &attributeBuffer); 
+			attributeBuffer[numCreatedFaces] = 0; 
+			mesh->UnlockAttributeBuffer();
 
-		material[numSubsets] = new material_class;
-		material[numSubsets]->initMaterialBase(device);
-		numSubsets++;
+			vertexSphere[numCreatedVerts] = new sphere_struct;
+			vertexSphere[numCreatedVerts]->center.x = vertices[numCreatedVerts].x;
+			vertexSphere[numCreatedVerts]->center.y = vertices[numCreatedVerts].y;
+			vertexSphere[numCreatedVerts]->center.z = vertices[numCreatedVerts].z;
+			vertexSphere[numCreatedVerts]->vertexID = numCreatedVerts;
+			vertexSphere[numCreatedVerts]->radius   = 0.5f;
+			vertexSphere[numCreatedVerts]->isPicked = FALSE;
+
+			numCreatedVerts += 1;
+			numCreatedFaces += 1;
+		}
 	}
 
 	void moveObject(float dX, float dY, float dZ)
@@ -181,10 +202,10 @@ public:
 		vertexNumber--;
 		
 		mesh->LockVertexBuffer(0, (void**)&vertices);
-		vertices[vertexNumber].x += x;
-		vertices[vertexNumber].y -= y;
-		vertices[vertexNumber].z += z;
-		mesh->UnlockVertexBuffer();	
+		vertexSphere[vertexNumber]->center.x = vertices[vertexNumber].x += x;
+		vertexSphere[vertexNumber]->center.y = vertices[vertexNumber].y -= y;
+		vertexSphere[vertexNumber]->center.z = vertices[vertexNumber].z += z;
+		mesh->UnlockVertexBuffer();		
 	}
 
 	void rotateXObject(float Angle)
@@ -226,7 +247,14 @@ public:
 					float s1 = (-b - discriminant) / 2.0f;
 
 					if(s0 >= 0.0f || s1 >= 0.0f)
+					{
+						if(vertexSphere[counter]->isPicked == FALSE)
+							vertexSphere[counter]->isPicked = TRUE;
+						else
+							vertexSphere[counter]->isPicked = FALSE;
+
 						return vertexSphere[counter]->vertexID+1;
+					}
 				}
 				counter++;
 			}
@@ -267,6 +295,7 @@ public:
 	void redraw()
 	{
 		worldMatrices.resetMatrices();
+		device->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
 		for(DWORD subset = 0; subset != numSubsets; subset++)
 		{
 			material[subset]->resetMaterial();
@@ -286,8 +315,8 @@ public:
 
 		for(;numCreatedVerts != 0;)
 		{
-			delete vertexSphere[numCreatedVerts];
 			numCreatedVerts--;
+			delete vertexSphere[numCreatedVerts];
 		}
 
 		delete adjacencyInfo;

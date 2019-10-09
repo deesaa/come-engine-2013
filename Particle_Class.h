@@ -1,0 +1,5 @@
+class particle
+{
+private:
+public:
+};

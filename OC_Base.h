@@ -35,6 +35,7 @@ private:
 
 	picked pickType;
 
+	bool NewTriButtonLocked;
 public:
 	object_creator(){}
 
@@ -51,6 +52,8 @@ public:
 		d3dInput.createKBMInput(windowHandle);
 		KBDevice = d3dInput.getKBDevice();
 		MDevice = d3dInput.getMDevice();
+
+		NewTriButtonLocked = FALSE;
 
 		manager = bManager;						//Сохранение дескриптора менеджера объектов
 		pickedObject = NULL;					
@@ -193,7 +196,7 @@ public:
 				manager->moveVertex(pickedObject, pickedVertex, dX, dY, dZ);
 		}
 		
-		if (KBBuffer[DIK_W] & 0x80)
+		if (KBBuffer[DIK_W] & 0x8000f)
 		{
 			AngleX = 0.001f;
 			if(pickType == Object)
@@ -204,7 +207,7 @@ public:
 				manager->moveCam(pickedCam, MOVE_FORVARD);
 		}
 
-		if (KBBuffer[DIK_S] & 0x80)
+		if (KBBuffer[DIK_S] & 0x8000f)
 		{
 			AngleX = -0.001f;
 			if(pickType == Object)
@@ -215,7 +218,7 @@ public:
 				manager->moveCam(pickedCam, MOVE_BACK);
 		}
 
-		if (KBBuffer[DIK_A] & 0x80)
+		if (KBBuffer[DIK_A] & 0x8000f)
 		{
 			AngleY = 0.001f;
 			if(pickType == Object)
@@ -226,7 +229,7 @@ public:
 				manager->moveCam(pickedCam, MOVE_LEFT);
 		}
 
-		if (KBBuffer[DIK_D] & 0x80)
+		if (KBBuffer[DIK_D] & 0x8000f)
 		{
 			AngleY = -0.001f;
 			if(pickType == Object)
@@ -236,6 +239,18 @@ public:
 			if(pickType == Cam)
 				manager->moveCam(pickedCam, MOVE_RIGHT);
 		}
+		
+		if (KBBuffer[DIK_F] & 0x8000f)
+		{
+			if(NewTriButtonLocked == FALSE)
+			{
+				if(pickType == Object)
+					manager->createNewTriangle(pickedObject);
+			}
+			NewTriButtonLocked = TRUE;
+		}
+		else
+			NewTriButtonLocked = FALSE;
 	}
 
 	~object_creator() 

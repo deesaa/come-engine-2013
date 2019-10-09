@@ -42,6 +42,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	device->SetRenderState(D3DRS_ZENABLE, TRUE);
 	device->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 
+
 	static float lastTime = (float)timeGetTime();
 	float currTime, timeDelta;
 	manager->setPointerToTimeDelta(&timeDelta);
@@ -238,13 +239,13 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		GetCursorPos(&pOc);
 		ScreenToClient(windows->getWindowHandle(GET_D3DWINDOW), &pOc);
 		OC->createRayOfClick(pOc);
-		if(OC->pickIntersectedVertex())
+
+		if(OC->pickIntersectedObject())
 		{
 			objectSettings->showOSButton(SW_NORMAL);
 			objectSettings->fillObjectSettings(OC->getMaterialClass());
 		}
-
-		if(OC->pickIntersectedObject())
+		if(OC->pickIntersectedVertex())
 		{
 			objectSettings->showOSButton(SW_NORMAL);
 			objectSettings->fillObjectSettings(OC->getMaterialClass());

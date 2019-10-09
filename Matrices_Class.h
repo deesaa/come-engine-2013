@@ -228,7 +228,6 @@ public:
 		D3DXVec3Cross(&right, &up, &look);
 		D3DXVec3Normalize(&right, &right);
 
-		// Строим матрицу вида:
 		D3DXMatrixTranslation(&worldMatrix, pos.x, pos.y, pos.z);
 
 		finallyRotateMatrix = rotateXMatrix * rotateYMatrix * rotateZMatrix;

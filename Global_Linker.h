@@ -18,6 +18,7 @@
 #include "mmsystem.h"
 
 #include <string>
+#include <vector>
 
 //Прототипы всяких функций
 HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
