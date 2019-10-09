@@ -19,7 +19,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	objectCreatorWindow = windows.getWindowHandle();		//Получение дескриптора окна, в которое идет вывод DirectX
 
 	object_creator OC(device, objectCreatorWindow, hInstance);
-
+	
+	object_manager manager(device);
+	manager.createNewObject();
 	
 	while(true)
 	{
@@ -39,6 +41,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 			OC.applyKBChanges();
 			OC.redraw();
+			manager.redrawObject(0);
 				
 			device->EndScene();
 			device->Present(0, 0, 0, 0); 

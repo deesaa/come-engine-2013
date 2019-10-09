@@ -48,7 +48,10 @@ public:
 		AngleX = 0.0f; AngleY = 0.0f;
 		this->createBuffers();  //Создание буфера вершин и индексов					
 		COFillBuffers(vb, ib, vertices, indices);  //Заполнение буфера вершин и интексов сетки редактора объектов
-		matrices.fillMatrices(0, 0, 0, 0.5f, device);  //Заполнение и установка всех трех матриц
+		D3DXVECTOR3 position(0.0f, 0.0f, -20.0f);
+		D3DXVECTOR3 target(0.0f, 0.0f, 0.0f);
+		D3DXVECTOR3 up(0.0f, 1.0f, 0.0f);
+		matrices.fillMatrices(0, 0, 0, 0.25f, device, &position, &target, &up);  //Заполнение и установка всех трех матриц
 		d3dInput.createInput(hInstace);
 		d3dInput.createKBMInput(windowHandle);
 		KBDevice = d3dInput.getKBDevice();
