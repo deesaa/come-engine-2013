@@ -6,6 +6,7 @@ class object_creator
 {
 private:
 	IDirect3DDevice9* device;
+	object_settings* objectSettings;
 	HWND windowHandle;
 	HINSTANCE hInstace;
 
@@ -37,12 +38,15 @@ private:
 
 	bool NewTriButtonLocked;
 	bool SwapVertsButtonLocked;
+	bool NewSubsetButtonLocked;
+	bool SaveObjectButtonLocked;
 public:
 	object_creator(){}
 
-	void initObjectCreator(IDirect3DDevice9* bDevice, HWND bWindowHandle, HINSTANCE bhInstance, object_manager* bManager)
+	void initObjectCreator(IDirect3DDevice9* bDevice, HWND bWindowHandle, HINSTANCE bhInstance, object_manager* bManager, object_settings* bObjectSettings)
 	{
 		device = bDevice;					//Сохранение дестрипторов устройства, окна, приложения
+		objectSettings = bObjectSettings;
 		windowHandle = bWindowHandle;
 		hInstace = bhInstance;
 		dX = dY = dZ = 0.0f;
@@ -54,8 +58,10 @@ public:
 		KBDevice = d3dInput.getKBDevice();
 		MDevice = d3dInput.getMDevice();
 
-		NewTriButtonLocked	  = FALSE;
-		SwapVertsButtonLocked = FALSE;
+		NewTriButtonLocked	   = FALSE;
+		SwapVertsButtonLocked  = FALSE;
+		NewSubsetButtonLocked  = FALSE;
+		SaveObjectButtonLocked = FALSE;
 
 		manager = bManager;						//Сохранение дескриптора менеджера объектов
 		pickedObject = NULL;					
@@ -87,7 +93,9 @@ public:
 
 	void pickObject(UINT bPickedObject)
 	{	pickType = Object;
-		pickedObject = bPickedObject;}
+		pickedObject = bPickedObject;
+		manager->rewriteSubsetsList(pickedObject);}
+
 
 	void pickLight(UINT bPickedLight)
 	{	pickType = Light;
@@ -138,8 +146,9 @@ public:
 
 		if(bPickedObject != 0)
 		{
-			pickedObject = bPickedObject;
 			pickType = Object;
+			pickedObject = bPickedObject;
+			manager->rewriteSubsetsList(pickedObject);
 			return true;
 		}
 		return false;
@@ -269,9 +278,30 @@ public:
 
 		if (KBBuffer[DIK_C] & 0x8000f)
 		{
-			if(pickType == Object)
-				manager->newSubset(pickedObject);
+			if(NewSubsetButtonLocked == FALSE)
+			{
+				if(pickType == Object)
+				{
+					manager->newSubset(pickedObject);
+					objectSettings->fillObjectSettings(this->getMaterialClass());
+				}
+			}
+			NewSubsetButtonLocked = TRUE;
 		}
+		else
+			NewSubsetButtonLocked = FALSE;
+
+		if (KBBuffer[DIK_F5] & 0x8000f)
+		{
+			if(SaveObjectButtonLocked == FALSE)
+			{
+				if(pickType == Object)
+					manager->saveFullObject(pickedObject);
+			}
+			SaveObjectButtonLocked = TRUE;
+		}
+		else
+			SaveObjectButtonLocked = FALSE;
 	}
 
 	~object_creator() 

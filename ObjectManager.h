@@ -3,6 +3,9 @@ class object_manager
 {
 private:
 	IDirect3DDevice9* device;			//Устройство
+	HINSTANCE hInstance;
+	HWND window;
+
 	DWORD numObject;					//Счетчик объектов
 	DWORD numLight;						//Счетчик объектов света
 	DWORD numCam;
@@ -18,9 +21,11 @@ private:
 public:
 	object_manager(){}
 
-	void initManager(IDirect3DDevice9* bDevice)
+	void initManager(IDirect3DDevice9* bDevice, HINSTANCE bhInstance, HWND bWindow)
 	{
 		device = bDevice;						//Сохранение устройства
+		hInstance = bhInstance;
+		window = bWindow;
 		numObject = 0;					//Установка начального кол-ва объектов
 		numLight = 0;
 		numGlobal = 0;
@@ -29,10 +34,10 @@ public:
 	}
 
 	//Создание абсолютно нового объекта
-	UINT createNewObject(HWND objectList)
+	UINT createNewObject(HWND objectList, HWND subsetsList)
 	{
 		object[numObject] = new object_class;	//Выделение памяти для объекта
-		object[numObject]->initObjectBase(device, numObject); //Создание базы нового объекта
+		object[numObject]->initObjectBase(device, numObject, subsetsList); //Создание базы нового объекта
 		SendMessage(objectList, LB_INSERTSTRING, numObject, (LPARAM)object[numObject]->getObjectName());
 		numObject++; 
 		numGlobal++;
@@ -138,6 +143,18 @@ public:
 		}
 	}
 
+	void rewriteSubsetsList(DWORD objectNumber)
+	{
+		objectNumber--;
+		object[objectNumber]->rewriteSubsetsList();
+	}
+
+	void pickSubset(DWORD objectNumber, DWORD subsetNumber)
+	{
+		objectNumber--;
+		object[objectNumber]->pickSubset(subsetNumber);
+	}
+
 	void moveLight(DWORD lightNumber, float x, float y, float z)
 	{
 		lightNumber--;
@@ -229,6 +246,18 @@ public:
 	{
 		bPickedLight--;
 		light[bPickedLight]->setLight();	
+	}
+
+	void saveAs(DWORD objectNumber)
+	{
+		objectNumber--;
+		object[objectNumber]->saveObjectAs(hInstance, window);
+	}
+
+	void saveFullObject(DWORD objectNumber)
+	{
+		objectNumber--;
+		object[objectNumber]->saveObject();
 	}
 
 	//Перерисовать объект

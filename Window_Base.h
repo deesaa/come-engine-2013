@@ -118,6 +118,11 @@ public:
 		return ((UINT)SendMessage(lightObjectsList, LB_GETCURSEL, 0, 0L) + 1);
 	}
 
+	UINT takeSubsetFromList()
+	{
+		return ((UINT)SendMessage(subsetsList, LB_GETCURSEL, 0, 0L));
+	}
+
 	UINT takeCamFromList()
 	{
 		return ((UINT)SendMessage(camObjectsList, LB_GETCURSEL, 0, 0L) + 1);

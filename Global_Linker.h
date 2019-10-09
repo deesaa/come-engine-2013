@@ -35,6 +35,7 @@ BOOL initPalette(HWND hwnd, D3DCOLORVALUE* mtrComponent);
 
 class object_class;
 void saveFullObject(object_class* object);
+void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
 
 //Собственно включение всех компонентов "движка"
 #include "Constants.h"
@@ -49,6 +50,6 @@ void saveFullObject(object_class* object);
 #include "DialogWndClass.h"
 #include "Window_Base.h"
 #include "DirectX_Base.h"
-#include "OC_Base.h"
 #include "Object_Settings.h"
+#include "OC_Base.h"
 #include "Object_Outwrite.h"

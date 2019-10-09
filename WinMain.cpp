@@ -26,15 +26,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	COButton			= windows->getWindowHandle(GET_OCCREATEOBJECT);		//Получение дескриптора кнопки, создающей новый объект
 
 	manager = new object_manager;	//Выделяем память на менеджер объектов
-	manager->initManager(device);	//Инициализируем менеджер объектов
+	manager->initManager(device, hInstance, windows->getWindowHandle(GET_MAINWINDOW));	//Инициализируем менеджер объектов
 	
-	OC = new object_creator;		//Выделяем память на редактор объектов
-	OC->initObjectCreator(device, objectCreatorWindow, hInstance, manager);	//Инициализируем редактор объектов
-
 	objectSettings = new object_settings;
 	objectSettings->initSettings(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
 	objectSettings->initObjectSettings();
 	objectSettings->initLightSettings();
+
+	OC = new object_creator;		//Выделяем память на редактор объектов
+	OC->initObjectCreator(device, objectCreatorWindow, hInstance, manager, objectSettings);	//Инициализируем редактор объектов
 
 	device->SetRenderState(D3DRS_LIGHTING, true);
 	device->SetRenderState(D3DRS_NORMALIZENORMALS, true);
@@ -116,7 +116,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			return 0;
 		case ID_BUTTON2:
 			//Созданный объект принимает управление и добавляется в лист объектов
-			OC->pickObject(manager->createNewObject(windows->getWindowHandle(GET_OBJECTLIST)));
+			OC->pickObject(manager->createNewObject(windows->getWindowHandle(GET_OBJECTLIST), windows->getWindowHandle(GET_SUBSETSLIST)));
 	
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);	
 			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);	
@@ -124,7 +124,8 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_NORMAL);
 
 			objectSettings->showOSButton(SW_NORMAL);
-			objectSettings->fillObjectSettings(OC->getMaterialClass());
+			if(OC->getMaterialClass())
+				objectSettings->fillObjectSettings(OC->getMaterialClass());
 			return 0;
 
 		case ID_BUTTON4:	
@@ -179,7 +180,8 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Объект, выбранный из листа объектов, принимает управление 
 				OC->pickObject(windows->takeObjectFromList());
 				objectSettings->showOSButton(SW_NORMAL);
-				objectSettings->fillObjectSettings(OC->getMaterialClass());
+				if(OC->getMaterialClass())
+					objectSettings->fillObjectSettings(OC->getMaterialClass());
 				return 0;
 			}
 			return 0;
@@ -203,6 +205,15 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Объект света, выбранный из листа объектов света, принимает управление 
 				OC->pickCam(windows->takeCamFromList());
 				manager->resetCam(OC->getPickedCam());
+				return 0;
+			}
+			return 0;
+
+		case ID_LISTBOX4: 
+			switch(HIWORD(wParam))
+			{
+			case LBN_SELCHANGE:
+				manager->pickSubset(OC->getPickedObject(), windows->takeSubsetFromList());
 				return 0;
 			}
 			return 0;
@@ -250,12 +261,14 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if(OC->pickIntersectedObject())
 		{
 			objectSettings->showOSButton(SW_NORMAL);
-			objectSettings->fillObjectSettings(OC->getMaterialClass());
+			if(OC->getMaterialClass())
+				objectSettings->fillObjectSettings(OC->getMaterialClass());
 		}
 		if(OC->pickIntersectedVertex())
 		{
 			objectSettings->showOSButton(SW_NORMAL);
-			objectSettings->fillObjectSettings(OC->getMaterialClass());
+			if(OC->getMaterialClass())
+				objectSettings->fillObjectSettings(OC->getMaterialClass());
 		}
 
 		if(OC->checkPickType(Cam))
