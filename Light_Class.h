@@ -11,7 +11,7 @@ class light_class
 {
 private:
 	D3DLIGHT9 light;
-	UINT lightID;
+	DWORD lightID;
 	LPCTSTR lightName;
 	short lightType;
 
@@ -101,7 +101,7 @@ public:
 	void createObjectOfLight()
 	{
 		this->createAndFillBuffers();
-		material.initAbsolutelyWhiteMaterial(device);
+		material.initAbsolutelyWhiteMaterial(device, NULL);
 		worldMatrices.fillMatrix(0, 0, 0, device);
 		worldMatrices.worldMatrixRotateX(0.0f);		//Установка углов наклона в 0
 		worldMatrices.worldMatrixRotateY(0.0f);
@@ -324,16 +324,20 @@ public:
 
 	LPCTSTR getLightName()
 	{	return lightName;}
-
+	DWORD getLightID()
+	{
+		return lightID;
+	}
 	void enableLight()
 	{	device->LightEnable(lightID, true);}
-
 	void disableLight()
 	{	device->LightEnable(lightID, false);}
-
 	D3DLIGHT9* getLight()
 	{	return &light;}
-
+	light_class* getThis()
+	{
+		return this;
+	}
 	~light_class()
 	{
 		if(light.Type == D3DLIGHT_SPOT)

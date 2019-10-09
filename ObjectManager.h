@@ -3,6 +3,7 @@ class object_manager
 {
 private:
 	IDirect3DDevice9* device;			//Устройство
+	botStatusBar_Class* BSBar;
 	HINSTANCE hInstance;
 	HWND window;
 
@@ -21,9 +22,10 @@ private:
 public:
 	object_manager(){}
 
-	void initManager(IDirect3DDevice9* bDevice, HINSTANCE bhInstance, HWND bWindow)
+	void initManager(IDirect3DDevice9* bDevice, HINSTANCE bhInstance, HWND bWindow, botStatusBar_Class* bBSBar)
 	{
 		device = bDevice;						//Сохранение устройства
+		BSBar = bBSBar;
 		hInstance = bhInstance;
 		window = bWindow;
 		numObject = 0;					//Установка начального кол-ва объектов
@@ -37,7 +39,7 @@ public:
 	UINT createNewObject(HWND objectList, HWND subsetsList)
 	{
 		object[numObject] = new object_class;	//Выделение памяти для объекта
-		object[numObject]->initObjectBase(device, numObject, subsetsList); //Создание базы нового объекта
+		object[numObject]->initObjectBase(device, numObject, subsetsList, BSBar); //Создание базы нового объекта
 		SendMessage(objectList, LB_INSERTSTRING, numObject, (LPARAM)object[numObject]->getObjectName());
 		numObject++; 
 		numGlobal++;
@@ -107,6 +109,12 @@ public:
 				return intersectedObject;
 		}
 		return 0;
+	}
+	
+	void unpickAllVerts(DWORD objectNumber)
+	{
+		objectNumber--;
+		object[objectNumber]->unpickAllVerts();
 	}
 
 	void renameObject(DWORD objectNumber, HWND objectsList, HWND nameEditor)
@@ -230,7 +238,7 @@ public:
 	void loadTexture(DWORD objectNumber)
 	{
 		objectNumber--;
-		object[objectNumber]->simplyLoadTexture();
+		object[objectNumber]->LoadTexture4Verts();
 	}
 
 	void cutVertices(DWORD objectNumber)
@@ -326,6 +334,7 @@ public:
 		for(;numLight != 0;)
 		{
 			numLight--;
+			saveFullLight(light[numLight]->getThis());
 			delete light[numLight];
 			light[numLight] = NULL;
 		}

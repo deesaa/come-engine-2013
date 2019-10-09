@@ -13,6 +13,7 @@ object_manager* manager;		   //Менеджер объектов
 object_creator* OC;				   //Создатель и редактор объектов
 window_class* windows;			   //Windows-окна (GUI)
 object_settings* objectSettings;   //Окна настроек объектов
+botStatusBar_Class* BStatBar;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -24,17 +25,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	device				= device1.getDevice();				//Получение устройства видеокарты
 	objectCreatorWindow = windows->getWindowHandle(GET_D3DWINDOW);		//Получение дескриптора окна, в которое идет вывод DirectX
 	COButton			= windows->getWindowHandle(GET_OCCREATEOBJECT);		//Получение дескриптора кнопки, создающей новый объект
-
-	manager = new object_manager;	//Выделяем память на менеджер объектов
-	manager->initManager(device, hInstance, windows->getWindowHandle(GET_MAINWINDOW));	//Инициализируем менеджер объектов
 	
 	objectSettings = new object_settings;
 	objectSettings->initSettings(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
 	objectSettings->initObjectSettings();
 	objectSettings->initLightSettings();
 
+	BStatBar = new botStatusBar_Class;
+	BStatBar->initBStatBar(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
+
+	manager = new object_manager;	//Выделяем память на менеджер объектов
+	manager->initManager(device, hInstance, windows->getWindowHandle(GET_MAINWINDOW), BStatBar);	//Инициализируем менеджер объектов
+
 	OC = new object_creator;		//Выделяем память на редактор объектов
-	OC->initObjectCreator(device, objectCreatorWindow, hInstance, manager, objectSettings);	//Инициализируем редактор объектов
+	OC->initObjectCreator(device, objectCreatorWindow, hInstance, manager, objectSettings, BStatBar);	//Инициализируем редактор объектов
 
 	device->SetRenderState(D3DRS_LIGHTING, true);
 	device->SetRenderState(D3DRS_NORMALIZENORMALS, true);
@@ -50,8 +54,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	while(true)
 	{
-		
-
 		if(PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
 		{
 			if(msg.message == WM_QUIT)
@@ -86,6 +88,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	delete OC;
 	delete windows;
 	delete objectSettings;
+	delete BStatBar;
 	return msg.wParam;
 }
 
@@ -105,6 +108,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ShowWindow(windows->getWindowHandle(GET_NEWPOINTLIGHTBUTTON), SW_HIDE);
 				ShowWindow(windows->getWindowHandle(GET_NEWSPOTLIGHTBUTTON), SW_HIDE);
 				ShowWindow(windows->getWindowHandle(GET_NEWCAMOBJECTBUTTON), SW_HIDE);
+				BStatBar->hideBar();
 			}
 			else
 			{
@@ -114,6 +118,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ShowWindow(windows->getWindowHandle(GET_NEWPOINTLIGHTBUTTON), SW_NORMAL);
 				ShowWindow(windows->getWindowHandle(GET_NEWSPOTLIGHTBUTTON), SW_NORMAL);
 				ShowWindow(windows->getWindowHandle(GET_NEWCAMOBJECTBUTTON), SW_NORMAL);
+				BStatBar->showBar();
 			}
 			return 0;
 		case ID_BUTTON2:
@@ -376,6 +381,19 @@ LRESULT CALLBACK CEDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case IDOK:
 			EndDialog(hwnd, TRUE);
 			return 0;
+		}
+		return 0;
+	}
+	return 0;
+}
+
+LRESULT CALLBACK BStatBarProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch(msg)
+	{
+	case WM_COMMAND:
+		switch(LOWORD(wParam))
+		{
 		}
 		return 0;
 	}

@@ -1,5 +1,6 @@
 //Включение всяких технических библиотек, в которых лезть не надо
 #include <windows.h>
+#include <winbase.h>
 #include <CommDlg.h>
 #include <fstream>
 
@@ -27,6 +28,7 @@ LRESULT CALLBACK OSWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK OSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK LSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK CEDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK BStatBarProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 void RegWndClass(WNDPROC proc, HINSTANCE hInstance, LPCTSTR className);
 void setAllMatrices(D3DXMATRIX* worldMatrix, D3DXMATRIX* viewMatrix, D3DXMATRIX* projMatrix, IDirect3DDevice9* device);
@@ -34,7 +36,11 @@ void setViewMatrices(D3DXMATRIX* viewMatrix, D3DXMATRIX* projMatrix, IDirect3DDe
 BOOL initPalette(HWND hwnd, D3DCOLORVALUE* mtrComponent);
 
 class object_class;
+class material_class;
+class light_class;
 void saveFullObject(object_class* object);
+void saveFullMaterial(material_class* material);
+void saveFullLight(light_class* light);
 void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
 
 //Собственно включение всех компонентов "движка"
@@ -46,6 +52,7 @@ void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
 #include "Material_Class.h"
 #include "Texture_Class.h"
 #include "Light_Class.h"
+#include "BotStatus_Bar.h"
 #include "ObjectClass.h"
 #include "ObjectManager.h"
 #include "DialogWndClass.h"

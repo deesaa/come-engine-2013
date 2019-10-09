@@ -5,6 +5,7 @@ class object_class
 {
 private:
 	IDirect3DDevice9* device;
+	botStatusBar_Class* BSBar;
 	DWORD pickedSubset;
 	HWND subsetsList;
 
@@ -27,7 +28,6 @@ private:
 	material_class* material[64];
 	texture_class* texture[64];
 	sphere_struct* vertexSphere[512];
-	std::vector<triangle> triangless;
 	triangle* triangles[512];
 	IDirect3DVertexBuffer9* vpb;
 	particle* particles;
@@ -42,9 +42,10 @@ private:
 	DWORD numTextures;
 
 public:
-	void initObjectBase(IDirect3DDevice9* bDevice, DWORD numObject, HWND bSubsetsList)
+	void initObjectBase(IDirect3DDevice9* bDevice, DWORD numObject, HWND bSubsetsList, botStatusBar_Class* bBSBar)
 	{
 		device = bDevice;
+		BSBar = bBSBar;
 		ObjectID = numObject;
 		subsetsList = bSubsetsList;
 		objectName = L"Object";	
@@ -59,7 +60,7 @@ public:
 		D3DXCreateMeshFVF(256, 512, D3DXMESH_MANAGED, vertex::FVF, device, &mesh);
 
 		device->CreateVertexBuffer(
-			512,
+			512,						//Хватает примерно на 65 вершин!
 			D3DUSAGE_DYNAMIC | D3DUSAGE_POINTS | D3DUSAGE_WRITEONLY,
 			particle::FVF,
 			D3DPOOL_DEFAULT,
@@ -91,7 +92,7 @@ public:
 		this->createNewFoundation();
 		
 		material[numMaterials] = new material_class;
-		material[numMaterials]->initMaterialBase(device);
+		material[numMaterials]->initMaterialBase(device, numMaterials);
 
 		texture[numTextures] = new texture_class;
 		texture[numTextures]->initBaseForTexture(device);
@@ -107,9 +108,9 @@ public:
 	void createNewFoundation()
 	{
 		mesh->LockVertexBuffer(0, (void**)&vertices);
-		vertices[numCreatedVerts  ] = vertex( 1.0f,  3.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-		vertices[numCreatedVerts+1] = vertex( 3.0f,  3.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);	
-		vertices[numCreatedVerts+2] = vertex( 1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+		vertices[numCreatedVerts  ] = vertex( -1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+		vertices[numCreatedVerts+1] = vertex(  1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);	
+		vertices[numCreatedVerts+2] = vertex( -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 		mesh->UnlockVertexBuffer();
 
 		mesh->LockIndexBuffer(0, (void**)&indices);
@@ -196,7 +197,7 @@ public:
 			if(found[0] == TRUE && found[1] == TRUE)
 			{
 				mesh->LockVertexBuffer(0, (void**)&vertices);
-				vertices[numCreatedVerts]   = vertex( 3.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f); //New Vertex
+				vertices[numCreatedVerts]   = vertex( 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f); //New Vertex
 				vertices[numCreatedVerts+1] = vertices[vertsID[1]];
 				vertices[numCreatedVerts+2] = vertices[vertsID[0]];
 				mesh->UnlockVertexBuffer();
@@ -247,25 +248,15 @@ public:
 		}
 	}
 
-	void simplyLoadTexture()
+	void LoadTexture4Verts()
 	{
 		DWORD vertsID[4];
 		DWORD textureVerts[4];
 		bool found[4];
-		this->findOneRelevantVert(found, vertsID, 4);
+		this->findOneRelevantVert(found, textureVerts, 4);
 		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE && found[3] == TRUE)
 		{
-			DWORD relevantTriangle[24];
-			DWORD numRelevantTris = this->findRelevantTriangle(vertsID, relevantTriangle, 3);
-
-			for(short counter(0); counter != 3;)
-			{
-				textureVerts[counter] = triangles[relevantTriangle[0]]->verticesID[counter];
-				counter += 1;
-			}
-			textureVerts[3] = triangles[relevantTriangle[2]]->verticesID[0];
-
-			texture[pickedSubset]->loadTexture(textureVerts, vertices, vertexSphere);
+			texture[pickedSubset]->loadTexture4Verts(textureVerts, vertices, vertexSphere);
 		}
 	}
 
@@ -324,7 +315,7 @@ public:
 				mesh->UnlockAttributeBuffer();
 
 				material[numSubsets] = new material_class;
-				material[numSubsets]->initAbsolutelyWhiteMaterial(device);
+				material[numSubsets]->initAbsolutelyWhiteMaterial(device, numMaterials);
 
 				texture[numSubsets] = new texture_class;
 				texture[numSubsets]->initBaseForTexture(device);
@@ -388,6 +379,7 @@ public:
 				vertexSphere[vertexNumber]->center;
 				counter++;
 			}
+			BSBar->writeVertPos(&vertices[vertexNumber].pos);
 			mesh->UnlockVertexBuffer();	
 		}
 	}
@@ -428,13 +420,13 @@ public:
 	void uniteVertices()
 	{
 		bool found[2];
-		DWORD vertsID[2];
+		DWORD vertsID[2];	
 
 		this->findOneRelevantVert(found, vertsID, 2);
 		if(found[0] == TRUE && found[1] == TRUE)
 		{
-			vertexSphere[vertsID[0]]->linkVert(vertsID[1]);
-			vertexSphere[vertsID[1]]->vertType = Child;
+			vertexSphere[vertsID[0]]->linkVert(vertsID[1]);		//К вершине vertsID[0] привинчиваем вершину vertsID[1]
+			vertexSphere[vertsID[1]]->vertType = Child;			//Скрываем вершину vertsID[1]
 			vertexSphere[vertsID[1]]->isPicked = FALSE;
 
 			particles[vertsID[1]].pos = vertexSphere[vertsID[1]]->center = vertices[vertsID[1]].pos;
@@ -452,6 +444,41 @@ public:
 
 				counter += 1;
 			}
+			DWORD relevantTris_1[24];
+			DWORD numFoundTris_1 = this->findRelevantTriangle(&vertsID[0], relevantTris_1, 1);
+			DWORD relevantTris_2[24];
+			DWORD numFoundTris_2 = this->findRelevantTriangle(&vertsID[1], relevantTris_2, 1);
+			for(DWORD counter(0); counter != numFoundTris_2;)
+			{
+				for(DWORD counter_2(0); counter_2 != 3;)
+				{
+					if(triangles[relevantTris_2[counter]]->fathers[counter_2] == vertsID[1])
+					{
+						/**********/
+						for(DWORD counter_3(0); counter_3 != numFoundTris_1;)
+						{
+							for(DWORD counter_4(0); counter_4 != 3;)
+							{
+								if(triangles[relevantTris_1[counter_3]]->fathers[counter_4] == vertsID[0])
+								{
+									triangles[relevantTris_2[counter]]->fathers[counter_2] = 
+									triangles[relevantTris_1[counter_3]]->fathers[counter_4];
+								}
+								counter_4 += 1;
+							}
+							counter_3 += 1;
+						}
+						/**********/
+					}
+					counter_2 += 1;
+				}
+				counter += 1;
+			}
+			//Нужно все fathers треугольников, содержащих vertsID[1], прировнять к соответствующему father треугольника, содержащего vertsID[0]  
+			
+			
+
+
 			vertexSphere[vertsID[1]]->numLinkedVerts = 0;
 		}
 	}
@@ -471,7 +498,6 @@ public:
 	DWORD checkIntersection(ray_struct clickRay, interType intersectedType)
 	{
 		BOOL  hit;	DWORD pFaceIndex; FLOAT pU; FLOAT pV; FLOAT pDist;
-
 		D3DXMATRIX worldMatrix = worldMatrices.getFinallyWorldMatrix();
 		
 		D3DXMatrixInverse(&worldMatrix, NULL, &worldMatrix);
@@ -502,11 +528,13 @@ public:
 						if(vertexSphere[counter]->isPicked == FALSE)
 						{
 							numPickedVerts++;
+							BSBar->writeNumPickedVerts(numPickedVerts);
 							vertexSphere[counter]->isPicked = TRUE;
 						}
 						else
 						{
 							numPickedVerts--;
+							BSBar->writeNumPickedVerts(numPickedVerts);
 							vertexSphere[counter]->isPicked = FALSE;
 						}
 						
@@ -553,11 +581,19 @@ public:
 		}
 	}
 
+	void unpickAllVerts()
+	{
+		for(DWORD counter(0); counter != numCreatedVerts;)
+		{
+			vertexSphere[counter]->isPicked = FALSE;
+			counter += 1;
+		}
+		numPickedVerts = 0;
+	}
 	D3DMATERIAL9* getMaterial()
 	{
 		return material[pickedSubset]->getMaterial();
 	}
-
 	void renameObject(HWND objectsList, HWND nameEditor, UINT objectNumber)
 	{
 		SendMessage(nameEditor, EM_LIMITTEXT, (WPARAM)80, NULL);
@@ -633,6 +669,10 @@ public:
 	{	return attributeBuffer;}
 	DWORD* getAdjacencyInfo()
 	{	return adjacencyInfo;}
+	triangle** getTriangles()
+	{
+		return triangles;
+	}
 	void saveObjectAs(HINSTANCE bhInstace, HWND bWindow)
 	{
 		saveAs(bhInstace, bWindow, this);
@@ -679,6 +719,7 @@ public:
 		for(;numMaterials != 0;)
 		{
 			numMaterials--;
+			saveFullMaterial(material[numMaterials]->getThis());
 			delete material[numMaterials];
 			material[numMaterials] = NULL;
 		}

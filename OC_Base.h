@@ -7,6 +7,7 @@ class object_creator
 private:
 	IDirect3DDevice9* device;
 	object_settings* objectSettings;
+	botStatusBar_Class* BSBar;
 	HWND windowHandle;
 	HINSTANCE hInstace;
 
@@ -46,10 +47,12 @@ private:
 public:
 	object_creator(){}
 
-	void initObjectCreator(IDirect3DDevice9* bDevice, HWND bWindowHandle, HINSTANCE bhInstance, object_manager* bManager, object_settings* bObjectSettings)
+	void initObjectCreator(IDirect3DDevice9* bDevice, HWND bWindowHandle, HINSTANCE bhInstance, object_manager* bManager, 
+		object_settings* bObjectSettings, botStatusBar_Class* bBSBar)
 	{
 		device = bDevice;					//Сохранение дестрипторов устройства, окна, приложения
 		objectSettings = bObjectSettings;
+		BSBar = bBSBar;
 		windowHandle = bWindowHandle;
 		hInstace = bhInstance;
 		dX = dY = dZ = 0.0f;
@@ -325,7 +328,7 @@ public:
 		{
 			if(cutVerticesButtonLocked == FALSE)
 			{
-				if(pickType == Object)
+				if(pickType == Object || pickType == Vertex)
 					manager->cutVertices(pickedObject);
 			}
 			cutVerticesButtonLocked = TRUE;
@@ -337,13 +340,22 @@ public:
 		{
 			if(uniteVerticesButtonLocked == FALSE)
 			{
-				if(pickType == Object)
+				if(pickType == Object || pickType == Vertex)
 					manager->uniteVertices(pickedObject);
 			}
 			uniteVerticesButtonLocked = TRUE;
 		}
 		else
 			uniteVerticesButtonLocked = FALSE;
+
+		if(KBBuffer[DIK_G] & 0x8000f)
+		{
+			if(pickType == Object || pickType == Vertex)
+			{
+				manager->unpickAllVerts(pickedObject);
+				BSBar->writeNumPickedVerts(0);
+			}
+		}
 	}
 
 	~object_creator() 

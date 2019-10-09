@@ -114,6 +114,7 @@ public:
 	void getItemTxt(int itemID, LPWSTR txtBuffer, int bufferSize)
 	{
 		GetDlgItemText(modelessDlgWnd, itemID, txtBuffer, sizeof(WCHAR)*bufferSize);
+		
 	}
 
 	HWND getItemHWND(int itemID)
