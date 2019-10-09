@@ -17,39 +17,69 @@ class object_class
 {
 private:
 	IDirect3DDevice9* device;
-	UINT ObjectID;
+	DWORD ObjectID;
 	char buffer[256];
 	LPCTSTR objectName;
+	sphere_struct* vertexSphere[64];
+	ray_struct rayOfPicking;
 
-	IDirect3DVertexBuffer9* vb;
-	IDirect3DIndexBuffer9* ib;
+	ID3DXMesh* mesh;
+
 	vertex* vertices;
 	WORD* indices;
-	material_class material;
 
+	DWORD* attributeBuffer;
+	DWORD* adjacencyInfo;
+	DWORD* optimizedAdjacencyInfo;
+	D3DXATTRIBUTERANGE* attributeTable; 
+
+	DWORD numSubsetsAttributes;
+	DWORD numSubsets;
+	DWORD numVertices;
+	DWORD numFaces;
+
+	material_class* material[64];
 	worldMatrix_class worldMatrices;
 
 public:
-	void initObjectBase(IDirect3DDevice9* bDevice, UINT numObject, IDirect3DVertexBuffer9* bVb, IDirect3DIndexBuffer9* bIb)
+	void initObjectBase(IDirect3DDevice9* bDevice, DWORD numObject)
 	{
-		vb = bVb;
-		ib = bIb;
 		device = bDevice;
 		ObjectID = numObject;
-		objectName = L"Object";
+		objectName = L"Object";	
+		numSubsets = 0;
 
-		material.initMaterialBase(device);
+		D3DXCreateMeshFVF(32, 64, D3DXMESH_MANAGED, vertex::FVF, device, &mesh);
+		this->baseObject();
+		numVertices = mesh->GetNumVertices();
+		this->spheresOfVertices();
+
+		numFaces = mesh->GetNumFaces();
+		adjacencyInfo = new DWORD [numFaces * 3];
+		mesh->GenerateAdjacency(0.0001f, adjacencyInfo);
+
+		optimizedAdjacencyInfo = new DWORD [numFaces * 3];
+		mesh->OptimizeInplace(D3DXMESHOPT_ATTRSORT|D3DXMESHOPT_COMPACT|D3DXMESHOPT_VERTEXCACHE,
+			adjacencyInfo, optimizedAdjacencyInfo, 0, 0);
+
+
+		mesh->GetAttributeTable(0, &numSubsetsAttributes);
+		attributeTable = new D3DXATTRIBUTERANGE [numSubsetsAttributes];
+		mesh->GetAttributeTable(attributeTable, &numSubsetsAttributes);
+
+		material[numSubsets] = new material_class;
+		material[numSubsets]->initMaterialBase(device);
+		numSubsets++;
 
 		worldMatrices.fillMatrix(0, 0, 0, device);
 		worldMatrices.worldMatrixRotateX(0.0f);		//Установка углов наклона в 0 (для правильного начального отображения)
 		worldMatrices.worldMatrixRotateY(0.0f);
 		worldMatrices.worldMatrixRotateZ(0.0f);
-		this->setBaseVertices();
 	}
 
-	void setBaseVertices()
+	void baseObject()
 	{
-		vb->Lock(NULL, NULL, (void**)&vertices, D3DLOCK_DISCARD);
+		mesh->LockVertexBuffer(0, (void**)&vertices);
 		vertices[0] = vertex(-1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
 		vertices[1] = vertex( 0.0f, 1.0f,  0.0f, 0.0f, 0.707f, -0.707f);
 		vertices[2] = vertex( 1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
@@ -68,37 +98,33 @@ public:
 		vertices[9]  = vertex( 1.0f, 0.0f, 1.0f, 0.0f, 0.707f, 0.707f);
 		vertices[10] = vertex( 0.0f, 1.0f, 0.0f, 0.0f, 0.707f, 0.707f);
 		vertices[11] = vertex(-1.0f, 0.0f, 1.0f, 0.0f, 0.707f, 0.707f);
-		
-		vb->Unlock();
+		mesh->UnlockVertexBuffer();
+
+		mesh->LockIndexBuffer(0, (void**)&indices);
+		indices[0] = 0; indices[1] = 1; indices[2] = 2;
+		indices[3] = 3; indices[4] = 4; indices[5] = 5;
+		indices[6] = 6; indices[7] = 7; indices[8] = 8;
+		indices[9] = 9; indices[10] = 10; indices[11] = 11;
+		mesh->UnlockIndexBuffer();
+
+		mesh->LockAttributeBuffer(0, &attributeBuffer);
+		for(int a = 0; a < 4; a++)   
+			attributeBuffer[a] = 0; 
+		mesh->UnlockAttributeBuffer();
 	}
 
-	void computeNormals()
+	void spheresOfVertices()
 	{
-		D3DXVECTOR3 p0;
-		D3DXVECTOR3 p1;
-		D3DXVECTOR3 p2;
-		D3DXVECTOR3 out;
-		p0.x = vertices[indices[0]].x;
-		p0.y = vertices[indices[0]].y;
-		p0.z = vertices[indices[0]].z;
-		p1.x = vertices[indices[1]].x;
-		p1.y = vertices[indices[1]].y;
-		p1.z = vertices[indices[1]].z;
-		p2.x = vertices[indices[2]].x;
-		p2.y = vertices[indices[2]].y;
-		p2.z = vertices[indices[2]].z;
-
-		D3DXVECTOR3 u = p1 - p0;
-		D3DXVECTOR3 v = p2 - p0;
-
-		D3DXVec3Cross(&out, &u, &v);
-		D3DXVec3Normalize(&out, &out);
-
-		vertices[0].nX = out.x;
-		vertices[0].nY = out.y;
-		vertices[0].nZ = out.z;
+		for (DWORD v = 0; v != numVertices;)
+		{
+			vertexSphere[v] = new sphere_struct;
+			vertexSphere[v]->center.x = vertices[v].x;
+			vertexSphere[v]->center.y = vertices[v].y;
+			vertexSphere[v]->center.z = vertices[v].z;
+			vertexSphere[v]->radius	  = 0.5f; 
+			v++;
+		}
 	}
-
 
 	void moveObject(float x, float y, float z)
 	{	worldMatrices.worldMatrixMove(x, y, z);}
@@ -111,6 +137,25 @@ public:
 
 	void rotateZObject(float Angle)
 	{	worldMatrices.worldMatrixRotateZ(Angle);}
+
+	DWORD checkIntersection(ray_struct clickRay)
+	{
+		BOOL  hit;	DWORD pFaceIndex; FLOAT pU; FLOAT pV; FLOAT pDist;
+
+		D3DXMATRIX worldMatrix = worldMatrices.getWorldMatrix();
+		
+		D3DXMatrixInverse(&worldMatrix, NULL, &worldMatrix);
+		D3DXVec3TransformCoord(&clickRay.origin, &clickRay.origin, &worldMatrix);
+		D3DXVec3TransformNormal(&clickRay.direction, &clickRay.direction, &worldMatrix);
+		D3DXVec3Normalize(&clickRay.direction, &clickRay.direction);
+
+		D3DXIntersect(mesh, &clickRay.origin, &clickRay.direction,
+			&hit, &pFaceIndex, &pU, &pV, &pDist, NULL, NULL);
+		if(hit == TRUE)
+			return ObjectID + 2;
+		else
+			return 0;
+	}
 
 	void renameObject(HWND objectsList, HWND nameEditor, UINT objectNumber)
 	{
@@ -128,10 +173,32 @@ public:
 
 	void redraw()
 	{
-		material.resetMaterial();
 		worldMatrices.resetWorldMatrices();
-		device->SetStreamSource(0, vb, 0, sizeof(vertex));
-		device->SetFVF(vertex::FVF);
-		device->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 4);
+		for(DWORD subset = 0; subset != numSubsets; subset++)
+		{
+			material[subset]->resetMaterial();
+			mesh->DrawSubset(0);
+		}
+	}
+
+	~object_class()
+	{
+		for(; numSubsets != NULL;)
+		{
+			numSubsets--;
+			delete material[numSubsets];
+		}
+
+		for (; numVertices != NULL;)
+		{
+			numVertices--;
+			delete vertexSphere[numVertices];
+		}
+
+		delete adjacencyInfo;
+		delete optimizedAdjacencyInfo;
+		delete attributeTable;
+
+		mesh->Release();
 	}
 };

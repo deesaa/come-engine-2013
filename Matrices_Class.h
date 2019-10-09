@@ -110,6 +110,11 @@ public:
 		D3DXMatrixRotationZ(&rotateZMatrix, AngleZ);
 	}
 
+	D3DXMATRIX getWorldMatrix()
+	{
+		return finallyWorldMatrix;
+	}
+
 	void resetWorldMatrices()
 	{
 		finallyWorldMatrix = (rotateXMatrix * rotateYMatrix * rotateZMatrix) * worldMatrix;

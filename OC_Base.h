@@ -37,10 +37,13 @@ private:
 
 	float dX, dY, dZ;					//Статическое храниние информации о передвижении мыши (для передвижения объектов)
 	float AngleX, AngleY, AngleZ;		//Углы для поворота объектов
+	POINT clickedPoint; 
+	float clickX, clickY;
+	ray_struct clickRay;
 
 	object_manager* manager;			//Дескриптор менеджера объектов
-	UINT pickedObject;					//Выбранный в данный момент объект(на него переключается управление)
-	UINT pickedLight;
+	DWORD pickedObject;					//Выбранный в данный момент объект(на него переключается управление)
+	DWORD pickedLight;
 
 public:
 	object_creator(){}
@@ -50,8 +53,9 @@ public:
 		device = bDevice;					//Сохранение дестрипторов устройства, окна, приложения
 		windowHandle = bWindowHandle;
 		hInstace = bhInstance;
-		dX = 0; dY = 0;	dZ = 0;
-		AngleX = 0.0f; AngleY = 0.0f;
+		dX = dY = dZ = 0;
+		AngleX = AngleY = 0.0f;
+		clickX = clickY = 0;
 		this->createBuffers();  //Создание буфера вершин и индексов					
 		COFillBuffers(vb, ib, vertices, indices);  //Заполнение буфера вершин и интексов сетки редактора объектов
 		D3DXVECTOR3 position(0.0f, 0.0f, -20.0f);
@@ -110,6 +114,27 @@ public:
 	{
 		manager->renameObject(pickedObject, objectsList, nameEditor);
 		SetFocus(windowHandle);
+	}
+
+	void createRayOfClick(POINT cOp)
+	{	
+		clickX = (float)cOp.x;
+		clickY = (float)cOp.y;
+		D3DXMATRIX proj;
+		device->GetTransform(D3DTS_PROJECTION, &proj);
+		clickX = ((( 2.0f*clickX) / DirectXWidth)  - 1.0f) / proj(0, 0);
+		clickY = (((-2.0f*clickY) / DirectXHeight) + 1.0f) / proj(1, 1);
+
+		clickRay.origin	   = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		clickRay.direction = D3DXVECTOR3(clickX, clickY, 1.0f);
+	}
+
+	void IfIntersectionPickObject()
+	{
+		DWORD bPickedObject = manager->checkIntersectionWithObjects(clickRay);
+
+		if(bPickedObject != 0)
+			pickedObject = bPickedObject - 1;		
 	}
 
 	void applyKBMChanges()

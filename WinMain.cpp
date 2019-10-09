@@ -154,9 +154,20 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case ID_EDIT1:
 			return 0;
 		}
+	case WM_LBUTTONDOWN:
+		POINT pOc;
+		TCHAR textBuffer[32];
+		GetCursorPos(&pOc);
+		ScreenToClient(windows->getWindowHandle(GET_D3DWINDOW), &pOc);
+		OC->createRayOfClick(pOc);
+		OC->IfIntersectionPickObject();
+		wsprintf (textBuffer, L"pX: %d pY: %d", pOc.x, pOc.y);
+		SetWindowText (windows->getWindowHandle(GET_MAINWINDOW), textBuffer);
+		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	
 	default:
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}

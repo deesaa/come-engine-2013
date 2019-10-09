@@ -1,4 +1,4 @@
-struct boundingSphere_struct
+struct sphere_struct
 {
 	D3DXVECTOR3 center;
 	float radius;
