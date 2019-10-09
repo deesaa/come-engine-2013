@@ -184,7 +184,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 }
 
-LRESULT CALLBACK OSWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK OSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg)
 	{
@@ -193,11 +193,14 @@ LRESULT CALLBACK OSWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 		case ID_EOMBUTTON1:
 			objectSettings->applyChanges();
+			return 0;
 
+		case IDCANCEL:
+			EndDialog(hwnd, TRUE);
+			return 0;
 		}
-	default:
-		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
+	return 0;
 }
 
 /************************************************************************/
@@ -205,4 +208,10 @@ LRESULT CALLBACK OSWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 /************************************************************************/
 /************************************************************************/
 /*				         © ¿ÀÀ  ¿œ»–¿…“— –≈—≈–¬≈ƒ                       */
+/************************************************************************/
+/************************************************************************/
+/*				         © ¬—≈ œ–¿¬¿ —Œ’–¿Õ≈Õ€   						*/
+/************************************************************************/
+/************************************************************************/
+/*				         © VSE PRAVA SOHRANENI                          */
 /************************************************************************/

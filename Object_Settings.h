@@ -6,34 +6,38 @@
 #define ID_EOMEDIT1	  14001
 #define ID_EOMEDIT2	  14002
 #define ID_EOMEDIT3	  14003
+#define ID_EOMEDIT4	  14004
 
 #define ID_EOMSTATIC2 13002
-#define ID_EOMEDIT4	  14004
 #define ID_EOMEDIT5	  14005
 #define ID_EOMEDIT6	  14006
-
-#define ID_EOMSTATIC3 13003
 #define ID_EOMEDIT7	  14007
 #define ID_EOMEDIT8	  14008
+
+#define ID_EOMSTATIC3 13003
 #define ID_EOMEDIT9	  14009
+#define ID_EOMEDIT10  14010
+#define ID_EOMEDIT11  14011
+#define ID_EOMEDIT12  14012
 
 #define ID_EOMBUTTON1 15001
 
 #define GET_OSEOBJECTMATERIALB 1
 #define GET_OSELIGHTCOLORB	   2
 
-LPCTSTR textBuffer[32];
+#define ID_DLGSTATIC1 11002
+#define ID_DLGSTATIC2 11003
+
+#define BUFFERSIZE 6
+WCHAR textBuffer[BUFFERSIZE];
 
 class object_settings
 {
 private:
+	dlgWnd* OSDWindow;
+
 	HWND OSStatic, OSButton2, OSButton1;
-	HWND EOMStatic1, EOMStatic2, EOMStatic3;
-	HWND EOMEditDiffuse1,  EOMEditDiffuse2,  EOMEditDiffuse3;
-	HWND EOMEditAmbient1,  EOMEditAmbient2,  EOMEditAmbient3;
-	HWND EOMEditSpecular1, EOMEditSpecular2, EOMEditSpecular3;
-	HWND EOMSet;
-	HWND OSWindow;
+
 	LPCTSTR OSClassName;
 
 	D3DMATERIAL9* material;
@@ -52,94 +56,95 @@ public:
 		OSButton2 = CreateWindow(L"button", L"Edit Color Of Light", WS_CHILD|WS_BORDER, 
 			25, 480, 170, 23, mainWindow, (HMENU)ID_OSBUTTON2, hInstance, NULL);
 
-		RegWndClass(OSWndProc, hInstance, OSClassName);
 
-		OSWindow = CreateWindow(OSClassName, L"Object Settings Editor", WS_OVERLAPPEDWINDOW|WS_POPUPWINDOW|WS_CHILD,
-			225, 130, 259, 400, mainWindow, NULL, hInstance, NULL);
+		OSDWindow = new dlgWnd;
+		OSDWindow->initDlgWnd(mainWindow, (DLGPROC)OSDlgWndProc, hInstance);
+		OSDWindow->dlgTemplate(WS_SIZEBOX|WS_POPUP|WS_CHILD|WS_OVERLAPPEDWINDOW|WS_VISIBLE,
+			225, 130, 320, 400, "Object Settings Editor");
 
-		EOMStatic1 = CreateWindow(L"static", L"Diffuse", WS_CHILD|WS_BORDER|WS_VISIBLE|SS_CENTER,
-			15, 15, 70, 20, OSWindow, (HMENU)ID_EOMSTATIC1, hInstance, NULL);
-		EOMEditDiffuse1 = CreateWindow(L"edit", NULL, WS_CHILD|WS_VISIBLE|ES_CENTER|ES_NUMBER|WS_BORDER|ES_AUTOHSCROLL, 
-			15, 36, 60, 20, OSWindow, (HMENU)ID_EOMEDIT1, hInstance, NULL);
-		EOMEditDiffuse2 = CreateWindow(L"edit", NULL, WS_CHILD|WS_VISIBLE|ES_CENTER|ES_NUMBER|WS_BORDER|ES_AUTOHSCROLL, 
-			76, 36, 60, 20, OSWindow, (HMENU)ID_EOMEDIT2, hInstance, NULL);
-		EOMEditDiffuse3 = CreateWindow(L"edit", NULL, WS_CHILD|WS_VISIBLE|ES_CENTER|ES_NUMBER|WS_BORDER|ES_AUTOHSCROLL, 
-			138, 36, 60, 20, OSWindow, (HMENU)ID_EOMEDIT3, hInstance, NULL);
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_BORDER|WS_VISIBLE|SS_CENTER, 5, 5, 70, 20, ID_EOMSTATIC1, "static", "Diffuse");
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|ES_CENTER|WS_BORDER|ES_AUTOHSCROLL, 5, 15, 60, 20, ID_EOMEDIT1, "edit", "");
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|ES_CENTER|WS_BORDER|ES_AUTOHSCROLL, 35, 15, 60, 20, ID_EOMEDIT2, "edit", "");
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|ES_CENTER|WS_BORDER|ES_AUTOHSCROLL, 65, 15, 60, 20, ID_EOMEDIT3, "edit", "");
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|ES_CENTER|WS_BORDER|ES_AUTOHSCROLL, 95, 15, 60, 20, ID_EOMEDIT4, "edit", "");
 
-		EOMStatic2 = CreateWindow(L"static", L"Ambient", WS_CHILD|WS_BORDER|WS_VISIBLE|SS_CENTER,
-			15, 60, 70, 20, OSWindow, (HMENU)ID_EOMSTATIC2, hInstance, NULL);
-		EOMEditAmbient1 = CreateWindow(L"edit", NULL, WS_CHILD|WS_VISIBLE|ES_CENTER|ES_NUMBER|WS_BORDER|ES_AUTOHSCROLL, 
-			15, 81, 60, 20, OSWindow, (HMENU)ID_EOMEDIT4, hInstance, NULL);
-		EOMEditAmbient2 = CreateWindow(L"edit", NULL, WS_CHILD|WS_VISIBLE|ES_CENTER|ES_NUMBER|WS_BORDER|ES_AUTOHSCROLL, 
-			76, 81, 60, 20, OSWindow, (HMENU)ID_EOMEDIT5, hInstance, NULL);
-		EOMEditAmbient3 = CreateWindow(L"edit", NULL, WS_CHILD|WS_VISIBLE|ES_CENTER|ES_NUMBER|WS_BORDER|ES_AUTOHSCROLL, 
-			138, 81, 60, 20, OSWindow, (HMENU)ID_EOMEDIT6, hInstance, NULL);
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_BORDER|WS_VISIBLE|SS_CENTER, 5, 25, 70, 20, ID_EOMSTATIC1, "static", "Ambient");
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|ES_CENTER|WS_BORDER|ES_AUTOHSCROLL, 5, 35, 60, 20, ID_EOMEDIT5, "edit", "");
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|ES_CENTER|WS_BORDER|ES_AUTOHSCROLL, 35, 35, 60, 20, ID_EOMEDIT6, "edit", "");
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|ES_CENTER|WS_BORDER|ES_AUTOHSCROLL, 65, 35, 60, 20, ID_EOMEDIT7, "edit", "");
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|ES_CENTER|WS_BORDER|ES_AUTOHSCROLL, 95, 35, 60, 20, ID_EOMEDIT8, "edit", "");
 
-		EOMStatic3 = CreateWindow(L"static", L"Specular", WS_CHILD|WS_BORDER|WS_VISIBLE|SS_CENTER,
-			15, 105, 70, 20, OSWindow, (HMENU)ID_EOMSTATIC3, hInstance, NULL);
-		EOMEditSpecular1 = CreateWindow(L"edit", NULL, WS_CHILD|WS_VISIBLE|ES_CENTER|ES_NUMBER|WS_BORDER|ES_AUTOHSCROLL, 
-			15, 126, 60, 20, OSWindow, (HMENU)ID_EOMEDIT7, hInstance, NULL);
-		EOMEditSpecular2 = CreateWindow(L"edit", NULL, WS_CHILD|WS_VISIBLE|ES_CENTER|ES_NUMBER|WS_BORDER|ES_AUTOHSCROLL, 
-			76, 126, 60, 20, OSWindow, (HMENU)ID_EOMEDIT8, hInstance, NULL);
-		EOMEditSpecular3 = CreateWindow(L"edit", NULL, WS_CHILD|WS_VISIBLE|ES_CENTER|ES_NUMBER|WS_BORDER|ES_AUTOHSCROLL, 
-			138, 126, 60, 20, OSWindow, (HMENU)ID_EOMEDIT9, hInstance, NULL);
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_BORDER|WS_VISIBLE|SS_CENTER, 5, 45, 70, 20, ID_EOMSTATIC1, "static", "Specular");
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|ES_CENTER|WS_BORDER|ES_AUTOHSCROLL, 5, 55, 60, 20, ID_EOMEDIT9, "edit", "");
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|ES_CENTER|WS_BORDER|ES_AUTOHSCROLL, 35, 55, 60, 20, ID_EOMEDIT10, "edit", "");
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|ES_CENTER|WS_BORDER|ES_AUTOHSCROLL, 65, 55, 60, 20, ID_EOMEDIT11, "edit", "");
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|ES_CENTER|WS_BORDER|ES_AUTOHSCROLL, 95, 55, 60, 20, ID_EOMEDIT12, "edit", "");
 
-		EOMSet = CreateWindow(L"button", L"Set", WS_CHILD|WS_VISIBLE, 
-			199, 35, 30, 111, OSWindow, (HMENU)ID_EOMBUTTON1, hInstance, NULL);
+		OSDWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE, 125, 15, 30, 100, ID_EOMBUTTON1, "button", "Set");
 
-		SendMessage(EOMEditDiffuse1, WM_SETTEXT, NULL, (LPARAM)L"2");
-		SendMessage(EOMEditDiffuse2, WM_SETTEXT, NULL, (LPARAM)L"2");
-		SendMessage(EOMEditDiffuse3, WM_SETTEXT, NULL, (LPARAM)L"8");
+		OSDWindow->createModelessDlgWindow();
 	}
 
 	void fillObjectSettings(D3DMATERIAL9* bMaterial)
 	{
 		material = bMaterial;
 
-		wsprintf ((LPWSTR)textBuffer, L"%d", (int)material->Diffuse.r);
-		SendMessage(EOMEditDiffuse1, WM_SETTEXT, NULL, (LPARAM)textBuffer);
-		wsprintf ((LPWSTR)textBuffer, L"%d", (int)material->Diffuse.g);
-		SendMessage(EOMEditDiffuse2, WM_SETTEXT, NULL, (LPARAM)textBuffer);
-		wsprintf ((LPWSTR)textBuffer, L"%d", (int)material->Diffuse.b);
-		SendMessage(EOMEditDiffuse3, WM_SETTEXT, NULL, (LPARAM)textBuffer);
+		swprintf ((LPWSTR)textBuffer, BUFFERSIZE, L"%f", (float)material->Diffuse.r); 
+		SendMessage(OSDWindow->getItemHWND(ID_EOMEDIT1), WM_SETTEXT, NULL, (LPARAM)textBuffer);
+		swprintf ((LPWSTR)textBuffer, BUFFERSIZE, L"%f", (float)material->Diffuse.g); 
+		SendMessage(OSDWindow->getItemHWND(ID_EOMEDIT2), WM_SETTEXT, NULL, (LPARAM)textBuffer);
+		swprintf ((LPWSTR)textBuffer, BUFFERSIZE, L"%f", (float)material->Diffuse.b); 
+		SendMessage(OSDWindow->getItemHWND(ID_EOMEDIT3), WM_SETTEXT, NULL, (LPARAM)textBuffer);
+		swprintf ((LPWSTR)textBuffer, BUFFERSIZE, L"%f", (float)material->Diffuse.a); 
+		SendMessage(OSDWindow->getItemHWND(ID_EOMEDIT4), WM_SETTEXT, NULL, (LPARAM)textBuffer);
 
-		wsprintf ((LPWSTR)textBuffer, L"%d", (int)material->Ambient.r);
-		SendMessage(EOMEditAmbient1, WM_SETTEXT, NULL, (LPARAM)textBuffer);
-		wsprintf ((LPWSTR)textBuffer, L"%d", (int)material->Ambient.g);
-		SendMessage(EOMEditAmbient2, WM_SETTEXT, NULL, (LPARAM)textBuffer);
-		wsprintf ((LPWSTR)textBuffer, L"%d", (int)material->Ambient.b);
-		SendMessage(EOMEditAmbient3, WM_SETTEXT, NULL, (LPARAM)textBuffer);
+		swprintf ((LPWSTR)textBuffer, BUFFERSIZE, L"%f", (float)material->Ambient.r); 
+		SendMessage(OSDWindow->getItemHWND(ID_EOMEDIT5), WM_SETTEXT, NULL, (LPARAM)textBuffer);
+		swprintf ((LPWSTR)textBuffer, BUFFERSIZE, L"%f", (float)material->Ambient.g); 
+		SendMessage(OSDWindow->getItemHWND(ID_EOMEDIT6), WM_SETTEXT, NULL, (LPARAM)textBuffer);
+		swprintf ((LPWSTR)textBuffer, BUFFERSIZE, L"%f", (float)material->Ambient.b); 
+		SendMessage(OSDWindow->getItemHWND(ID_EOMEDIT7), WM_SETTEXT, NULL, (LPARAM)textBuffer);
+		swprintf ((LPWSTR)textBuffer, BUFFERSIZE, L"%f", (float)material->Ambient.a); 
+		SendMessage(OSDWindow->getItemHWND(ID_EOMEDIT8), WM_SETTEXT, NULL, (LPARAM)textBuffer);
 
-		wsprintf ((LPWSTR)textBuffer, L"%d", (int)material->Specular.r);
-		SendMessage(EOMEditSpecular1, WM_SETTEXT, NULL, (LPARAM)textBuffer);
-		wsprintf ((LPWSTR)textBuffer, L"%d", (int)material->Specular.g);
-		SendMessage(EOMEditSpecular2, WM_SETTEXT, NULL, (LPARAM)textBuffer);
-		wsprintf ((LPWSTR)textBuffer, L"%d", (int)material->Specular.b);
-		SendMessage(EOMEditSpecular3, WM_SETTEXT, NULL, (LPARAM)textBuffer);
+		swprintf ((LPWSTR)textBuffer, BUFFERSIZE, L"%f", (float)material->Specular.r); 
+		SendMessage(OSDWindow->getItemHWND(ID_EOMEDIT9), WM_SETTEXT, NULL, (LPARAM)textBuffer);
+		swprintf ((LPWSTR)textBuffer, BUFFERSIZE, L"%f", (float)material->Specular.g); 
+		SendMessage(OSDWindow->getItemHWND(ID_EOMEDIT10), WM_SETTEXT, NULL, (LPARAM)textBuffer);
+		swprintf ((LPWSTR)textBuffer, BUFFERSIZE, L"%f", (float)material->Specular.b); 
+		SendMessage(OSDWindow->getItemHWND(ID_EOMEDIT11), WM_SETTEXT, NULL, (LPARAM)textBuffer);
+		swprintf ((LPWSTR)textBuffer, BUFFERSIZE, L"%f", (float)material->Specular.a); 
+		SendMessage(OSDWindow->getItemHWND(ID_EOMEDIT12), WM_SETTEXT, NULL, (LPARAM)textBuffer);
 	}
 
 	void applyChanges()
 	{
-		GetDlgItemText(OSWindow,ID_EOMEDIT1,(LPWSTR)textBuffer,sizeof(textBuffer));
-		material->Diffuse.r = (float)atof((const char*)textBuffer);
-		GetDlgItemText(OSWindow,ID_EOMEDIT2,(LPWSTR)textBuffer,sizeof(textBuffer));
-		material->Diffuse.g = (float)atof((const char*)textBuffer);
-		GetDlgItemText(OSWindow,ID_EOMEDIT3,(LPWSTR)textBuffer,sizeof(textBuffer));
-		material->Diffuse.b = (float)atof((const char*)textBuffer);
+		OSDWindow->getItemTxt(ID_EOMEDIT1, (LPWSTR)textBuffer, BUFFERSIZE);
+		material->Diffuse.r = (float)_wtof((LPWSTR)textBuffer); 
+		OSDWindow->getItemTxt(ID_EOMEDIT2, (LPWSTR)textBuffer, BUFFERSIZE);
+		material->Diffuse.g = (float)_wtof((LPWSTR)textBuffer);
+		OSDWindow->getItemTxt(ID_EOMEDIT3, (LPWSTR)textBuffer, BUFFERSIZE);
+		material->Diffuse.b = (float)_wtof((LPWSTR)textBuffer);
+		OSDWindow->getItemTxt(ID_EOMEDIT4, (LPWSTR)textBuffer, BUFFERSIZE);
+		material->Diffuse.a = (float)_wtof((LPWSTR)textBuffer);
 
-		GetDlgItemText(OSWindow,ID_EOMEDIT4,(LPWSTR)textBuffer,sizeof(textBuffer));
-		material->Ambient.r = (float)atof((const char*)textBuffer);
-		GetDlgItemText(OSWindow,ID_EOMEDIT5,(LPWSTR)textBuffer,sizeof(textBuffer));
-		material->Ambient.g = (float)atof((const char*)textBuffer);
-		GetDlgItemText(OSWindow,ID_EOMEDIT6,(LPWSTR)textBuffer,sizeof(textBuffer));
-		material->Ambient.b = (float)atof((const char*)textBuffer);
+		OSDWindow->getItemTxt(ID_EOMEDIT5, (LPWSTR)textBuffer, BUFFERSIZE);
+		material->Ambient.r = (float)_wtof((LPWSTR)textBuffer);
+		OSDWindow->getItemTxt(ID_EOMEDIT6, (LPWSTR)textBuffer, BUFFERSIZE);
+		material->Ambient.g = (float)_wtof((LPWSTR)textBuffer);
+		OSDWindow->getItemTxt(ID_EOMEDIT7, (LPWSTR)textBuffer, BUFFERSIZE);;
+		material->Ambient.b = (float)_wtof((LPWSTR)textBuffer);
+		OSDWindow->getItemTxt(ID_EOMEDIT8, (LPWSTR)textBuffer, BUFFERSIZE);
+		material->Ambient.a = (float)_wtof((LPWSTR)textBuffer);
 
-		GetDlgItemText(OSWindow,ID_EOMEDIT7,(LPWSTR)textBuffer,sizeof(textBuffer));
-		material->Specular.r = (float)atof((const char*)textBuffer);
-		GetDlgItemText(OSWindow,ID_EOMEDIT8,(LPWSTR)textBuffer,sizeof(textBuffer));
-		material->Specular.g = (float)atof((const char*)textBuffer);
-		GetDlgItemText(OSWindow,ID_EOMEDIT9,(LPWSTR)textBuffer,sizeof(textBuffer));
-		material->Specular.b = (float)atof((const char*)textBuffer);
+		OSDWindow->getItemTxt(ID_EOMEDIT9, (LPWSTR)textBuffer, BUFFERSIZE);
+		material->Specular.r = (float)_wtof((LPWSTR)textBuffer);
+		OSDWindow->getItemTxt(ID_EOMEDIT10, (LPWSTR)textBuffer, BUFFERSIZE);
+		material->Specular.g = (float)_wtof((LPWSTR)textBuffer);
+		OSDWindow->getItemTxt(ID_EOMEDIT11, (LPWSTR)textBuffer, BUFFERSIZE);
+		material->Specular.b = (float)_wtof((LPWSTR)textBuffer);
+		OSDWindow->getItemTxt(ID_EOMEDIT12, (LPWSTR)textBuffer, BUFFERSIZE);
+		material->Specular.a = (float)_wtof((LPWSTR)textBuffer);
 
 		this->fillObjectSettings(material);
 	} 
@@ -147,10 +152,7 @@ public:
 
 	void showSettingsWnd()
 	{
-		if(IsWindowVisible(OSWindow))
-			ShowWindow(OSWindow, SW_HIDE);
-		else
-			ShowWindow(OSWindow, SW_NORMAL);
+		OSDWindow->showDlgWindow();
 	}
 
 	void showOSButton(int b)
@@ -174,5 +176,10 @@ public:
 		case GET_OSEOBJECTMATERIALB:
 			return OSButton1;
 		}
+	}
+
+	~object_settings()
+	{
+		delete OSDWindow;
 	}
 };
