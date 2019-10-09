@@ -60,6 +60,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			OC->redraw();
 			
 			manager->redrawAllObjects();
+			manager->redrawObjectOfLight(OC->getPickedLight());
 				
 			device->EndScene();
 			device->Present(0, 0, 0, 0); 

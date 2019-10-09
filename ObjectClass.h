@@ -142,7 +142,7 @@ public:
 	{
 		BOOL  hit;	DWORD pFaceIndex; FLOAT pU; FLOAT pV; FLOAT pDist;
 
-		D3DXMATRIX worldMatrix = worldMatrices.getWorldMatrix();
+		D3DXMATRIX worldMatrix = worldMatrices.getFinallyWorldMatrix();
 		
 		D3DXMatrixInverse(&worldMatrix, NULL, &worldMatrix);
 		D3DXVec3TransformCoord(&clickRay.origin, &clickRay.origin, &worldMatrix);

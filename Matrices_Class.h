@@ -70,6 +70,7 @@ private:
 	float AngleX, AngleY, AngleZ;
 
 	D3DXMATRIX worldMatrix, rotateXMatrix, rotateYMatrix, rotateZMatrix;
+	D3DXMATRIX finallyRotateMatrix;
 	D3DXMATRIX finallyWorldMatrix;
 public:
 	worldMatrix_class() {}
@@ -110,14 +111,25 @@ public:
 		D3DXMatrixRotationZ(&rotateZMatrix, AngleZ);
 	}
 
-	D3DXMATRIX getWorldMatrix()
+	D3DXMATRIX getFinallyWorldMatrix()
 	{
 		return finallyWorldMatrix;
 	}
 
+	D3DXMATRIX getWorldMatrix()
+	{
+		return worldMatrix;
+	}
+
+	D3DXMATRIX getFinallyRotateMatrix()
+	{
+		return finallyRotateMatrix;
+	}
+
 	void resetWorldMatrices()
 	{
-		finallyWorldMatrix = (rotateXMatrix * rotateYMatrix * rotateZMatrix) * worldMatrix;
+		finallyRotateMatrix = rotateXMatrix * rotateYMatrix * rotateZMatrix;
+		finallyWorldMatrix  = finallyRotateMatrix * worldMatrix;
 		device->SetTransform(D3DTS_WORLD, &finallyWorldMatrix);
 	}
 };

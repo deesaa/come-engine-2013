@@ -16,6 +16,18 @@ public:
 		material.Power = 9.0f;	
 	}
 
+	void initAbsolutelyWhiteMaterial(IDirect3DDevice9* bDevice)
+	{
+		device = bDevice;
+
+		ZeroMemory(&material, sizeof(material));
+		material.Diffuse  = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f); 
+		material.Ambient  = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f); 
+		material.Specular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+		material.Emissive = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f); // нет свечения
+		material.Power = 0.0f;	
+	}
+
 	D3DMATERIAL9* getMaterial()
 	{
 		return &material;

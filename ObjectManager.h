@@ -121,6 +121,33 @@ public:
 		}
 	}
 
+	void moveLight(DWORD lightNumber, float x, float y, float z)
+	{
+		lightNumber--;
+		if(lightNumber < numLight)
+			light[lightNumber]->moveObject(x, y, z);
+	}
+
+	void rotateLight(DWORD lightNumber, int AXIS, float Angle)
+	{
+		lightNumber--;
+		if(lightNumber < numLight)
+		{
+			switch(AXIS)
+			{
+			case ROTATION_AXIS_X:
+				light[lightNumber]->rotateXObject(Angle);
+				break;
+			case ROTATION_AXIS_Y:
+				light[lightNumber]->rotateYObject(Angle);
+				break;
+			case ROTATION_AXIS_Z:
+				light[lightNumber]->rotateZObject(Angle);
+				break;
+			}
+		}
+	}
+
 	D3DMATERIAL9* getMaterialClass(DWORD objectNumber)
 	{
 		objectNumber--;
@@ -137,12 +164,6 @@ public:
 	{
 		bPickedLight--;
 		light[bPickedLight]->setLight();	
-	}
-
-	void redirectLight(DWORD lightNumber, int DIRECT_TYPE)
-	{
-		lightNumber--;
-		light[lightNumber]->redirectLight(DIRECT_TYPE);
 	}
 
 	//Перерисовать объект
@@ -165,6 +186,14 @@ public:
 		}
 	}
 
+	void redrawObjectOfLight(DWORD lightNumber)
+	{
+		if(lightNumber != NULL)
+		{
+			lightNumber--;
+			light[lightNumber]->redrawObject();
+		}
+	}
 	void redrawAllObjects()
 	{
 		for(DWORD objectNumber = 0; objectNumber < numObject; objectNumber++)

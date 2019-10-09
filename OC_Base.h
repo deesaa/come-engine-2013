@@ -1,16 +1,3 @@
-//Структура вершины сетки редактора объектов
-struct COVertex	
-{
-	float x, y, z;
-	static const DWORD FVF;
-
-	COVertex(){}
-	COVertex(float bX, float bY, float bZ)
-	{
-		x = bX; y = bY; z = bZ;
-	}
-};
-const DWORD COVertex::FVF = D3DFVF_XYZ;
 
 //Прототипы (внутренних) функций редактора объектов
 void COFillBuffers(IDirect3DVertexBuffer9* vb, IDirect3DIndexBuffer9* ib, COVertex* vertices, WORD* indices);
@@ -23,7 +10,7 @@ private:
 	IDirect3DDevice9* device;
 	HWND windowHandle;
 	HINSTANCE hInstace;
-	fullMatrices_class matrices;		//Объект класса набора матриц (мира, вида, проэктирования) для сетки редактора объектов
+	fullMatrices_class matrices;		//Объект класса набора матриц (мира, вида, проэктирования) для редактора объектов
 
 	IDirect3DVertexBuffer9* vb;			//Буфер вершин сетки
 	IDirect3DIndexBuffer9* ib;			//Буфер индексов сетки
@@ -171,7 +158,9 @@ public:
 			if(pickType == Object)
 				manager->rotateObject(pickedObject, ROTATION_AXIS_X, AngleX);
 			if(pickType == Light)
-				manager->redirectLight(pickedLight, DIRECTION_UP);
+			{
+				manager->rotateLight(pickedLight, ROTATION_AXIS_X, AngleX);
+			}
 		}
 
 		if (KBBuffer[DIK_S] & 0x80)
@@ -180,7 +169,9 @@ public:
 			if(pickType == Object)
 				manager->rotateObject(pickedObject, ROTATION_AXIS_X, AngleX);
 			if(pickType == Light)
-				manager->redirectLight(pickedLight, DIRECTION_DOWN);
+			{
+				manager->rotateLight(pickedLight, ROTATION_AXIS_X, AngleX);
+			}
 		}
 
 		if (KBBuffer[DIK_A] & 0x80)
@@ -189,7 +180,9 @@ public:
 			if(pickType == Object)
 				manager->rotateObject(pickedObject, ROTATION_AXIS_Y, AngleY);
 			if(pickType == Light)
-				manager->redirectLight(pickedLight, DIRECTION_RIGHT);
+			{
+				manager->rotateLight(pickedLight, ROTATION_AXIS_Y, AngleY);
+			}
 		}
 
 		if (KBBuffer[DIK_D] & 0x80)
@@ -198,7 +191,9 @@ public:
 			if(pickType == Object)
 				manager->rotateObject(pickedObject, ROTATION_AXIS_Y, AngleY);
 			if(pickType == Light)
-				manager->redirectLight(pickedLight, DIRECTION_LEFT);
+			{
+				manager->rotateLight(pickedLight, ROTATION_AXIS_Y, AngleY);
+			}
 		}
 			
 		if (MBuffer.rgbButtons[LEFT_BUTTON] & 0x80)
@@ -208,6 +203,9 @@ public:
 
 			if(pickType == Object)
 				manager->moveObject(pickedObject, dX, dY, dZ);	
+			if(pickType == Light)
+				manager->moveLight(pickedLight, dX, dY, dZ);
+
 		}
 		
 		if (MBuffer.rgbButtons[RIGHT_BUTTON] & 0x80)
