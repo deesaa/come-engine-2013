@@ -8,3 +8,7 @@ float PI   = 3.1415f;
 #define LEFT_BUTTON 0
 #define RIGHT_BUTTON 1
 #define MIDDLE_BUTTON 2
+
+#define ROTATION_AXIS_X 1
+#define ROTATION_AXIS_Y 2
+#define ROTATION_AXIS_Z 3

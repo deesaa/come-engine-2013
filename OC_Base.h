@@ -95,7 +95,7 @@ public:
 		pickedObject = bPickedObject;
 	}
 
-	void applyKBChanges()
+	void applyKBMChanges()
 	{
 		
 		if(FAILED(KBDevice->GetDeviceState(sizeof(KBBuffer), KBBuffer)))
@@ -106,41 +106,49 @@ public:
 		
 		if (KBBuffer[DIK_W] & 0x80)
 		{
-			AngleX += 0.001f;
-			if(AngleX >= 6.28f)
-				AngleX = 0.0f;
-			matrices.worldMatrixRotateX(AngleX);
+			AngleX = 0.001f;
+			if(pickedObject == NULL)
+				matrices.worldMatrixRotateX(AngleX);
+			else
+				manager->rotateObject(pickedObject, ROTATION_AXIS_X, AngleX);
 		}
 
 		if (KBBuffer[DIK_S] & 0x80)
 		{
-			AngleX -= 0.001f;
-			if(AngleX >= 6.28f)
-				AngleX = 0.0f;
-			matrices.worldMatrixRotateX(AngleX);
+			AngleX = -0.001f;
+			if(pickedObject == NULL)
+				matrices.worldMatrixRotateX(AngleX);
+			else
+				manager->rotateObject(pickedObject, ROTATION_AXIS_X, AngleX);
 		}
 
 		if (KBBuffer[DIK_A] & 0x80)
 		{
-			AngleY += 0.001f;
-			if(AngleY >= 6.28f)
-				AngleY = 0.0f;
-			matrices.worldMatrixRotateY(AngleY);
+			AngleY = 0.001f;
+			if(pickedObject == NULL)
+				matrices.worldMatrixRotateY(AngleY);
+			else
+				manager->rotateObject(pickedObject, ROTATION_AXIS_Y, AngleY);
 		}
 
 		if (KBBuffer[DIK_D] & 0x80)
 		{
-			AngleY -= 0.001f;
-			if(AngleY >= 6.28f)
-				AngleY = 0.0f;
-			matrices.worldMatrixRotateY(AngleY);
+			AngleY = -0.001f;
+			if(pickedObject == NULL)
+				matrices.worldMatrixRotateY(AngleY);
+			else
+				manager->rotateObject(pickedObject, ROTATION_AXIS_Y, AngleY);
 		}
 			
 		if (MBuffer.rgbButtons[LEFT_BUTTON] & 0x80)
 		{
-			dX += MBuffer.lX * 0.02f;
-			dY -= MBuffer.lY * 0.02f;
-			matrices.worldMatrixMove(dX, dY, 0);
+			dX = MBuffer.lX * 0.02f;
+			dY = MBuffer.lY * 0.02f;
+
+			if(pickedObject == NULL)
+				matrices.worldMatrixMove(dX, dY, 0);
+			else
+				manager->moveObject(pickedObject, dX, dY, 0);
 		}
 		
 		if (MBuffer.rgbButtons[RIGHT_BUTTON] & 0x80)
@@ -167,9 +175,9 @@ public:
 
 	~object_creator() 
 	{
-		d3dInput.Release();
-		ib->Release();
-		vb->Release();
+		d3dInput.Release();		//Потеря доступа и удаление устройств(клавиотуры, мыши)
+		ib->Release();			//Удаление буфера индексов
+		vb->Release();			//Удаление буфера вершин
 	}
 };
 

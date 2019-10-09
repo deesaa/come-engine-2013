@@ -51,9 +51,30 @@ public:
 
 	void moveObject(UINT objectNumber, float x, float y, float z)
 	{
+		objectNumber--;
 		if(objectNumber < numObject)
 		{
 			object[objectNumber]->moveObject(x, y, z);
+		}
+	}
+
+	void rotateObject(UINT objectNumber, int AXIS, float Angle)
+	{
+		objectNumber--;
+		if(objectNumber < numObject)
+		{
+			switch(AXIS)
+			{
+			case ROTATION_AXIS_X:
+				object[objectNumber]->rotateXObject(Angle);
+				break;
+			case ROTATION_AXIS_Y:
+				object[objectNumber]->rotateYObject(Angle);
+				break;
+			case ROTATION_AXIS_Z:
+				object[objectNumber]->rotateZObject(Angle);
+				break;
+			}
 		}
 	}
 
@@ -62,6 +83,12 @@ public:
 	{
 		if (objectNumber < numObject)			//Если данный объект создан
 			object[objectNumber]->redraw();		//то перерисовываем его
+	}
+
+	void redrawAllObjects()
+	{
+		for(int objectNumber = 0; objectNumber < numObject; objectNumber++)
+			object[objectNumber]->redraw();
 	}
 
 	//Деструктор

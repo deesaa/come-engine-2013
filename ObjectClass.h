@@ -75,6 +75,21 @@ public:
 		worldMatrices.worldMatrixMove(x, y, z);
 	}
 
+	void rotateXObject(float Angle)
+	{
+		worldMatrices.worldMatrixRotateX(Angle);
+	}
+
+	void rotateYObject(float Angle)
+	{
+		worldMatrices.worldMatrixRotateY(Angle);
+	}
+
+	void rotateZObject(float Angle)
+	{
+		worldMatrices.worldMatrixRotateZ(Angle);
+	}
+
 	void redraw()
 	{
 		worldMatrices.resetWorldMatrices();

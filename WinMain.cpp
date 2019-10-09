@@ -27,7 +27,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	
 	OC = new object_creator;		//Выделяем память на редактор объектов
 	OC->initObjectCreator(device, objectCreatorWindow, hInstance, manager);	//Инициализируем редактор объектов
-	manager->createNewObject();
+
+	device->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
+
 	
 	while(true)
 	{
@@ -45,9 +47,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				0x0000fff0, 1.0f, 0);
 			device->BeginScene();
 
-			OC->applyKBChanges();
+			OC->applyKBMChanges();
 			OC->redraw();
-			manager->redrawObject(0);
+			manager->redrawAllObjects();
 				
 			device->EndScene();
 			device->Present(0, 0, 0, 0); 
@@ -88,3 +90,8 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 }
+
+
+/************************************************************************/
+/*				         © ALL COPYRIGHTS RESERVED	                    */
+/************************************************************************/
