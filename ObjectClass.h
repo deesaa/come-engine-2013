@@ -159,7 +159,7 @@ public:
 
 	D3DMATERIAL9* getMaterial()
 	{
-		return material[0]->getMaterial();
+		return material[0]->getMaterial(); //ÀÑÒÀĞÎÆÍÀ-ÍÈÀÄÅÊÂÀÒÀ!!!11
 	}
 
 	void renameObject(HWND objectsList, HWND nameEditor, UINT objectNumber)

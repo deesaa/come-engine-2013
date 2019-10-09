@@ -100,7 +100,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_NORMAL);
 
-			objectSettings->showObjectSettings(SW_NORMAL);
+			objectSettings->showOSButton(SW_NORMAL);
 			objectSettings->fillObjectSettings(OC->getMaterialClass());
 			return 0;
 
@@ -110,7 +110,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 
-			objectSettings->showLightSettings(SW_NORMAL);
+			objectSettings->showLSButton(SW_NORMAL);
 			return 0;
 
 		case ID_LISTBOX1:
@@ -119,7 +119,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			case LBN_SELCHANGE:
 				//Объект, выбранный из листа объектов, принимает управление 
 				OC->pickObject(windows->takeObjectFromList());
-				objectSettings->showObjectSettings(SW_NORMAL);
+				objectSettings->showOSButton(SW_NORMAL);
 				objectSettings->fillObjectSettings(OC->getMaterialClass());
 				return 0;
 			default:
@@ -133,7 +133,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Объект света, выбранный из листа объектов света, принимает управление 
 				OC->pickLight(windows->takeLightFromList());
 				manager->setOnlyPickedLight(OC->getPickedLight());	//И в действующие устанавливается только он
-				objectSettings->showLightSettings(SW_NORMAL);
+				objectSettings->showLSButton(SW_NORMAL);
 				return 0;
 			default:
 				return 0;
@@ -154,6 +154,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 			return 0;
 		case ID_OSBUTTON1:
+			objectSettings->showSettingsWnd();
 			return 0;
 		case ID_OSBUTTON2:
 			return 0;
@@ -166,9 +167,9 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		GetCursorPos(&pOc);
 		ScreenToClient(windows->getWindowHandle(GET_D3DWINDOW), &pOc);
 		OC->createRayOfClick(pOc);
-		if(OC->IfIntersectionPickObject())
+		if(OC->pickIntersectedObject())
 		{
-			objectSettings->showObjectSettings(SW_NORMAL);
+			objectSettings->showOSButton(SW_NORMAL);
 			objectSettings->fillObjectSettings(OC->getMaterialClass());
 		}
 		wsprintf (textBuffer, L"pX: %d pY: %d", pOc.x, pOc.y);

@@ -27,7 +27,7 @@ LPCTSTR textBuffer[32];
 class object_settings
 {
 private:
-	HWND OSStatic, OSButton1, OSButton2;
+	HWND OSStatic, OSButton2, OSButton1;
 	HWND EOMStatic1, EOMStatic2, EOMStatic3;
 	HWND EOMEditDiffuse1,  EOMEditDiffuse2,  EOMEditDiffuse3;
 	HWND EOMEditAmbient1,  EOMEditAmbient2,  EOMEditAmbient3;
@@ -46,15 +46,15 @@ public:
 		OSStatic = CreateWindow(L"static",  NULL, WS_CHILD|WS_VISIBLE|WS_BORDER, 
 			15, 450, 190, 350, mainWindow, (HMENU)ID_OSSTATIC1, hInstance, NULL);
 
-		OSButton1 = CreateWindow(L"button", L"Edit Color Of Light", WS_CHILD|WS_BORDER, 
-			25, 480, 170, 23, mainWindow, (HMENU)ID_OSBUTTON2, hInstance, NULL);
-
-		OSButton2 = CreateWindow(L"button",  L"Edit Object's Material", WS_CHILD|WS_BORDER, 
+		OSButton1 = CreateWindow(L"button",  L"Edit Object's Material", WS_CHILD|WS_BORDER, 
 			25, 455, 170, 23, mainWindow, (HMENU)ID_OSBUTTON1, hInstance, NULL);
+
+		OSButton2 = CreateWindow(L"button", L"Edit Color Of Light", WS_CHILD|WS_BORDER, 
+			25, 480, 170, 23, mainWindow, (HMENU)ID_OSBUTTON2, hInstance, NULL);
 
 		RegWndClass(OSWndProc, hInstance, OSClassName);
 
-		OSWindow = CreateWindow(OSClassName, L"Object Settings Editor", WS_OVERLAPPEDWINDOW|WS_POPUPWINDOW|WS_CHILD|WS_VISIBLE,
+		OSWindow = CreateWindow(OSClassName, L"Object Settings Editor", WS_OVERLAPPEDWINDOW|WS_POPUPWINDOW|WS_CHILD,
 			225, 130, 259, 400, mainWindow, NULL, hInstance, NULL);
 
 		EOMStatic1 = CreateWindow(L"static", L"Diffuse", WS_CHILD|WS_BORDER|WS_VISIBLE|SS_CENTER,
@@ -142,18 +142,27 @@ public:
 		material->Specular.b = (float)atof((const char*)textBuffer);
 
 		this->fillObjectSettings(material);
-	}
+	} 
 
-	void showObjectSettings(int b)
-	{						
-		ShowWindow(OSButton2, b);
-		ShowWindow(OSButton1, SW_HIDE);	
-	}
 
-	void showLightSettings(int b)
+	void showSettingsWnd()
 	{
-		ShowWindow(OSButton1, b);							
-		ShowWindow(OSButton2, SW_HIDE);
+		if(IsWindowVisible(OSWindow))
+			ShowWindow(OSWindow, SW_HIDE);
+		else
+			ShowWindow(OSWindow, SW_NORMAL);
+	}
+
+	void showOSButton(int b)
+	{						
+		ShowWindow(OSButton1, b);
+		ShowWindow(OSButton2, SW_HIDE);	
+	}
+
+	void showLSButton(int b)
+	{
+		ShowWindow(OSButton2, b);							
+		ShowWindow(OSButton1, SW_HIDE);
 	}
 
 	HWND getWindow(int windowType)
@@ -161,9 +170,9 @@ public:
 		switch(windowType)
 		{
 		case GET_OSELIGHTCOLORB:
-			return OSButton1;
-		case GET_OSEOBJECTMATERIALB:
 			return OSButton2;
+		case GET_OSEOBJECTMATERIALB:
+			return OSButton1;
 		}
 	}
 };

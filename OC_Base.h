@@ -129,13 +129,14 @@ public:
 		clickRay.direction = D3DXVECTOR3(clickX, clickY, 1.0f);
 	}
 
-	bool IfIntersectionPickObject()
+	bool pickIntersectedObject()
 	{
 		DWORD bPickedObject = manager->checkIntersectionWithObjects(clickRay);
 
 		if(bPickedObject != 0)
 		{
 			pickedObject = bPickedObject;
+			pickedLight = NULL;
 			return true;
 		}
 		return false;
