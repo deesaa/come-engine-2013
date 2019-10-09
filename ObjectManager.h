@@ -7,6 +7,8 @@ private:
 	DWORD numLight;						//Счетчик объектов света
 	DWORD numGlobal;
 
+	DWORD pickedLight;
+
 	object_class* object[64];			//Массив сылок на объекты
 	light_class* light[64];				//Массив сылок на объекты света
 
@@ -19,6 +21,7 @@ public:
 		numObject = 0;					//Установка начального кол-ва объектов
 		numLight = 0;
 		numGlobal = 0;
+		pickedLight = 0;
 	}
 
 	//Создание абсолютно нового объекта
@@ -101,6 +104,26 @@ public:
 	{
 		objectNumber--;
 		return object[objectNumber]->getMaterial();
+	}
+
+	D3DLIGHT9* getLightStruct(DWORD lightNumber)
+	{
+		lightNumber--;
+		return light[lightNumber]->getLight();
+	}
+
+	void resetLight(DWORD bPickedLight) //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111111111111111111111111111111
+	{
+		if(bPickedLight != NULL)
+		{
+			pickedLight  = bPickedLight;
+			bPickedLight--;
+			light[bPickedLight]->setLight();
+		}
+		else
+		{
+			light[pickedLight]->setLight();
+		}
 	}
 
 	void redirectLight(DWORD lightNumber, int DIRECT_TYPE)

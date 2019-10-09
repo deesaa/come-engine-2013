@@ -33,6 +33,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	objectSettings = new object_settings;
 	objectSettings->initObjectSettings(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
+	objectSettings->initLightSettings(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
 
 	device->SetRenderState(D3DRS_LIGHTING, true);
 	device->SetRenderState(D3DRS_NORMALIZENORMALS, true);
@@ -111,6 +112,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 
 			objectSettings->showLSButton(SW_NORMAL);
+			objectSettings->fillLightSettings(OC->getLightStruct());
 			return 0;
 
 		case ID_LISTBOX1:
@@ -134,6 +136,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				OC->pickLight(windows->takeLightFromList());
 				manager->setOnlyPickedLight(OC->getPickedLight());	//» в действующие устанавливаетс€ только он
 				objectSettings->showLSButton(SW_NORMAL);
+				objectSettings->fillLightSettings(OC->getLightStruct());
 				return 0;
 			default:
 				return 0;
@@ -154,9 +157,10 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 			return 0;
 		case ID_OSBUTTON1:
-			objectSettings->showSettingsWnd();
+			objectSettings->showOSettingsWnd();
 			return 0;
 		case ID_OSBUTTON2:
+			objectSettings->showLSettingsWnd();
 			return 0;
 		case ID_EDIT1:
 			return 0;
@@ -191,8 +195,28 @@ LRESULT CALLBACK OSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND:
 		switch(LOWORD(wParam))
 		{
-		case ID_EOMBUTTON1:
-			objectSettings->applyChanges();
+		case ID_EOBUTTON1:
+			objectSettings->applyEOChanges();
+			return 0;
+
+		case IDCANCEL:
+			EndDialog(hwnd, TRUE);
+			return 0;
+		}
+	}
+	return 0;
+}
+
+LRESULT CALLBACK LSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch(msg)
+	{
+	case WM_COMMAND:
+		switch(LOWORD(wParam))
+		{
+		case ID_ELBUTTON1:
+			objectSettings->applyELChanges();
+			manager->resetLight(OC->getPickedLight());
 			return 0;
 
 		case IDCANCEL:

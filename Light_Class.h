@@ -49,6 +49,11 @@ public:
 		device->SetLight(lightID, &light);
 	}
 
+	void setLight()
+	{
+		device->SetLight(lightID, &light);
+	}
+
 	LPCTSTR getLightName()
 	{	return lightName;}
 
@@ -57,4 +62,9 @@ public:
 
 	void disableLight()
 	{	device->LightEnable(lightID, false);}
+
+	D3DLIGHT9* getLight()
+	{
+		return &light;
+	}
 };

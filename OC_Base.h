@@ -15,6 +15,8 @@ const DWORD COVertex::FVF = D3DFVF_XYZ;
 //Прототипы (внутренних) функций редактора объектов
 void COFillBuffers(IDirect3DVertexBuffer9* vb, IDirect3DIndexBuffer9* ib, COVertex* vertices, WORD* indices);
 
+enum picked{Nothing, Object, Light};
+
 class object_creator
 {
 private:
@@ -45,6 +47,8 @@ private:
 	DWORD pickedObject;					//Выбранный в данный момент объект(на него переключается управление)
 	DWORD pickedLight;
 
+	picked pickType;
+
 public:
 	object_creator(){}
 
@@ -68,8 +72,9 @@ public:
 		MDevice = d3dInput.getMDevice();
 
 		manager = bManager;						//Сохранение дескриптора менеджера объектов
-		pickedObject = NULL;					//Выбранного объекта при инициализации не может быть
+		pickedObject = NULL;					
 		pickedLight = NULL;
+		pickType = Nothing;
 
 		matrices.worldMatrixRotateX(0.0f);		//Установка углов наклона в 0 (для правильного начального отображения)
 		matrices.worldMatrixRotateY(0.0f);
@@ -97,11 +102,11 @@ public:
 	}
 
 	void pickObject(UINT bPickedObject)
-	{	pickedLight = NULL;
+	{	pickType = Object;
 		pickedObject = bPickedObject;}
 
 	void pickLight(UINT bPickedLight)
-	{	pickedObject = NULL;
+	{	pickType = Light;
 		pickedLight = bPickedLight;}
 
 	UINT getPickedObject()
@@ -136,7 +141,7 @@ public:
 		if(bPickedObject != 0)
 		{
 			pickedObject = bPickedObject;
-			pickedLight = NULL;
+			pickType = Object;
 			return true;
 		}
 		return false;
@@ -145,6 +150,11 @@ public:
 	D3DMATERIAL9* getMaterialClass()
 	{
 		return manager->getMaterialClass(pickedObject);
+	}
+
+	D3DLIGHT9* getLightStruct()
+	{
+		return manager->getLightStruct(pickedLight);
 	}
 
 	void applyKBMChanges()
@@ -158,36 +168,36 @@ public:
 		if (KBBuffer[DIK_W] & 0x80)
 		{
 			AngleX = 0.001f;
-			if(pickedObject != NULL)
+			if(pickType == Object)
 				manager->rotateObject(pickedObject, ROTATION_AXIS_X, AngleX);
-			if(pickedLight != NULL)
+			if(pickType == Light)
 				manager->redirectLight(pickedLight, DIRECTION_UP);
 		}
 
 		if (KBBuffer[DIK_S] & 0x80)
 		{
 			AngleX = -0.001f;
-			if(pickedObject != NULL)
+			if(pickType == Object)
 				manager->rotateObject(pickedObject, ROTATION_AXIS_X, AngleX);
-			if(pickedLight != NULL)
+			if(pickType == Light)
 				manager->redirectLight(pickedLight, DIRECTION_DOWN);
 		}
 
 		if (KBBuffer[DIK_A] & 0x80)
 		{
 			AngleY = 0.001f;
-			if(pickedObject != NULL)
+			if(pickType == Object)
 				manager->rotateObject(pickedObject, ROTATION_AXIS_Y, AngleY);
-			if(pickedLight != NULL)
+			if(pickType == Light)
 				manager->redirectLight(pickedLight, DIRECTION_RIGHT);
 		}
 
 		if (KBBuffer[DIK_D] & 0x80)
 		{
 			AngleY = -0.001f;
-			if(pickedObject != NULL)
+			if(pickType == Object)
 				manager->rotateObject(pickedObject, ROTATION_AXIS_Y, AngleY);
-			if(pickedLight != NULL)
+			if(pickType == Light)
 				manager->redirectLight(pickedLight, DIRECTION_LEFT);
 		}
 			
@@ -196,13 +206,8 @@ public:
 			dX = MBuffer.lX * 0.02f;
 			dY = MBuffer.lY * 0.02f;
 
-			if(pickedObject == NULL)
-				matrices.worldMatrixMove(dX, dY, dZ);
-			else
-			{
-				if(pickedObject != NULL)
-					manager->moveObject(pickedObject, dX, dY, dZ);	
-			}
+			if(pickType == Object)
+				manager->moveObject(pickedObject, dX, dY, dZ);	
 		}
 		
 		if (MBuffer.rgbButtons[RIGHT_BUTTON] & 0x80)
