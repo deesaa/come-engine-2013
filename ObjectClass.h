@@ -68,6 +68,7 @@ public:
 		vertices[9]  = vertex( 1.0f, 0.0f, 1.0f, 0.0f, 0.707f, 0.707f);
 		vertices[10] = vertex( 0.0f, 1.0f, 0.0f, 0.0f, 0.707f, 0.707f);
 		vertices[11] = vertex(-1.0f, 0.0f, 1.0f, 0.0f, 0.707f, 0.707f);
+		
 		vb->Unlock();
 	}
 

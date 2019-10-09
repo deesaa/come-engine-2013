@@ -65,6 +65,7 @@ public:
 
 		manager = bManager;						//Сохранение дескриптора менеджера объектов
 		pickedObject = NULL;					//Выбранного объекта при инициализации не может быть
+		pickedLight = NULL;
 
 		matrices.worldMatrixRotateX(0.0f);		//Установка углов наклона в 0 (для правильного начального отображения)
 		matrices.worldMatrixRotateY(0.0f);
@@ -99,6 +100,12 @@ public:
 	{	pickedObject = NULL;
 		pickedLight = bPickedLight;}
 
+	UINT getPickedObject()
+	{	return pickedObject;}
+
+	UINT getPickedLight()
+	{	return pickedLight;}
+
 	void renameObject(HWND objectsList, HWND nameEditor)
 	{
 		manager->renameObject(pickedObject, objectsList, nameEditor);
@@ -117,43 +124,42 @@ public:
 		{
 			AngleX = 0.001f;
 			if(pickedObject != NULL)
-				manager->rotateObject(pickedObject, ROTATION_AXIS_X, AngleX);		
+				manager->rotateObject(pickedObject, ROTATION_AXIS_X, AngleX);
+			if(pickedLight != NULL)
+				manager->redirectLight(pickedLight, DIRECTION_UP);
 		}
 
 		if (KBBuffer[DIK_S] & 0x80)
 		{
 			AngleX = -0.001f;
-			if(pickedObject == NULL)
-				matrices.worldMatrixRotateX(AngleX);
-			else
+			if(pickedObject != NULL)
 				manager->rotateObject(pickedObject, ROTATION_AXIS_X, AngleX);
+			if(pickedLight != NULL)
+				manager->redirectLight(pickedLight, DIRECTION_DOWN);
 		}
 
 		if (KBBuffer[DIK_A] & 0x80)
 		{
 			AngleY = 0.001f;
-			if(pickedObject == NULL)
-				matrices.worldMatrixRotateY(AngleY);
-			else
+			if(pickedObject != NULL)
 				manager->rotateObject(pickedObject, ROTATION_AXIS_Y, AngleY);
+			if(pickedLight != NULL)
+				manager->redirectLight(pickedLight, DIRECTION_RIGHT);
 		}
 
 		if (KBBuffer[DIK_D] & 0x80)
 		{
 			AngleY = -0.001f;
-			if(pickedObject == NULL)
-				matrices.worldMatrixRotateY(AngleY);
-			else
+			if(pickedObject != NULL)
 				manager->rotateObject(pickedObject, ROTATION_AXIS_Y, AngleY);
+			if(pickedLight != NULL)
+				manager->redirectLight(pickedLight, DIRECTION_LEFT);
 		}
 			
 		if (MBuffer.rgbButtons[LEFT_BUTTON] & 0x80)
 		{
 			dX = MBuffer.lX * 0.02f;
 			dY = MBuffer.lY * 0.02f;
-
-			LPPOINT  lipPoint;
-			GetCursorPos(lipPoint); 
 
 			if(pickedObject == NULL)
 				matrices.worldMatrixMove(dX, dY, dZ);
@@ -179,6 +185,7 @@ public:
 	void redraw()	
 	{
 		matrices.resetWorldMatrices();
+
 		device->SetStreamSource(0, vb, 0, sizeof(COVertex));
 		device->SetIndices(ib);
 		device->SetFVF(COVertex::FVF);

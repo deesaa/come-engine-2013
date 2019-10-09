@@ -28,6 +28,33 @@ public:
 		device->LightEnable(lightID, true);
 	}
 
+	void redirectLight(int DIRECT_TYPE)
+	{
+		
+		switch(DIRECT_TYPE)
+		{
+		case DIRECTION_UP:
+			light.Direction =  D3DXVECTOR3(0.0f, -1.0f, 0.0f);
+			break;
+		case DIRECTION_DOWN:
+			light.Direction = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+			break;
+		case DIRECTION_RIGHT: 
+			light.Direction = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
+			break;
+		case DIRECTION_LEFT:
+			light.Direction = D3DXVECTOR3(-1.0f, 0.0f, 0.0f);
+			break;
+		}
+		device->SetLight(lightID, &light);
+	}
+
 	LPCTSTR getLightName()
 	{	return lightName;}
+
+	void enableLight()
+	{	device->LightEnable(lightID, true);}
+
+	void disableLight()
+	{	device->LightEnable(lightID, false);}
 };

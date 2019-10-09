@@ -4,6 +4,9 @@
 #define ID_BUTTON2  1002
 #define ID_BUTTON3  1003
 #define ID_BUTTON4  1004
+#define ID_BUTTON5  1005
+#define ID_BUTTON6  1006
+#define ID_BUTTON7  1007
 //Статические окна 
 #define ID_STATIC1  2001
 //Окна списков
@@ -19,12 +22,14 @@
 #define GET_OBJECTNAMEEDITOR	4
 #define GET_MAINWINDOW			5
 #define GET_LIGHTOBJECTLIST     6
+#define GET_NEWDIRLIGHTBUTTON	7
+#define GET_NEWPOINTLIGHTBUTTON 8
 
 class window_class
 {
 private:
-	HWND mainWindow, OCButton, COButton, CLButton, directXWindow;   //Окна, относящиеся к созданию объекта
-	HWND objectsList, lightObjectsList;   //Список, содержащий созданные объекты
+	HWND mainWindow, OCButton, COButton, CDLButton, CPLButton, directXWindow;   //Окна, относящиеся к созданию объекта
+	HWND objectsList, lightObjectsList, showOList, showLList;   //Окна, относящиеся к спискам
 	HWND OSButton1, OSEdit1;   //Окна, относящиеся к редактированию объектов
 	LPCTSTR mainWindowName;	   //Название окна
 
@@ -46,18 +51,21 @@ public:
 		COButton = CreateWindow(L"button", L"Create Object", WS_CHILD|BS_CENTER, 
 			61, 135, 100, 20, mainWindow, (HMENU)ID_BUTTON2, hInstance, NULL);
 
-		CLButton = CreateWindow(L"button", L"Create Directional Light", WS_CHILD|BS_CENTER|WS_VISIBLE, 
+		CDLButton = CreateWindow(L"button", L"Create Directional Light", WS_CHILD|BS_CENTER, 
 			26, 155, 170, 20, mainWindow, (HMENU)ID_BUTTON4, hInstance, NULL);
+
+		CPLButton = CreateWindow(L"button", L"Create Point Light", WS_CHILD|BS_CENTER, 
+			26, 175, 170, 20, mainWindow, (HMENU)ID_BUTTON7, hInstance, NULL);
 
 		//Окно, подключаемое к DirectX
 		directXWindow = CreateWindow(L"static", NULL, WS_CHILD|WS_BORDER, 
 			217, 100, DirectXWidth, DirectXHeight, mainWindow, (HMENU)ID_STATIC1, hInstance, NULL);
 
 		//Глобальный перечень всех созданных объектов
-		objectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
+		objectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD|WS_VISIBLE, 
 			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX1, hInstance, NULL);
 
-		lightObjectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
+		lightObjectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD|WS_VISIBLE, 
 			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX2, hInstance, NULL);
 
 		//Текстовый редактор для редактирования названия объекта
@@ -67,11 +75,22 @@ public:
 		//Кнопка, применяющая строку в редакторе к названию объекта
 		OSButton1 = CreateWindow(L"button", L"Set New Name", WS_CHILD|WS_VISIBLE, 
 			46, 424, 127, 20, mainWindow, (HMENU)ID_BUTTON3, hInstance, NULL);
+
+		showOList    = CreateWindow(L"button", L"Objects", WS_CHILD|WS_VISIBLE, 
+			1360, 79, 70, 20, mainWindow, (HMENU)ID_BUTTON5, hInstance, NULL);
+
+		showLList    = CreateWindow(L"button", L"Lighting", WS_CHILD|WS_VISIBLE, 
+			1430, 79, 70, 20, mainWindow, (HMENU)ID_BUTTON6, hInstance, NULL);
 	}
 
 	UINT takeObjectFromList()
 	{
 		return ((UINT)SendMessage(objectsList, LB_GETCURSEL, 0, 0L) + 1);
+	}
+
+	UINT takeLightFromList()
+	{
+		return ((UINT)SendMessage(lightObjectsList, LB_GETCURSEL, 0, 0L) + 1);
 	}
 
 	HWND getWindowHandle(int windowType)
@@ -90,6 +109,10 @@ public:
 			return OSEdit1;
 		case GET_MAINWINDOW:
 			return mainWindow;
+		case GET_NEWDIRLIGHTBUTTON:
+			return CDLButton;
+		case GET_NEWPOINTLIGHTBUTTON:
+			return CPLButton;
 		}
 	}
 };

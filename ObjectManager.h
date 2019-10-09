@@ -51,7 +51,7 @@ public:
 		object[numObject] = new object_class;	//Выделение памяти для объекта
 		object[numObject]->initObjectBase(device, numObject, vb, ib); //Создание базы нового объекта
 		SendMessage(objectList, LB_INSERTSTRING, numObject, (LPARAM)object[numObject]->getObjectName());
-		numObject++; //Инкремент счетчика объектов
+		numObject++; 
 		numGlobal++;
 		return numObject;
 	}
@@ -61,6 +61,8 @@ public:
 		light[numLight] = new light_class;
 		light[numLight]->initDirectionLightBase(device, numLight);
 		SendMessage(lightObjectList, LB_INSERTSTRING, numLight, (LPARAM)light[numLight]->getLightName());
+		for(int i = 0; i != numLight; i++)   //Отключение всех источников света
+			light[i]->disableLight();
 		numLight++;
 		numGlobal++;
 		return numLight;
@@ -100,12 +102,30 @@ public:
 		}
 	}
 
+	void redirectLight(UINT lightNumber, int DIRECT_TYPE)
+	{
+		lightNumber--;
+		light[lightNumber]->redirectLight(DIRECT_TYPE);
+	}
+
 	//Перерисовать объект
-	void redrawObject(UINT objectNumber, UINT lightObjectNumber)
+	void redrawObject(UINT objectNumber)
 	{
 		objectNumber--;
-		if (objectNumber < numObject)			//Если данный объект создан
+		if (objectNumber <= numObject)			//Если данный объект создан
 			object[objectNumber]->redraw();		//то перерисовываем его
+	}
+
+	void setOnlyPickedLight(UINT lightNumber)
+	{
+		
+		for(UINT numLightC = 0; numLightC != numLight; numLightC++)
+			light[numLightC]->disableLight();
+		if(lightNumber != NULL)
+		{
+			lightNumber--;
+			light[lightNumber]->enableLight();
+		}
 	}
 
 	void redrawAllObjects()
@@ -124,8 +144,9 @@ public:
 
 		//Перебираем все созданные объекты, удаляя их
 		for(;numObject != 0; numObject--)
-		{
-			delete object[numObject-1];
-		}
+			delete object[numObject];
+		
+		for(;numLight != 0; numLight--)
+			delete light[numLight];
 	}
 };

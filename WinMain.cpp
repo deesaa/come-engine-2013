@@ -1,7 +1,7 @@
 #include "Global_Linker.h"
 
 LPCTSTR  className  = L"C.O.M.E. Engine"; 
-LPCTSTR  windowName = L"C.O.M.E. Engine, Build 1.006";
+LPCTSTR  windowName = L"C.O.M.E. Engine, Build 1.006.12";
 
 MSG  msg;
 IDirect3DDevice9* device;
@@ -56,6 +56,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 			OC->applyKBMChanges();
 			OC->redraw();
+			
 			manager->redrawAllObjects();
 				
 			device->EndScene();
@@ -79,11 +80,15 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				ShowWindow(objectCreatorWindow, SW_HIDE);	//Да  - спрятать
 				ShowWindow(COButton, SW_HIDE);
+				ShowWindow(windows->getWindowHandle(GET_NEWDIRLIGHTBUTTON), SW_HIDE);
+				ShowWindow(windows->getWindowHandle(GET_NEWPOINTLIGHTBUTTON), SW_HIDE);
 			}
 			else
 			{
 				ShowWindow(objectCreatorWindow, SW_NORMAL); //Нет - показать
 				ShowWindow(COButton, SW_NORMAL);
+				ShowWindow(windows->getWindowHandle(GET_NEWDIRLIGHTBUTTON), SW_NORMAL);
+				ShowWindow(windows->getWindowHandle(GET_NEWPOINTLIGHTBUTTON), SW_NORMAL);
 			}
 			return 0;
 		case ID_BUTTON2:
@@ -98,6 +103,11 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case ID_BUTTON4:	
 			OC->pickLight(manager->createNewDirectionLight(windows->getWindowHandle(GET_LIGHTOBJECTLIST)));
+
+			if(!IsWindowVisible(windows->getWindowHandle(GET_LIGHTOBJECTLIST)))		
+				ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
+			if(IsWindowVisible(windows->getWindowHandle(GET_OBJECTLIST)))	
+				ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 			return 0;
 
 		case ID_LISTBOX1:
@@ -111,11 +121,35 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				return 0;
 			}
 			return 0;
+		case ID_LISTBOX2:
+			switch(HIWORD(wParam))
+			{
+			case LBN_SELCHANGE:
+				//Объект света, выбранный из листа объектов света, принимает управление 
+				OC->pickLight(windows->takeLightFromList());
+				manager->setOnlyPickedLight(OC->getPickedLight());	//И в действующие устанавливается только он
+				return 0;
+			default:
+				return 0;
+			}
+			return 0;
 		case ID_BUTTON3:
 			MessageBox(windows->getWindowHandle(GET_D3DWINDOW), L"THIS SHIT DOESN'T WORK!", L"STAAAPH", MB_ICONSTOP);
 			//У выбранного в данный момент объекта изменяется навзвание /*НЕ РАБОТАЕТ*/
 			//OC->renameObject(windows->getWindowHandle(GET_OBJECTLIST), windows->getWindowHandle(GET_OBJECTNAMEEDITOR));
 			SetFocus(windows->getWindowHandle(GET_D3DWINDOW));
+			return 0;
+		case ID_BUTTON5:
+			if(IsWindowVisible(windows->getWindowHandle(GET_LIGHTOBJECTLIST)))		
+				ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);							
+			if(!IsWindowVisible(windows->getWindowHandle(GET_OBJECTLIST)))	
+				ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_NORMAL);
+			return 0;
+		case ID_BUTTON6:
+			if(!IsWindowVisible(windows->getWindowHandle(GET_LIGHTOBJECTLIST)))		
+				ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
+			if(IsWindowVisible(windows->getWindowHandle(GET_OBJECTLIST)))	
+				ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 			return 0;
 		case ID_EDIT1:
 			return 0;
