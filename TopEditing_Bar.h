@@ -18,7 +18,7 @@ public:
 		mainWindow = bMainWindow;
 		hInstance  = bhInstance;
 
-		TEBGroupBox1 = CreateWindow(L"button", L"Don't Move On", WS_CHILD|BS_GROUPBOX, 
+		TEBGroupBox1 = CreateWindow(L"button", L"Don't Move Along", WS_CHILD|BS_GROUPBOX, 
 			292, 40, 128, 60, mainWindow, (HMENU)ID_TEBGROUPBOX1, hInstance, NULL);
 
 		TEBButton1 = CreateWindow(L"button", L"X", WS_CHILD | BS_PUSHBUTTON | BS_AUTOCHECKBOX, 

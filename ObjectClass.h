@@ -27,6 +27,7 @@ private:
 
 	material_class* material[64];
 	texture_class* texture[64];
+	renderState_class* renderState[64];
 	sphere_struct* vertexSphere[512];
 	triangle* triangles[512];
 	IDirect3DVertexBuffer9* vpb;
@@ -40,6 +41,7 @@ private:
 
 	DWORD numMaterials;
 	DWORD numTextures;
+	DWORD numRendState;
 
 public:
 	void initObjectBase(IDirect3DDevice9* bDevice, DWORD numObject, HWND bSubsetsList, botStatusBar_Class* bBSBar)
@@ -53,6 +55,7 @@ public:
 		pickedSubset    = -1;
 		numMaterials	= 0;
 		numTextures		= 0;
+		numRendState    = 0;
 		numCreatedVerts = 0;
 		numCreatedFaces = 0;
 		numPickedVerts  = 0;
@@ -97,12 +100,16 @@ public:
 		texture[numTextures] = new texture_class;
 		texture[numTextures]->initBaseForTexture(device);
 
+		renderState[numRendState] = new renderState_class;
+		renderState[numRendState]->initRendStateClass(device);
+
 		SendMessage(subsetsList, LB_INSERTSTRING, numSubsets, (LPARAM)(LPCTSTR)L"Subset");
 		pickedSubset = numSubsets;
 
 		numSubsets	 += 1;
 		numMaterials += 1;
 		numTextures  += 1;
+		numRendState += 1;
 	}
 
 	void createNewFoundation()
@@ -707,6 +714,8 @@ public:
 				material[subset]->resetMaterial();
 			if(numTextures)
 				texture[subset]->resetTexture();
+			if(numRendState)
+				renderState[subset]->setRenderState();
 
 			mesh->DrawSubset(subset);
 		}
@@ -729,6 +738,13 @@ public:
 			numTextures--;
 			delete texture[numTextures];
 			texture[numTextures] = NULL;
+		}
+
+		for(;numRendState != 0;)
+		{
+			numRendState--;
+			delete renderState[numRendState];
+			renderState[numRendState] = NULL;
 		}
 
 		for(;numCreatedFaces != 0;)

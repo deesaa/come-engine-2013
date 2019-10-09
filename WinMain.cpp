@@ -1,7 +1,7 @@
 #include "Global_Linker.h"
 
 LPCTSTR  className  = L"C-O.M.E. Engine"; 
-LPCTSTR  windowName = L"C-O.M.E. Engine, Build 1.6.23";
+LPCTSTR  windowName = L"C-O.M.E. Engine, Build 1.6.35";
 
 MSG  msg;
 IDirect3DDevice9* device;
@@ -15,6 +15,7 @@ window_class* windows;			   //Windows-окна (GUI)
 object_settings* objectSettings;   //Окна настроек объектов
 botStatusBar_Class* BStatBar;
 topEditingBar_Class* TEditingBar;
+rendStateEditor_class* RendStateSetts;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -37,6 +38,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	TEditingBar = new topEditingBar_Class;
 	TEditingBar->initTEBar(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
+
+	RendStateSetts = new rendStateEditor_class;
+	RendStateSetts->initRendStateEditor(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
 
 	manager = new object_manager;	//Выделяем память на менеджер объектов
 	manager->initManager(device, hInstance, windows->getWindowHandle(GET_MAINWINDOW), BStatBar, TEditingBar);	//Инициализируем менеджер объектов
@@ -94,6 +98,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	delete objectSettings;
 	delete BStatBar;
 	delete TEditingBar;
+	delete RendStateSetts;
 	return msg.wParam;
 }
 
@@ -240,7 +245,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				return 0;
 			}
 			return 0;
-
+		
 		case ID_BUTTON3:
 			MessageBox(windows->getWindowHandle(GET_D3DWINDOW), L"Error because I said so!", L"Staaaph", MB_ICONSTOP);
 			//У выбранного в данный момент объекта изменяется навзвание /*НЕ РАБОТАЕТ*/
@@ -270,6 +275,9 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			return 0;
 		case ID_OSBUTTON2:
 			objectSettings->showLSettingsWnd();
+			return 0;
+		case ID_ESSBUTTON2:
+			RendStateSetts->showRSSettingsWnd();
 			return 0;
 		case ID_EDIT1:
 			return 0;
@@ -411,13 +419,16 @@ LRESULT CALLBACK CEDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-LRESULT CALLBACK BStatBarProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK RSSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg)
 	{
 	case WM_COMMAND:
 		switch(LOWORD(wParam))
 		{
+		case IDCANCEL:
+			EndDialog(hwnd, TRUE);
+			return 0;
 		}
 		return 0;
 	}

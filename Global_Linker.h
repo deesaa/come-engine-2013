@@ -1,6 +1,7 @@
 //Включение всяких технических библиотек, в которых лезть не надо
 #include <windows.h>
 #include <winbase.h>
+#include <windowsx.h>
 #include <CommDlg.h>
 #include <fstream>
 
@@ -28,7 +29,7 @@ LRESULT CALLBACK OSWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK OSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK LSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK CEDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK BStatBarProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK RSSDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 void RegWndClass(WNDPROC proc, HINSTANCE hInstance, LPCTSTR className);
 void setAllMatrices(D3DXMATRIX* worldMatrix, D3DXMATRIX* viewMatrix, D3DXMATRIX* projMatrix, IDirect3DDevice9* device);
@@ -49,6 +50,7 @@ void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
 #include "Camera_Class.h"
 #include "Matrices_Class.h"
 #include "DirectXInput_Class.h"
+#include "RenderState_Class.h"
 #include "Material_Class.h"
 #include "Texture_Class.h"
 #include "Light_Class.h"
@@ -60,5 +62,6 @@ void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
 #include "Window_Base.h"
 #include "DirectX_Base.h"
 #include "Object_Settings.h"
+#include "EditRendState_Dlg.h"
 #include "OC_Base.h"
 #include "Object_Outwrite.h"
