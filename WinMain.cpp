@@ -86,6 +86,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ShowWindow(COButton, SW_HIDE);
 				ShowWindow(windows->getWindowHandle(GET_NEWDIRLIGHTBUTTON), SW_HIDE);
 				ShowWindow(windows->getWindowHandle(GET_NEWPOINTLIGHTBUTTON), SW_HIDE);
+				ShowWindow(windows->getWindowHandle(GET_NEWSPOTLIGHTBUTTON), SW_HIDE);
 			}
 			else
 			{
@@ -93,6 +94,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ShowWindow(COButton, SW_NORMAL);
 				ShowWindow(windows->getWindowHandle(GET_NEWDIRLIGHTBUTTON), SW_NORMAL);
 				ShowWindow(windows->getWindowHandle(GET_NEWPOINTLIGHTBUTTON), SW_NORMAL);
+				ShowWindow(windows->getWindowHandle(GET_NEWSPOTLIGHTBUTTON), SW_NORMAL);
 			}
 			return 0;
 		case ID_BUTTON2:
@@ -115,6 +117,25 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			objectSettings->showLSButton(SW_NORMAL);
 			objectSettings->fillLightSettings(OC->getLightStruct());
 			return 0;
+
+		case ID_BUTTON7:
+			OC->pickLight(manager->createNewPointLight(windows->getWindowHandle(GET_LIGHTOBJECTLIST)));
+
+			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
+			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
+
+			objectSettings->showLSButton(SW_NORMAL);
+			objectSettings->fillLightSettings(OC->getLightStruct());
+			return 0;
+
+		case ID_BUTTON8:
+			OC->pickLight(manager->createNewSpotLight(windows->getWindowHandle(GET_LIGHTOBJECTLIST)));
+
+			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
+			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
+
+			objectSettings->showLSButton(SW_NORMAL);
+			objectSettings->fillLightSettings(OC->getLightStruct());
 
 		case ID_LISTBOX1:
 			switch(HIWORD(wParam))

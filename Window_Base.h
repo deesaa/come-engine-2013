@@ -7,6 +7,7 @@
 #define ID_BUTTON5  1005
 #define ID_BUTTON6  1006
 #define ID_BUTTON7  1007
+#define ID_BUTTON8  1008
 //Статические окна 
 #define ID_STATIC1  2001
 //Окна списков
@@ -24,11 +25,12 @@
 #define GET_LIGHTOBJECTLIST     6
 #define GET_NEWDIRLIGHTBUTTON	7
 #define GET_NEWPOINTLIGHTBUTTON 8
+#define GET_NEWSPOTLIGHTBUTTON	9
 
 class window_class
 {
 private:
-	HWND mainWindow, OCButton, COButton, CDLButton, CPLButton, directXWindow;   //Окна, относящиеся к созданию объекта
+	HWND mainWindow, OCButton, COButton, CDLButton, CPLButton, CSLButton, directXWindow;   //Окна, относящиеся к созданию объектов
 	HWND objectsList, lightObjectsList, showOList, showLList;   //Окна, относящиеся к спискам
 	HWND OSButton1, OSEdit1;   //Окна, относящиеся к редактированию объектов
 	LPCTSTR mainWindowName;	   //Название окна
@@ -56,6 +58,9 @@ public:
 
 		CPLButton = CreateWindow(L"button", L"Create Point Light", WS_CHILD|BS_CENTER, 
 			26, 175, 170, 20, mainWindow, (HMENU)ID_BUTTON7, hInstance, NULL);
+
+		CSLButton = CreateWindow(L"button", L"Create Spot Light", WS_CHILD|BS_CENTER, 
+			26, 195, 170, 20, mainWindow, (HMENU)ID_BUTTON8, hInstance, NULL);
 
 		//Окно, подключаемое к DirectX
 		directXWindow = CreateWindow(L"static", NULL, WS_CHILD|WS_BORDER, 
@@ -113,6 +118,8 @@ public:
 			return CDLButton;
 		case GET_NEWPOINTLIGHTBUTTON:
 			return CPLButton;
+		case GET_NEWSPOTLIGHTBUTTON:
+			return CSLButton;
 		}
 	}
 };

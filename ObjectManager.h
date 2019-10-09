@@ -44,6 +44,30 @@ public:
 		return numLight;
 	}
 
+	UINT createNewPointLight(HWND lightObjectList)
+	{
+		light[numLight] = new light_class;
+		light[numLight]->initPointLightBase(device, numLight);
+		SendMessage(lightObjectList, LB_INSERTSTRING, numLight, (LPARAM)light[numLight]->getLightName());
+		for(int i = 0; i != numLight; i++)   //Отключение всех источников света
+			light[i]->disableLight();
+		numLight++;
+		numGlobal++;
+		return numLight;
+	}
+
+	UINT createNewSpotLight(HWND lightObjectList)
+	{
+		light[numLight] = new light_class;
+		light[numLight]->initSpotLightBase(device, numLight);
+		SendMessage(lightObjectList, LB_INSERTSTRING, numLight, (LPARAM)light[numLight]->getLightName());
+		for(int i = 0; i != numLight; i++)   //Отключение всех источников света
+			light[i]->disableLight();
+		numLight++;
+		numGlobal++;
+		return numLight;
+	}
+
 	DWORD checkIntersectionWithObjects(ray_struct clickRay)
 	{
 		DWORD intersectedObject = 0;
