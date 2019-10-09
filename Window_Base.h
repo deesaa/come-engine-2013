@@ -15,6 +15,7 @@
 #define GET_OCCREATEOBJECT		2
 #define GET_OBJECTLIST			3
 #define GET_OBJECTNAMEEDITOR	4
+#define GET_MAINWINDOW			5
 
 class window_class
 {
@@ -76,6 +77,8 @@ public:
 			return objectsList;
 		case GET_OBJECTNAMEEDITOR:
 			return OSEdit1;
+		case GET_MAINWINDOW:
+			return mainWindow;
 		}
 	}
 };
@@ -98,7 +101,5 @@ void RegWndClass(WNDPROC proc, HINSTANCE hInstance, LPCTSTR className)
 	wc.lpszClassName = className;
 
 	if(!RegisterClass(&wc))
-	{
 		MessageBox(0, L"RegisterClass - Failed", 0, 0);
-	}
 }

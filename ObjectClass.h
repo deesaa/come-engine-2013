@@ -74,28 +74,19 @@ public:
 	}
 
 	void moveObject(float x, float y, float z)
-	{
-		worldMatrices.worldMatrixMove(x, y, z);
-	}
+	{	worldMatrices.worldMatrixMove(x, y, z);}
 
 	void rotateXObject(float Angle)
-	{
-		worldMatrices.worldMatrixRotateX(Angle);
-	}
+	{	worldMatrices.worldMatrixRotateX(Angle);}
 
 	void rotateYObject(float Angle)
-	{
-		worldMatrices.worldMatrixRotateY(Angle);
-	}
+	{	worldMatrices.worldMatrixRotateY(Angle);}
 
 	void rotateZObject(float Angle)
-	{
-		worldMatrices.worldMatrixRotateZ(Angle);
-	}
+	{	worldMatrices.worldMatrixRotateZ(Angle);}
 
 	void renameObject(HWND objectsList, HWND nameEditor, UINT objectNumber)
 	{
-		objectNumber;	
 		SendMessage(nameEditor, EM_LIMITTEXT, (WPARAM)80, NULL);
 		SendMessage(nameEditor, EM_GETLINE, 0, (LPARAM)buffer);
 		
@@ -103,13 +94,10 @@ public:
 		
 		SendMessage(objectsList, LB_DELETESTRING, (WPARAM)objectNumber, NULL);
 		SendMessage(objectsList, LB_INSERTSTRING, (WPARAM)objectNumber, (LPARAM)objectName);
-		
 	}
 
 	LPCTSTR getObjectName()
-	{
-		return objectName;
-	}
+	{	return objectName;}
 
 	void redraw()
 	{

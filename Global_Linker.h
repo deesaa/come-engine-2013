@@ -26,3 +26,4 @@ void setMatrices(D3DXMATRIX* worldMatrix, D3DXMATRIX* viewMatrix, D3DXMATRIX* pr
 #include "Window_Base.h"
 #include "DirectX_Base.h"
 #include "OC_Base.h"
+#include "Object_Settings.h"

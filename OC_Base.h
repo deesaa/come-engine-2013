@@ -95,6 +95,11 @@ public:
 		pickedObject = bPickedObject;
 	}
 
+	UINT getPickedObjct()
+	{
+		return pickedObject;
+	}
+
 	void renameObject(HWND objectsList, HWND nameEditor)
 	{
 		manager->renameObject(pickedObject, objectsList, nameEditor);

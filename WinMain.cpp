@@ -12,6 +12,7 @@ char buffer[256];
 object_manager* manager;	//Менеджер объектов
 object_creator* OC;			//Создатель и редактор объектов
 window_class* windows;		//Windows-окна (GUI)
+object_settings* objectSettings;   //Окна настроек объектов
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -29,6 +30,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	
 	OC = new object_creator;		//Выделяем память на редактор объектов
 	OC->initObjectCreator(device, objectCreatorWindow, hInstance, manager);	//Инициализируем редактор объектов
+
+	objectSettings = new object_settings;
+	objectSettings->initObjectSettings(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
 
 	device->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
 
@@ -51,7 +55,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 			OC->applyKBMChanges();
 			OC->redraw();
-			manager->redrawAllObjects();
+			manager->redrawObject(OC->getPickedObjct());
 				
 			device->EndScene();
 			device->Present(0, 0, 0, 0); 
@@ -100,6 +104,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			MessageBox(windows->getWindowHandle(GET_D3DWINDOW), L"THIS SHIT DOESN'T WORK!", L"STAAAPH", MB_ICONSTOP);
 			//У выбранного в данный момент объекта изменяется навзвание /*НЕ РАБОТАЕТ*/
 			//OC->renameObject(windows->getWindowHandle(GET_OBJECTLIST), windows->getWindowHandle(GET_OBJECTNAMEEDITOR));
+			SetFocus(windows->getWindowHandle(GET_D3DWINDOW));
 			return 0;
 		case ID_EDIT1:
 			return 0;

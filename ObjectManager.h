@@ -88,13 +88,14 @@ public:
 	//Перерисовать объект
 	void redrawObject(UINT objectNumber)
 	{
+		objectNumber--;
 		if (objectNumber < numObject)			//Если данный объект создан
 			object[objectNumber]->redraw();		//то перерисовываем его
 	}
 
 	void redrawAllObjects()
 	{
-		for(int objectNumber = 0; objectNumber < numObject; objectNumber++)
+		for(UINT objectNumber = 0; objectNumber < numObject; objectNumber++)
 			object[objectNumber]->redraw();
 	}
 
