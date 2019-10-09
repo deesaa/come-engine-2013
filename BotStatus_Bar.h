@@ -29,31 +29,31 @@ public:
 		lastNumPickedVerts = 0;
 		
 		BSBStatic1 = CreateWindow(L"static", L"Num Picked Verts", WS_CHILD|SS_CENTER, 
-			217, 805, 120, 15, mainWindow, (HMENU)ID_BSBSTATIC1, hInstance, NULL);
+			217, Height - 95, 120, 15, mainWindow, (HMENU)ID_BSBSTATIC1, hInstance, NULL);
 
 		BSBStatic2 = CreateWindow(L"edit", L"0", WS_CHILD|ES_CENTER|ES_AUTOHSCROLL, 
-			338, 805, 45, 15, mainWindow, (HMENU)ID_BSBSTATIC2, hInstance, NULL);
+			338, Height - 95, 45, 15, mainWindow, (HMENU)ID_BSBSTATIC2, hInstance, NULL);
 
 
 		BSBStatic3 = CreateWindow(L"static", L"X", WS_CHILD|SS_CENTER, 
-			417, 805, 15, 15, mainWindow, (HMENU)ID_BSBSTATIC3, hInstance, NULL);
+			417, Height - 95, 15, 15, mainWindow, (HMENU)ID_BSBSTATIC3, hInstance, NULL);
 
 		BSBStatic4 = CreateWindow(L"edit", L"0", WS_CHILD|ES_CENTER|ES_AUTOHSCROLL, 
-			434, 805, 125, 15, mainWindow, (HMENU)ID_BSBSTATIC4, hInstance, NULL);
+			434, Height - 95, 125, 15, mainWindow, (HMENU)ID_BSBSTATIC4, hInstance, NULL);
 
 
 		BSBStatic5 = CreateWindow(L"static", L"Y", WS_CHILD|SS_CENTER, 
-			563, 805, 15, 15, mainWindow, (HMENU)ID_BSBSTATIC5, hInstance, NULL);
+			563, Height - 95, 15, 15, mainWindow, (HMENU)ID_BSBSTATIC5, hInstance, NULL);
 
 		BSBStatic6 = CreateWindow(L"edit", L"0", WS_CHILD|ES_CENTER|ES_AUTOHSCROLL, 
-			580, 805, 125, 15, mainWindow, (HMENU)ID_BSBSTATIC6, hInstance, NULL);
+			580, Height - 95, 125, 15, mainWindow, (HMENU)ID_BSBSTATIC6, hInstance, NULL);
 
 
 		BSBStatic7 = CreateWindow(L"static", L"Z", WS_CHILD|SS_CENTER, 
-			709, 805, 15, 15, mainWindow, (HMENU)ID_BSBSTATIC7, hInstance, NULL);
+			709, Height - 95, 15, 15, mainWindow, (HMENU)ID_BSBSTATIC7, hInstance, NULL);
 
 		BSBStatic8 = CreateWindow(L"edit", L"0", WS_CHILD|ES_CENTER|ES_AUTOHSCROLL, 
-			726, 805, 125, 15, mainWindow, (HMENU)ID_BSBSTATIC8, hInstance, NULL);
+			726, Height - 95, 125, 15, mainWindow, (HMENU)ID_BSBSTATIC8, hInstance, NULL);
 
 	}
 

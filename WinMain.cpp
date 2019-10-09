@@ -12,6 +12,7 @@ char buffer[256];
 object_manager* manager;		   //Менеджер объектов
 object_creator* OC;				   //Создатель и редактор объектов
 window_class* windows;			   //Windows-окна (GUI)
+mainMenu_class* mainMenu;
 object_settings* objectSettings;   //Окна настроек объектов
 botStatusBar_Class* BStatBar;
 topEditingBar_Class* TEditingBar;
@@ -29,10 +30,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	objectCreatorWindow = windows->getWindowHandle(GET_D3DWINDOW);		//Получение дескриптора окна, в которое идет вывод DirectX
 	COButton			= windows->getWindowHandle(GET_OCCREATEOBJECT);		//Получение дескриптора кнопки, создающей новый объект
 	
+	mainMenu = new mainMenu_class;
+	mainMenu->initMainMenu(windows->getWindowHandle(GET_MAINWINDOW));
+
 	objectSettings = new object_settings;
 	objectSettings->initSettings(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
 	objectSettings->initObjectSettings();
 	objectSettings->initLightSettings();
+
+	int Style;
+	Style = GetWindowLongPtr(windows->getWindowHandle(GET_LIGHTOBJECTLIST), GWL_STYLE);
+	Style = Style | WS_CAPTION;
+	Style = Style | WS_SIZEBOX;
+	SetWindowLongPtr(windows->getWindowHandle(GET_LIGHTOBJECTLIST), GWL_STYLE, Style);
+
 
 	BStatBar = new botStatusBar_Class;
 	BStatBar->initBStatBar(windows->getWindowHandle(GET_MAINWINDOW), hInstance);
@@ -98,6 +109,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	delete manager;
 	delete OC;
+	delete mainMenu;
 	delete windows;
 	delete objectSettings;
 	delete BStatBar;
@@ -300,6 +312,14 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case ID_ESSBUTTON1:
 			rendStateEditor->showRSSettingsWnd();
 			return 0;
+		case VM_WNDLOCAT:
+			return 0;
+		case FM_FILESAVE:
+			saveProject(windows->getWindowHandle(GET_MAINWINDOW));
+			return 0;
+		case FM_FILEOPEN:
+
+			return 0;
 		case ID_EDIT1:
 			return 0;
 		case ID_BSBSTATIC2:
@@ -321,6 +341,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if(OC->pickIntersectedObject())
 		{
 			objectSettings->showOSButton(SW_NORMAL);
+			rendStateEditor->showRSSettingsButton();
 			if(OC->getMaterialClass())
 				objectSettings->fillObjectSettings(OC->getMaterialClass());
 			rendStateEditor->fillRSEditor(OC->getRendState());
@@ -328,6 +349,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if(OC->pickIntersectedVertex())
 		{
 			objectSettings->showOSButton(SW_NORMAL);
+			rendStateEditor->showRSSettingsButton();
 			if(OC->getMaterialClass())
 				objectSettings->fillObjectSettings(OC->getMaterialClass());
 			rendStateEditor->fillRSEditor(OC->getRendState());

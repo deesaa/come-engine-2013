@@ -43,6 +43,7 @@ void saveFullObject(object_class* object);
 void saveFullMaterial(material_class* material);
 void saveFullLight(light_class* light);
 void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
+void saveProject(HWND mainWindow);
 
 //Собственно включение всех компонентов "движка"
 #include "Constants.h"
@@ -61,6 +62,7 @@ void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
 #include "ObjectClass.h"
 #include "ObjectManager.h"
 #include "Window_Base.h"
+#include "MainMenu_Class.h"
 #include "DirectX_Base.h"
 #include "Object_Settings.h"
 #include "RendState_Editor.h"

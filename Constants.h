@@ -1,10 +1,12 @@
-int Width		  = 1600;
-int Height		  = 900;
-int DirectXWidth  = 1140;
-int DirectXHeight = 700;
+
+HDC hdcScreen = GetWindowDC(GetDesktopWindow());
+
+int Width		  = GetDeviceCaps(hdcScreen, HORZRES);
+int Height		  = GetDeviceCaps(hdcScreen, VERTRES) - 38;
+int DirectXWidth  = Width - 464;
+int DirectXHeight = Height - 200;
 int DirectXLeft   = 217;
 int DirectXTop    = 100;
-
 
 float PI   = 3.1415f;
 

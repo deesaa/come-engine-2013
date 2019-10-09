@@ -55,57 +55,60 @@ public:
 
 		//Кнопка, открывающая создатель/редактор объектов
 		OCButton = CreateWindow(L"button", L"Object Creator", WS_CHILD|WS_VISIBLE|BS_CENTER, 
-			12, 100, 190, 35, mainWindow, (HMENU)ID_BUTTON1, hInstance, NULL);
+			Width * 0.01, 100, 190, 35, mainWindow, (HMENU)ID_BUTTON1, hInstance, NULL);
 
 		//Кнопка, создающая новый объект
 		COButton = CreateWindow(L"button", L"Create Object", WS_CHILD|BS_CENTER, 
-			61, 135, 100, 20, mainWindow, (HMENU)ID_BUTTON2, hInstance, NULL);
+			Width * 0.04, 135, 100, 20, mainWindow, (HMENU)ID_BUTTON2, hInstance, NULL);
 
 		CDLButton = CreateWindow(L"button", L"Create Directional Light", WS_CHILD|BS_CENTER, 
-			26, 175, 170, 20, mainWindow, (HMENU)ID_BUTTON4, hInstance, NULL);
+			Width * 0.017, 175, 170, 20, mainWindow, (HMENU)ID_BUTTON4, hInstance, NULL);
 
 		CPLButton = CreateWindow(L"button", L"Create Point Light", WS_CHILD|BS_CENTER, 
-			26, 195, 170, 20, mainWindow, (HMENU)ID_BUTTON7, hInstance, NULL);
+			Width * 0.017, 195, 170, 20, mainWindow, (HMENU)ID_BUTTON7, hInstance, NULL);
 
 		CSLButton = CreateWindow(L"button", L"Create Spot Light", WS_CHILD|BS_CENTER, 
-			26, 215, 170, 20, mainWindow, (HMENU)ID_BUTTON8, hInstance, NULL);
+			Width * 0.017, 215, 170, 20, mainWindow, (HMENU)ID_BUTTON8, hInstance, NULL);
 
 		CCButton = CreateWindow(L"button", L"Create Camera", WS_CHILD|BS_CENTER, 
-			26, 155, 170, 20, mainWindow, (HMENU)ID_BUTTON9, hInstance, NULL);
+			Width * 0.017, 155, 170, 20, mainWindow, (HMENU)ID_BUTTON9, hInstance, NULL);
 
 		//Окно, подключаемое к DirectX
 		directXWindow = CreateWindow(L"static", NULL, WS_CHILD|WS_BORDER, 
 			DirectXLeft, DirectXTop, DirectXWidth, DirectXHeight, mainWindow, (HMENU)ID_STATIC1, hInstance, NULL);
 
 		//Глобальный перечень всех созданных объектов
+		int i = 100;
+		int x = Height * 0.38;
 		objectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
-			1360, 100, 200, 350, mainWindow, (HMENU)ID_LISTBOX1, hInstance, NULL);
-
-		lightObjectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
-			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX2, hInstance, NULL);
-
-		camObjectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
-			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX3, hInstance, NULL);  
+			Width - 240, i, 200, x, mainWindow, (HMENU)ID_LISTBOX1, hInstance, NULL);
 
 		subsetsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
-			1360, 450, 200, 350, mainWindow, (HMENU)ID_LISTBOX4, hInstance, NULL);  
+			Width - 240, x + i, 200, x - 50, mainWindow, (HMENU)ID_LISTBOX4, hInstance, NULL);  
 
-		//Текстовый редактор для редактирования названия объекта
-		OSEdit1 = CreateWindow(L"edit", NULL, WS_CHILD|WS_BORDER|WS_VISIBLE|ES_LEFT|ES_AUTOHSCROLL, 
+		lightObjectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
+			Width - 240, 100, 200, Height - 195, mainWindow, (HMENU)ID_LISTBOX2, hInstance, NULL);
+
+		camObjectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
+			Width - 240, 100, 200, Height - 195, mainWindow, (HMENU)ID_LISTBOX3, hInstance, NULL);  
+
+
+		//Текстовый редактор для редактирования названия объекта								//!!!!!!!!!!!!!!!!!
+		OSEdit1 = CreateWindow(L"edit", NULL, WS_CHILD|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL, 
 			35, 403, 150, 20, mainWindow, (HMENU)ID_EDIT1, hInstance, NULL);
 
-		//Кнопка, применяющая строку в редакторе к названию объекта
-		OSButton1 = CreateWindow(L"button", L"Set New Name", WS_CHILD|WS_VISIBLE, 
+		//Кнопка, применяющая строку в редакторе к названию объекта								//!!!!!!!!!!!!!!!!!
+		OSButton1 = CreateWindow(L"button", L"Set New Name", WS_CHILD, 
 			46, 424, 127, 20, mainWindow, (HMENU)ID_BUTTON3, hInstance, NULL);
 
 		showOList    = CreateWindow(L"button", L"Objects", WS_CHILD|WS_VISIBLE, 
-			1360, 79, 70, 20, mainWindow, (HMENU)ID_BUTTON5, hInstance, NULL);
+			Width - 240, 79, 70, 20, mainWindow, (HMENU)ID_BUTTON5, hInstance, NULL);
 
 		showLList    = CreateWindow(L"button", L"Lighting", WS_CHILD|WS_VISIBLE, 
-			1430, 79, 70, 20, mainWindow, (HMENU)ID_BUTTON6, hInstance, NULL);
+			Width - 170, 79, 70, 20, mainWindow, (HMENU)ID_BUTTON6, hInstance, NULL);
 
 		showCList	 = CreateWindow(L"button", L"Cams", WS_CHILD|WS_VISIBLE, 
-			1500, 79, 70, 20, mainWindow, (HMENU)ID_BUTTON10, hInstance, NULL); 
+			Width - 100, 79, 70, 20, mainWindow, (HMENU)ID_BUTTON10, hInstance, NULL); 
 	}
 
 	UINT takeObjectFromList()

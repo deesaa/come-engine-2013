@@ -1,5 +1,29 @@
 #define _UNICODE
 
+void saveProject(HWND mainWindow)
+{
+	int radix(8);
+	char chBuffer[20];
+	WCHAR szFile[260] = L"Project_";  
+	WCHAR szFilter[260] = L".cpj\0*.*\0";  
+	WCHAR szTitle[260] = L"Save Project";
+	OPENFILENAME ofn;  
+
+	ZeroMemory(&ofn, sizeof(OPENFILENAME));
+	ofn.lStructSize = sizeof(OPENFILENAME);
+	ofn.lpstrFile = (LPWSTR)szFile;
+	ofn.nMaxFile = sizeof(szFile);
+	ofn.nFilterIndex = 1;
+	ofn.nMaxCustFilter = sizeof(szFilter);
+	ofn.lpstrFilter = (LPWSTR)szFilter;
+	ofn.lpstrTitle = (LPWSTR)szTitle;
+	ofn.nMaxFileTitle = sizeof(szTitle);
+
+	ofn.Flags = OFN_OVERWRITEPROMPT;
+
+	GetSaveFileName(&ofn);
+}
+
 void saveFullObject(object_class* object)
 {
 	vertex* vertices = object->getVertices();

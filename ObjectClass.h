@@ -105,7 +105,7 @@ public:
 
 		rendState[numRendState] = new rendState_class;
 		rendState[numRendState]->initRendStateClass(device, rendStateTypes);
-		rendState[numRendState]->addRendState(0, 0);
+		rendState[numRendState]->addRendState(0, 2);
 		rendState[numRendState]->addRendState(1, 0);
 		rendState[numRendState]->addRendState(2, 0);
 		rendState[numRendState]->addRendState(3, 0);
@@ -336,7 +336,7 @@ public:
 
 				rendState[numRendState] = new rendState_class;
 				rendState[numRendState]->initRendStateClass(device, rendStateTypes);
-				rendState[numRendState]->addRendState(0, 0);
+				rendState[numRendState]->addRendState(0, 2);
 				rendState[numRendState]->addRendState(1, 0);
 				rendState[numRendState]->addRendState(2, 0);
 				rendState[numRendState]->addRendState(3, 0);
@@ -714,9 +714,10 @@ public:
 		worldMatrices.resetMatrices();
 	
 		device->SetRenderState(D3DRS_POINTSCALEENABLE, true);
-		device->SetRenderState(D3DRS_POINTSIZE, flToDw(2.5f));
-		device->SetRenderState(D3DRS_POINTSIZE_MIN, flToDw(0.2f));
+		//device->SetRenderState(D3DRS_POINTSIZE, flToDw(2.5f));
+		//device->SetRenderState(D3DRS_POINTSIZE_MIN, flToDw(0.2f));
 		device->SetRenderState(D3DRS_POINTSIZE_MAX, flToDw(5.0f));
+		device->SetRenderState(D3DRS_LIGHTING, FALSE);
 
 		device->SetFVF(particle::FVF);
 		device->SetStreamSource(0, vpb, 0, sizeof(particle));

@@ -28,7 +28,7 @@ public:
 		RSEComboboxID	   = 32001;
 
 		RSSButton1 = CreateWindow(L"button", L"Edit Render State", WS_CHILD|WS_BORDER, 
-			25, 480, 170, 23, mainWindow, (HMENU)ID_ESSBUTTON1, hInstance, NULL);
+			25, Height * 0.5 + 24, 170, 23, mainWindow, (HMENU)ID_ESSBUTTON1, hInstance, NULL);
 
 		RSEWindow = new dlgWnd;
 		RSEWindow->initDlgWnd(mainWindow, (DLGPROC)RSEDlgWndProc, hInstance);
