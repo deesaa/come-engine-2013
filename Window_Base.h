@@ -16,6 +16,7 @@
 #define ID_LISTBOX1 3001
 #define ID_LISTBOX2 3002
 #define ID_LISTBOX3 3003
+#define ID_LISTBOX4 3004
 //Окна текстовых редакторов
 #define ID_EDIT1    4001
 
@@ -31,13 +32,14 @@
 #define GET_NEWSPOTLIGHTBUTTON	9
 #define GET_CAMOBJECTLIST		10
 #define GET_NEWCAMOBJECTBUTTON  11
+#define GET_SUBSETSLIST			12
 
 
 class window_class
 {
 private:
 	HWND mainWindow, OCButton, COButton, CDLButton, CPLButton, CSLButton, CCButton, directXWindow;   //Окна, относящиеся к созданию объектов
-	HWND objectsList, lightObjectsList, camObjectsList, showOList, showLList, showCList;   //Окна, относящиеся к спискам
+	HWND objectsList, lightObjectsList, camObjectsList, subsetsList, showOList, showLList, showCList;   //Окна, относящиеся к спискам
 	HWND OSButton1, OSEdit1;   //Редактирование названия
 	LPCTSTR mainWindowName;	   //Название окна
 
@@ -77,13 +79,16 @@ public:
 
 		//Глобальный перечень всех созданных объектов
 		objectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
-			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX1, hInstance, NULL);
+			1360, 100, 200, 350, mainWindow, (HMENU)ID_LISTBOX1, hInstance, NULL);
 
 		lightObjectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
 			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX2, hInstance, NULL);
 
 		camObjectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
 			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX3, hInstance, NULL);  
+
+		subsetsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD, 
+			1360, 450, 200, 350, mainWindow, (HMENU)ID_LISTBOX4, hInstance, NULL);  
 
 		//Текстовый редактор для редактирования названия объекта
 		OSEdit1 = CreateWindow(L"edit", NULL, WS_CHILD|WS_BORDER|WS_VISIBLE|ES_LEFT|ES_AUTOHSCROLL, 
@@ -144,6 +149,8 @@ public:
 			return camObjectsList;
 		case GET_NEWCAMOBJECTBUTTON:
 			return CCButton;
+		case GET_SUBSETSLIST:
+			return subsetsList;
 		}
 	}
 };

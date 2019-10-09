@@ -255,7 +255,7 @@ public:
 			NewTriButtonLocked = FALSE;
 
 
-		if (KBBuffer[DIK_C] & 0x8000f)
+		if (KBBuffer[DIK_E] & 0x8000f)
 		{
 			if(SwapVertsButtonLocked == FALSE)
 			{
@@ -266,6 +266,12 @@ public:
 		}
 		else
 			SwapVertsButtonLocked = FALSE;
+
+		if (KBBuffer[DIK_C] & 0x8000f)
+		{
+			if(pickType == Object)
+				manager->newSubset(pickedObject);
+		}
 	}
 
 	~object_creator() 

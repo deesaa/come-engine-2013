@@ -42,7 +42,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	device->SetRenderState(D3DRS_ZENABLE, TRUE);
 	device->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 
-
 	static float lastTime = (float)timeGetTime();
 	float currTime, timeDelta;
 	manager->setPointerToTimeDelta(&timeDelta);
@@ -122,6 +121,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);	
 			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);	
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_NORMAL);
+			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_NORMAL);
 
 			objectSettings->showOSButton(SW_NORMAL);
 			objectSettings->fillObjectSettings(OC->getMaterialClass());
@@ -132,7 +132,8 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
-			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);	
+			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);
+			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_HIDE);
 
 			objectSettings->showLSButton(SW_NORMAL);
 			objectSettings->fillLightSettings(OC->getLightStruct());
@@ -143,7 +144,8 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
-			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);	
+			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);
+			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_HIDE);
 
 			objectSettings->showLSButton(SW_NORMAL);
 			objectSettings->fillLightSettings(OC->getLightStruct());
@@ -155,6 +157,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);	
+			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_HIDE);
 
 			objectSettings->showLSButton(SW_NORMAL);
 			objectSettings->fillLightSettings(OC->getLightStruct());
@@ -166,6 +169,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_NORMAL);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);
+			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_HIDE);
 			return 0;
 
 		case ID_LISTBOX1:
@@ -211,6 +215,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			return 0;
 		case ID_BUTTON5:
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_NORMAL);
+			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_NORMAL);
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);	
 			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);		
 			return 0;
@@ -218,11 +223,13 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);
+			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_HIDE);
 			return 0;
 		case ID_BUTTON10:
 			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_NORMAL);							
 			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);
+			ShowWindow(windows->getWindowHandle(GET_SUBSETSLIST), SW_HIDE);
 			return 0;
 		case ID_OSBUTTON1:
 			objectSettings->showOSettingsWnd();

@@ -190,6 +190,12 @@ public:
 		object[objectNumber]->swapIndices();
 	}
 
+	void newSubset(DWORD objectNumber)
+	{
+		objectNumber--;
+		object[objectNumber]->newSubset();
+	}
+
 	void rotateCam(DWORD camNumber, float dX, float dY)
 	{
 		camNumber--;

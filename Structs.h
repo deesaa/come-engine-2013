@@ -1,4 +1,4 @@
-enum triangleType{Full, Vert};
+enum triangleType{Full, Vert, Ind};
 
 class sphere_struct
 {
@@ -10,6 +10,17 @@ public:
 	bool isPicked;
 	DWORD startVertex;
 	DWORD startIndex;
+
+	sphere_struct(){}
+	sphere_struct(D3DXVECTOR3 bCenter, DWORD bVertexID, DWORD bIndexID, float bRadius, bool bIsPicked, DWORD bStartVertex)
+	{
+		center		= bCenter;
+		vertexID	= bVertexID;
+		indexID	    = bIndexID;
+		radius		= bRadius;
+		isPicked	= bIsPicked;
+		startVertex = bStartVertex;
+	}
 };
 
 struct ray_struct
@@ -21,19 +32,21 @@ struct ray_struct
 struct triangle
 {
 	triangleType triType;
-	DWORD attributeID;
+	DWORD subsetID;
+	DWORD materialID;
+	DWORD triangleID;
 	DWORD verticesID[3];
-	DWORD indicesID[3];
-};
 
-struct pickedVertex
-{
-	DWORD vertexID;
-	bool isPicked;
-	pickedVertex()
+	triangle(){}
+	triangle(triangleType bTriType, DWORD firstVert, DWORD secondVert, DWORD thirdVert, DWORD bTriangleID, DWORD bSubsetID, DWORD bMaterialID)
 	{
-		vertexID = 0;
-		isPicked = FALSE;
+		triType		  = bTriType;
+		verticesID[0] = firstVert;
+		verticesID[1] = secondVert;
+		verticesID[2] = thirdVert;
+		subsetID	  = bSubsetID;
+		materialID	  = bMaterialID;
+		triangleID	  = bTriangleID;
 	}
 };
 
@@ -50,7 +63,7 @@ struct COVertex
 };
 const DWORD COVertex::FVF = D3DFVF_XYZ;
 
-DWORD FtoDw(float f)
+DWORD flToDw(float f)
 {
 	return *((DWORD*)&f);
 }
