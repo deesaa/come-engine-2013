@@ -42,14 +42,22 @@ bool openProject(object_manager* manager)
 
 		wstrBuffer.append(chBuffer);
 
-		openProjectInfo(&tempManager, &wstrBuffer);
-		openObjects(&tempManager, ofn.lpstrFile);
+		if(openProjectInfo(&tempManager, &wstrBuffer))
+		{
+			return false;
+		}
+
+		if(openObjects(&tempManager, ofn.lpstrFile) == FALSE)
+		{
+			MessageBox(NULL, L"Can't load Objects", NULL, MB_OK);
+			return false;
+		}
+
 	}
 	else
 		return false;
 
 	CloseHandle(hFile);
-	tempManager.~temp_manager();
 	return true;
 }
 
@@ -63,19 +71,19 @@ bool openProjectInfo(temp_manager* manager, std::string* file)
 	DWORD found(0);
 
 	std::string str("Num Objects:");
-	if((numObjects = getDwValue(&str, file)) != std::string::npos)
+	if((numObjects = getDwValue(&str, file, 0)) != std::string::npos)
 		manager->numObject = numObjects;
 	else
 		return false;
 
 	str = "Num Light:";
-	if((numLight = getDwValue(&str, file)) != std::string::npos)
+	if((numLight = getDwValue(&str, file, 0)) != std::string::npos)
 		manager->numLight = numLight;
 	else
 		return false;
 
 	str = "Num Cams:";
-	if((numCams = getDwValue(&str, file)) != std::string::npos)
+	if((numCams = getDwValue(&str, file, 0)) != std::string::npos)
 		manager->numCams = numCams;
 	else
 		return false;
@@ -112,7 +120,8 @@ bool openObjects(temp_manager* manager, std::wstring fileName)
 	
 	hFileFind = FindFirstFile(projectPath.c_str(), &findData);
 	if (hFileFind == INVALID_HANDLE_VALUE)
-	{	return FALSE;}
+	{	MessageBox(NULL, L"Can't load Objects", NULL, MB_OK);
+		return FALSE;}
 
 	pathToFile.append(L"Objects\\");
 	pathToFile.append(findData.cFileName);
@@ -120,10 +129,9 @@ bool openObjects(temp_manager* manager, std::wstring fileName)
 	hFile = CreateFile(pathToFile.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL,  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	ReadFile(hFile, chBuffer, sizeof(chBuffer), &numOfBytes, NULL);
 	file.clear();
-	file = chBuffer;
+	file.append(chBuffer);
 	manager->addObject(&file);
 	objectNumber += 1;
-
 
 	while(TRUE)
 	{
@@ -133,12 +141,13 @@ bool openObjects(temp_manager* manager, std::wstring fileName)
 		pathToFile = pathToObjects;
 		pathToFile.append(findData.cFileName);
 
+		//Похоже он как-то неправильно переключается с файла на файл
 		hFile = CreateFile(pathToFile.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL,  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		ReadFile(hFileFind, chBuffer, sizeof(chBuffer), &numOfBytes, NULL);
+		ZeroMemory(chBuffer, sizeof(chBuffer));
+		ReadFile(hFile, chBuffer, sizeof(chBuffer), &numOfBytes, NULL);
 		file.clear();
-		file = chBuffer;
+		file.append(chBuffer);
 		manager->addObject(&file);
-
 
 		objectNumber += 1;
 	}
@@ -175,35 +184,124 @@ bool openObjectVertices(tempObject_class* object, std::string* file)
 	}
 }
 
-DWORD getDwValue(std::string* name, std::string* file)
+bool openObjectIndices(tempObject_class* object, std::string* file)
+{
+	std::string str;									
+	std::vector<DWORD> values;
+
+	str.clear();
+	str.append("Indices:");
+	values.clear();
+	values = getArrayDwValue(&str, file, 0);
+
+	if (values[0] == std::string::npos)
+	{
+		return false;
+	}
+	object->loadIndices(values);
+}
+bool openObjectAttributes(tempObject_class* object, std::string* file)
+{
+	std::string str;									
+	std::vector<DWORD> values;
+
+	str.clear();
+	str.append("Attributes:");
+	values.clear();
+	values = getArrayDwValue(&str, file, 0);
+	if (values[0] == std::string::npos)
+	{
+		return false;
+	}
+	object->loadAttributes(values);
+}
+bool openObjectAdjacency(tempObject_class* object, std::string* file)
+{
+	std::string str;									
+	std::vector<DWORD> values;
+
+	str.clear();
+	str.append("Adjacency:");
+	values.clear();
+	values = getArrayDwValue(&str, file, 0);
+	if (values[0] == std::string::npos-1)
+	{
+		return false;
+	}
+	object->loadAdjacency(values);
+}
+
+bool openObjectTriangles(tempObject_class* object, std::string* file)
+{
+	std::string str;
+	CHAR chBuffer[128];
+	DWORD triangleNumber(0);
+	DWORD triangleID, subsetID;
+	DWORD distToStruct(0);
+	std::vector<DWORD> vertsFathers;
+	std::vector<DWORD> verts;
+
+	while(TRUE)
+	{
+		str.clear();
+		str.append("TriangleID:");
+		sprintf(chBuffer, "%d", triangleNumber);
+		str.append(chBuffer);
+		distToStruct = file->find(str.c_str());
+		triangleID = getDwValue(&str, file, distToStruct);
+		if (triangleID == std::string::npos-1)
+		{	return false;}
+
+		str.clear();
+		str.append("Verts-Fathers:");
+		vertsFathers.clear();
+		vertsFathers = getArrayDwValue(&str, file, distToStruct);
+		if (vertsFathers[0] == std::string::npos-1)
+		{	return false;}
+
+		str.clear();
+		str.append("Verts:");
+		verts.clear();
+		verts = getArrayDwValue(&str, file, distToStruct);
+		if (verts[0] == std::string::npos-1)
+		{	return false;}
+
+		str.clear();
+		str.append("SubsetID:");
+		subsetID = getDwValue(&str, file, distToStruct);
+		if (subsetID == std::string::npos-1)
+		{	return false;}
+
+		object->loadTriangle(triangleID, verts, vertsFathers, subsetID);
+		triangleNumber += 1;
+	}
+	return TRUE;
+}
+
+DWORD getDwValue(std::string* name, std::string* file, DWORD pos)
 {
 	std::string wstrBuffer2;
-	char chBuffer[1024];
 	DWORD nameSize(0), distTo(0), valueSize(0);
 	DWORD dwValue;
 	DWORD found(0);
 
 	nameSize  = name->size();
 
-	found = file->find(*name);
+	found = file->find(*name, pos);
 	if (found != std::string::npos)
 	{
-		ZeroMemory(chBuffer, sizeof(chBuffer));
 		distTo = found + nameSize;
-		sprintf(chBuffer, "%d", found);
 	}
 	else
-		return found;
+		return found-1;
 
 	found = file->find(";", distTo);
 	if (found != std::string::npos)
 	{
-		ZeroMemory(chBuffer, sizeof(chBuffer));
 		valueSize = found - distTo;
-		sprintf(chBuffer, "%d", found);
 	}
 	else
-		return found;
+		return found-1;
 
 	std::string strValue = file->substr(distTo, valueSize);
 
@@ -225,24 +323,20 @@ std::vector<float> getArrayFlValue(std::string* name, std::string* file)
 	found = file->find(*name);
 	if (found != std::string::npos)
 	{
-		ZeroMemory(chBuffer, sizeof(chBuffer));
 		distToValue = found + nameSize;
-		sprintf(chBuffer, "%d", found);
 	}
 	else
-	{	values.push_back(std::string::npos);
+	{	values.push_back(std::string::npos-1);
 		return values;
 	}
 
 	found = file->find(";", distToValue);
 	if (found != std::string::npos)
 	{
-		ZeroMemory(chBuffer, sizeof(chBuffer));
 		distToEnd = found;
-		sprintf(chBuffer, "%d", found);
 	}
 	else
-	{	values.push_back(std::string::npos);
+	{	values.push_back(std::string::npos-1);
 		return values;
 	}
 
@@ -272,6 +366,61 @@ std::vector<float> getArrayFlValue(std::string* name, std::string* file)
 	return values;
 }
 
+std::vector<DWORD> getArrayDwValue(std::string* name, std::string* file, DWORD pos)
+{
+	std::string wstrBuffer2;
+	std::vector<std::string> strValues;
+	std::vector<DWORD>		 values;
+	char chBuffer[1024];
+	DWORD nameSize(0), distToValue(0), valueSize(0), distToEnd(0);
+	DWORD dwValue;
+	DWORD numValues(0);
+	DWORD found(0);
+
+	nameSize  = name->size();
+	found = file->find(*name, pos);
+	if (found != std::string::npos)
+	{
+		distToValue = found + nameSize;
+	}
+	else
+	{	values.push_back(std::string::npos-1);
+		return values;}
+
+	found = file->find(";", distToValue);
+	if (found != std::string::npos)
+	{
+		distToEnd = found;
+	}
+	else
+	{	values.push_back(std::string::npos-1);
+		return values;}
+
+	while(TRUE)
+	{
+		if(distToValue >= distToEnd)
+			break;
+
+		found = file->find(",", distToValue);
+		if (found != std::string::npos)
+		{
+			ZeroMemory(chBuffer, sizeof(chBuffer));
+			valueSize = found - distToValue;
+			sprintf(chBuffer, "%d", found);
+		}
+
+		strValues.push_back(file->substr(distToValue, valueSize));
+		distToValue = distToValue + valueSize+1;
+	}
+
+	for(DWORD counter(0); counter != strValues.size();)
+	{
+		values.push_back((DWORD)atol(strValues[counter].c_str()));
+		counter += 1;
+	}
+
+	return values;
+}
 void saveProject(HWND mainWindow, object_manager* manager)
 {
 	int radix(8);
@@ -390,7 +539,7 @@ void saveFullObject(object_class* object, std::wstring file)
 		strVertices.append(chBuffer);
 		sprintf(chBuffer, "%.4f,", vertices[counter].nY);
 		strVertices.append(chBuffer);
-		sprintf(chBuffer, "%.4f;\n", vertices[counter].nZ);
+		sprintf(chBuffer, "%.4f,;\n", vertices[counter].nZ);
 		strVertices.append(chBuffer);
 		counter++;
 	}
@@ -408,7 +557,7 @@ void saveFullObject(object_class* object, std::wstring file)
 		strIndices.append(chBuffer);
 		counter++;
 	}
-	strIndices.erase(strIndices.size()-1, 1);
+	//strIndices.erase(strIndices.size()-1, 1);
 	strIndices.append(";\n");
 
 	std::string strAttributes;
@@ -419,7 +568,7 @@ void saveFullObject(object_class* object, std::wstring file)
 		strAttributes.append(chBuffer);
 		counter++;
 	}
-	strAttributes.erase(strAttributes.size()-1, 1);
+	//strAttributes.erase(strAttributes.size()-1, 1);
 	strAttributes.append(";\n");
 
 	std::string strAdjacencyInfo;
@@ -430,35 +579,36 @@ void saveFullObject(object_class* object, std::wstring file)
 		strAdjacencyInfo.append(chBuffer);
 		counter++;
 	}
-	strAdjacencyInfo.erase(strAdjacencyInfo.size()-1, 1);
+	//strAdjacencyInfo.erase(strAdjacencyInfo.size()-1, 1);
 	strAdjacencyInfo.append(";\n");
 
 	std::string strTriangles;
-	strTriangles.append("Triangles: \n");
+	strTriangles.append("Triangles:\n");
 	for(DWORD counter(0); counter != numFaces;)
 	{
-		strTriangles.append("\n********************************\n");
-		strTriangles.append("TriangleID: ");
-		sprintf(chBuffer, "%d ; ", triangles[counter]->triangleID);
+		strTriangles.append("TriangleID:");
+		sprintf(chBuffer, "%d;\n", triangles[counter]->triangleID);
 		strTriangles.append(chBuffer);
-		strTriangles.append("\nVerts-Fathers: \n");
+		strTriangles.append("Verts-Fathers:");
 		for(DWORD counter_2(0); counter_2 != 3;)
 		{
-			sprintf(chBuffer, "%d ; ", triangles[counter]->fathers[counter_2]);
+			sprintf(chBuffer, "%d,", triangles[counter]->fathers[counter_2]);
 			strTriangles.append(chBuffer);
 			counter_2 += 1;
 		}
-		strTriangles.append("\n");
-		strTriangles.append("Verts: \n");
+		strTriangles.append(";\n");
+
+		strTriangles.append("Verts:\n");
 		for(DWORD counter_2(0); counter_2 != 3;)
 		{
-			sprintf(chBuffer, "%d ; ", triangles[counter]->verticesID[counter_2]);
+			sprintf(chBuffer, "%d,", triangles[counter]->verticesID[counter_2]);
 			strTriangles.append(chBuffer);
 			counter_2 += 1;
 		}
-		strTriangles.append("\n");
-		strTriangles.append("SubsetID: \n");
-		sprintf(chBuffer, "%d ; ", triangles[counter]->subsetID);
+		strTriangles.append(";\n");
+
+		strTriangles.append("SubsetID:\n");
+		sprintf(chBuffer, "%d;", triangles[counter]->subsetID);
 		strTriangles.append(chBuffer);
 
 		counter++;

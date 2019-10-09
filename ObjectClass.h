@@ -162,7 +162,7 @@ public:
 		bool found[3] = {FALSE, FALSE, FALSE};
 		DWORD vertsID[3];
 		
-		this->findOneRelevantVert(found, vertsID, 3);
+		this->findPickedVerts(found, vertsID, 3);
 
 		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE)
 		{
@@ -267,7 +267,7 @@ public:
 		DWORD vertsID[4];
 		DWORD textureVerts[4];
 		bool found[4];
-		this->findOneRelevantVert(found, textureVerts, 4);
+		this->findPickedVerts(found, textureVerts, 4);
 		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE && found[3] == TRUE)
 		{
 			texture[pickedSubset]->loadTexture4Verts(textureVerts, vertices, vertexSphere);
@@ -279,10 +279,10 @@ public:
 		bool found[72];
 		DWORD vertsID[72];
 
-		this->findOneRelevantVert(found, vertsID, 3);
+		this->findPickedVerts(found, vertsID, 3);
 
 		DWORD relevantTriangle[24];
-		DWORD numRelevantTris = this->findRelevantTriangle(vertsID, relevantTriangle, 3);
+		DWORD numRelevantTris = this->findRelevantTriangles(vertsID, relevantTriangle, 3);
 
 		if(numPickedVerts >= 3)
 		{
@@ -308,12 +308,12 @@ public:
 		bool found[72];
 		DWORD vertsID[72];
 
-		this->findOneRelevantVert(found, vertsID, 3);
+		this->findPickedVerts(found, vertsID, 3);
 
 		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE)   //Три вершины найдены
 		{
 			DWORD relevantTriangle[24];
-			DWORD numRelevantTris = this->findRelevantTriangle(vertsID, relevantTriangle, 3);
+			DWORD numRelevantTris = this->findRelevantTriangles(vertsID, relevantTriangle, 3);
 
 			if(numPickedVerts >= 3)
 			{
@@ -411,7 +411,7 @@ public:
 		bool found;
 		DWORD vertsID;
 
-		this->findOneRelevantVert(&found, &vertsID, 1);
+		this->findPickedVerts(&found, &vertsID, 1);
 		if(found == TRUE && vertexSphere[vertsID]->numLinkedVerts != 0)
 		{
 			for(DWORD counter(0); counter != vertexSphere[vertsID]->numLinkedVerts;)
@@ -423,7 +423,7 @@ public:
 			}
 
 			DWORD relevantTris[24];
-			DWORD numFoundTris = this->findRelevantTriangle(&vertsID, relevantTris, 1);
+			DWORD numFoundTris = this->findRelevantTriangles(&vertsID, relevantTris, 1);
 			for(DWORD counter_2(0); counter_2 != numFoundTris;)
 			{
 				for(DWORD counter_3(0); counter_3 != 3;)
@@ -444,7 +444,7 @@ public:
 		bool found[2];
 		DWORD vertsID[2];	
 
-		this->findOneRelevantVert(found, vertsID, 2);
+		this->findPickedVerts(found, vertsID, 2);
 		if(found[0] == TRUE && found[1] == TRUE)
 		{
 			vertexSphere[vertsID[0]]->linkVert(vertsID[1]);		//К вершине vertsID[0] привинчиваем вершину vertsID[1]
@@ -467,9 +467,9 @@ public:
 				counter += 1;
 			}
 			DWORD relevantTris_1[24];
-			DWORD numFoundTris_1 = this->findRelevantTriangle(&vertsID[0], relevantTris_1, 1);
+			DWORD numFoundTris_1 = this->findRelevantTriangles(&vertsID[0], relevantTris_1, 1);
 			DWORD relevantTris_2[24];
-			DWORD numFoundTris_2 = this->findRelevantTriangle(&vertsID[1], relevantTris_2, 1);
+			DWORD numFoundTris_2 = this->findRelevantTriangles(&vertsID[1], relevantTris_2, 1);
 			for(DWORD counter(0); counter != numFoundTris_2;)
 			{
 				for(DWORD counter_2(0); counter_2 != 3;)
@@ -565,12 +565,12 @@ public:
 							bool found[3] = {FALSE, FALSE, FALSE};
 							DWORD vertsID[3];
 
-							this->findOneRelevantVert(found, vertsID, 3);
+							this->findPickedVerts(found, vertsID, 3);
 	
 							if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE)   //Три вершины найдены
 							{
 								DWORD relevantTriangle[24];
-								DWORD numRelevantTris = this->findRelevantTriangle(vertsID, relevantTriangle, 3);
+								DWORD numRelevantTris = this->findRelevantTriangles(vertsID, relevantTriangle, 3);
 
 								if(numPickedVerts == 3)
 								{
@@ -633,10 +633,10 @@ public:
 		SendMessage(objectsList, LB_INSERTSTRING, (WPARAM)objectNumber, (LPARAM)objectName);
 	}
 
-	void findOneRelevantVert(bool found[], DWORD vertsID[], DWORD numNeededVerts)
+	void findPickedVerts(bool found[], DWORD vertsID[], DWORD numNeeded)
 	{
 		int counter(0);
-		for(short i(0); i != numNeededVerts;)
+		for(short i(0); i != numNeeded;)
 		{
 			for(;counter != numCreatedVerts;)
 			{
@@ -652,7 +652,8 @@ public:
 			i++;
 		}
 	}
-	DWORD findRelevantTriangle(DWORD vertsID[], DWORD relevantTriangle[], DWORD numNeededRelevant)
+
+	DWORD findRelevantTriangles(DWORD vertsID[], DWORD relevantTriangle[], DWORD numNeeded)
 	{
 		DWORD relevantVerts(0);
 		DWORD numRelevantTris(0);
@@ -667,7 +668,7 @@ public:
 				if(triangles[counter]->fathers[2] == vertsID[counter_2])
 					relevantVerts += 1;
 
-				if(relevantVerts == numNeededRelevant)
+				if(relevantVerts == numNeeded)
 				{	relevantTriangle[numRelevantTris] = counter;
 					numRelevantTris += 1;
 					break;}

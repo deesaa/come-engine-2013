@@ -54,9 +54,14 @@ void saveProjectInfo(object_manager* manager, std::wstring file);
 void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
 void saveProject(HWND mainWindow);
 std::vector<float> getArrayFlValue(std::string* name, std::string* file);
-DWORD getDwValue(std::string* name, std::string* file);
+std::vector<DWORD> getArrayDwValue(std::string* name, std::string* file, DWORD pos);
+DWORD getDwValue(std::string* name, std::string* file, DWORD pos);
 bool openObjects(temp_manager* manager, std::wstring fileName);
 bool openObjectVertices(tempObject_class* object, std::string* file);
+bool openObjectIndices(tempObject_class* object, std::string* file);
+bool openObjectTriangles(tempObject_class* object, std::string* file);
+bool openObjectAttributes(tempObject_class* object, std::string* file);
+bool openObjectAdjacency(tempObject_class* object, std::string* file);
 bool openProjectInfo(temp_manager* manager, std::string* file);
 bool openProject(object_manager* manager);
 
