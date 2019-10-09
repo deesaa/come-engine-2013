@@ -6,6 +6,7 @@ private:
 	botStatusBar_Class* BSBar;
 	topEditingBar_Class* TEBar;
 	rendStateTypes_class* rendStateTypes;
+	window_class* windowsBase;
 	HINSTANCE hInstance;
 	HWND window;
 
@@ -25,12 +26,13 @@ public:
 	object_manager(){}
 
 	void initManager(IDirect3DDevice9* bDevice, HINSTANCE bhInstance, HWND bWindow, botStatusBar_Class* bBSBar,
-		topEditingBar_Class* bTEBar, rendStateTypes_class* bRendStateTypes)
+		topEditingBar_Class* bTEBar, rendStateTypes_class* bRendStateTypes, window_class* bWindowsBase)
 	{
 		device = bDevice;						//Сохранение устройства
 		BSBar = bBSBar;
 		TEBar = bTEBar;
 		rendStateTypes = bRendStateTypes;
+		windowsBase = bWindowsBase;
 		hInstance = bhInstance;
 		window = bWindow;
 		numObject = 0;					//Установка начального кол-ва объектов
@@ -41,10 +43,10 @@ public:
 	}
 
 	//Создание абсолютно нового объекта
-	UINT createNewObject(HWND objectList, HWND subsetsList)
+	UINT createNewObject(HWND objectList, HWND subsetsList, bool isVoid)
 	{
 		object[numObject] = new object_class;	//Выделение памяти для объекта
-		object[numObject]->initObjectBase(device, numObject, subsetsList, BSBar, rendStateTypes); //Создание базы нового объекта
+		object[numObject]->initObjectBase(device, numObject, subsetsList, BSBar, rendStateTypes, isVoid); //Создание базы нового объекта
 		SendMessage(objectList, LB_INSERTSTRING, numObject, (LPARAM)object[numObject]->getObjectName());
 		numObject++; 
 		numGlobal++;
@@ -386,7 +388,39 @@ public:
 			object[objectNumber]->redraw();
 	}
 
-	//Деструктор
+	DWORD loadManager(temp_manager* tempManager)
+	{
+		DWORD objectNumber;
+		SendMessage(windowsBase->getWindowHandle(GET_OBJECTLIST), LB_RESETCONTENT, 0, 0L);
+		SendMessage(windowsBase->getWindowHandle(GET_LIGHTOBJECTLIST), LB_RESETCONTENT, 0, 0L);
+		SendMessage(windowsBase->getWindowHandle(GET_SUBSETSLIST), LB_RESETCONTENT, 0, 0L);
+		SendMessage(windowsBase->getWindowHandle(GET_CAMOBJECTLIST), LB_RESETCONTENT, 0, 0L);
+		this->~object_manager();
+
+		for(DWORD counter(0); counter != tempManager->numFactObjects;)
+		{
+			objectNumber = this->createNewObject(windowsBase->getWindowHandle(GET_OBJECTLIST), windowsBase->getWindowHandle(GET_SUBSETSLIST), true);
+			object[counter]->loadObject(tempManager->object[counter]);
+			counter += 1;
+		}
+
+		for(DWORD counter(0); counter != tempManager->numFactLight;)
+		{
+			if(tempManager->light[counter]->light.Type == D3DLIGHT_POINT)
+				this->createNewPointLight(windowsBase->getWindowHandle(GET_LIGHTOBJECTLIST));
+
+			if(tempManager->light[counter]->light.Type == D3DLIGHT_DIRECTIONAL)
+				this->createNewDirectionLight(windowsBase->getWindowHandle(GET_LIGHTOBJECTLIST));
+
+			if(tempManager->light[counter]->light.Type == D3DLIGHT_SPOT)
+				this->createNewSpotLight(windowsBase->getWindowHandle(GET_LIGHTOBJECTLIST));
+
+			light[counter]->loadLight(tempManager->light[counter]);
+			counter += 1;
+		}
+		return objectNumber;
+	}
+
 	~object_manager()
 	{
 		//Перебираем все созданные объекты, удаляя их
@@ -419,5 +453,6 @@ public:
 				camera[numCams] = NULL;
 			}
 		}
+		numGlobal = 0;
 	}
 };

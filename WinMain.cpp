@@ -58,7 +58,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	rendStateEditor->initRendStateEditor(windows->getWindowHandle(GET_MAINWINDOW), hInstance, rendStateTypes);
 
 	manager = new object_manager;	//Выделяем память на менеджер объектов
-	manager->initManager(device, hInstance, windows->getWindowHandle(GET_MAINWINDOW), BStatBar, TEditingBar, rendStateTypes);	//Инициализируем менеджер объектов
+	manager->initManager(device, hInstance, windows->getWindowHandle(GET_MAINWINDOW), 
+		BStatBar, TEditingBar, rendStateTypes, windows);	//Инициализируем менеджер объектов
 
 	OC = new object_creator;		//Выделяем память на редактор объектов
 	OC->initObjectCreator(device, windows->getWindowHandle(GET_MAINWINDOW), hInstance, manager, objectSettings, BStatBar, rendStateEditor);	//Инициализируем редактор объектов
@@ -110,7 +111,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 			OC->applyKBMChanges();
 			
-			manager->redrawObject(OC->getPickedObject());
+			manager->redrawAllObjects();
 			manager->redrawObjectOfLight(OC->getPickedLight());
 				
 			device->EndScene();
@@ -174,7 +175,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			return 0;
 		case ID_BUTTON2:
 			//Созданный объект принимает управление и добавляется в лист объектов
-			OC->pickObject(manager->createNewObject(windows->getWindowHandle(GET_OBJECTLIST), windows->getWindowHandle(GET_SUBSETSLIST)));
+			OC->pickObject(manager->createNewObject(windows->getWindowHandle(GET_OBJECTLIST), windows->getWindowHandle(GET_SUBSETSLIST), false));
 	
 			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);	
 			ShowWindow(windows->getWindowHandle(GET_CAMOBJECTLIST), SW_HIDE);	
@@ -331,7 +332,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			saveProject(windows->getWindowHandle(GET_MAINWINDOW), manager);
 			return 0;
 		case FM_FILEOPEN:
-			openProject(manager);
+			openProject(manager, OC);
 			return 0;
 		case ID_EDIT1:
 			return 0;

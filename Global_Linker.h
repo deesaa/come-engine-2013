@@ -26,6 +26,8 @@
 #include <string>
 #include <vector>
 
+#define UNKNOWN_VALUE std::string::npos - 1
+ 
 //Прототипы всяких функций
 HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK OSWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -39,6 +41,8 @@ void setAllMatrices(D3DXMATRIX* worldMatrix, D3DXMATRIX* viewMatrix, D3DXMATRIX*
 void setViewMatrices(D3DXMATRIX* viewMatrix, D3DXMATRIX* projMatrix, IDirect3DDevice9* device);
 BOOL initPalette(HWND hwnd, D3DCOLORVALUE* mtrComponent);
 
+class object_creator;
+class window_class;
 class object_class;
 class material_class;
 class light_class;
@@ -53,10 +57,14 @@ void saveFullLight(light_class* light, std::wstring file);
 void saveProjectInfo(object_manager* manager, std::wstring file);
 void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
 void saveProject(HWND mainWindow);
-std::vector<float> getArrayFlValue(std::string* name, std::string* file);
+std::vector<float> getArrayFlValue(std::string* name, std::string* file, DWORD pos);
 std::vector<DWORD> getArrayDwValue(std::string* name, std::string* file, DWORD pos);
 DWORD getDwValue(std::string* name, std::string* file, DWORD pos);
+float getFlValue(std::string* name, std::string* file, DWORD pos);
+bool openLights(temp_manager* manager, std::wstring fileName);
+bool openLight(tempLight_class* light, std::string* file);
 bool openObjects(temp_manager* manager, std::wstring fileName);
+bool openObjectMaterials(tempObject_class* object, std::string* file);
 bool openObjectVertices(tempObject_class* object, std::string* file);
 bool openObjectIndices(tempObject_class* object, std::string* file);
 bool openObjectTriangles(tempObject_class* object, std::string* file);
@@ -80,9 +88,9 @@ bool openProject(object_manager* manager);
 #include "TopEditing_Bar.h"
 #include "RendState_Database.h"
 #include "RendState_Class.h"
+#include "Window_Base.h"
 #include "ObjectClass.h"
 #include "ObjectManager.h"
-#include "Window_Base.h"
 #include "MainMenu_Class.h"
 #include "DirectX_Base.h"
 #include "Object_Settings.h"

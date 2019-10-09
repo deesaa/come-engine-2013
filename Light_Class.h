@@ -98,6 +98,21 @@ public:
 		this->createObjectOfLight();
 	}
 
+	void loadLight(tempLight_class* tempLight)
+	{
+		light.Diffuse  = tempLight->light.Diffuse;
+		light.Ambient  = tempLight->light.Ambient;
+		light.Specular = tempLight->light.Specular;
+
+		light.Attenuation0  = tempLight->light.Attenuation0;
+		light.Attenuation1  = tempLight->light.Attenuation1;
+		light.Attenuation2  = tempLight->light.Attenuation2;
+		light.Theta			= tempLight->light.Theta;
+		light.Phi			= tempLight->light.Phi;
+		light.Falloff		= tempLight->light.Falloff;
+		light.Range         = tempLight->light.Range;
+	}
+
 	void createObjectOfLight()
 	{
 		this->createAndFillBuffers();

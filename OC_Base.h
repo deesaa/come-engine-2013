@@ -220,6 +220,12 @@ public:
 		return FALSE;
 	}
 
+	void unpickAll()
+	{
+		pickedObject = pickedCam = pickedLight = pickedVertex = 0;
+		pickType = Nothing;
+	}
+
 	void applyKBMChanges()
 	{
 

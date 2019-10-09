@@ -1,5 +1,5 @@
 
-bool openProject(object_manager* manager)
+bool openProject(object_manager* manager, object_creator* OC)
 {
 	temp_manager tempManager;
 	int radix(8);
@@ -53,6 +53,14 @@ bool openProject(object_manager* manager)
 			return false;
 		}
 
+		if(openLights(&tempManager, ofn.lpstrFile) == FALSE)
+		{
+			MessageBox(NULL, L"Can't load Light", NULL, MB_OK);
+			return false;
+		}
+
+		OC->unpickAll();
+		OC->pickObject(manager->loadManager(&tempManager));
 	}
 	else
 		return false;
@@ -71,37 +79,179 @@ bool openProjectInfo(temp_manager* manager, std::string* file)
 	DWORD found(0);
 
 	std::string str("Num Objects:");
-	if((numObjects = getDwValue(&str, file, 0)) != std::string::npos)
+	if((numObjects = getDwValue(&str, file, 0)) != UNKNOWN_VALUE)
 		manager->numObject = numObjects;
 	else
 		return false;
 
 	str = "Num Light:";
-	if((numLight = getDwValue(&str, file, 0)) != std::string::npos)
+	if((numLight = getDwValue(&str, file, 0)) != UNKNOWN_VALUE)
 		manager->numLight = numLight;
 	else
 		return false;
 
 	str = "Num Cams:";
-	if((numCams = getDwValue(&str, file, 0)) != std::string::npos)
+	if((numCams = getDwValue(&str, file, 0)) != UNKNOWN_VALUE)
 		manager->numCams = numCams;
 	else
 		return false;
 
 	manager->numGlobal = numObjects+numLight+numCams;
-
 }
 
+bool openLights(temp_manager* manager, std::wstring fileName)
+{
+	std::wstring projectPath;
+	std::wstring pathToFile;
+	std::wstring pathToLight;
+	std::string  file;
+	DWORD fileSize(0);
+	DWORD lightNumber(0);
+	WIN32_FIND_DATAW findData;
+	OFSTRUCT fileInfo;
+	HANDLE hFileFind, hFile;
+	DWORD numOfBytes(0);
+	DWORD nameSize = fileName.size();
+	DWORD bDistTo(0), distTo(0);
+	while(TRUE)
+	{
+		bDistTo = fileName.find(L"\\", distTo);
+		if(bDistTo != std::wstring::npos)
+			distTo = bDistTo+1;
+		else
+			break;
+	}
+	pathToFile = projectPath = pathToLight = (fileName.erase(distTo, nameSize-distTo));
+	pathToLight.append(L"Light\\");
+	projectPath.append(L"Light\\*.clg");
+
+	hFileFind = FindFirstFile(projectPath.c_str(), &findData);
+	if (hFileFind == INVALID_HANDLE_VALUE)
+	{	return FALSE;}
+
+	pathToFile.append(L"Light\\");
+	pathToFile.append(findData.cFileName);
+
+	hFile = CreateFile(pathToFile.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL,  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	fileSize = GetFileSize(hFile, NULL);
+	char* pchBuffer = new char[fileSize];
+	ReadFile(hFile, (void*)pchBuffer, fileSize, &numOfBytes, NULL);
+	file.clear();
+	file.append(pchBuffer);
+	manager->addLight(&file);
+
+	lightNumber += 1;
+
+	while(TRUE)
+	{
+		if(FindNextFile(hFileFind, &findData) == NULL)
+			break;
+
+		pathToFile = pathToLight;
+		pathToFile.append(findData.cFileName);
+
+		//Похоже он как-то неправильно переключается с файла на файл
+		hFile = CreateFile(pathToFile.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL,  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		fileSize = GetFileSize(hFile, NULL);
+		delete [] pchBuffer;
+		char* pchBuffer = new char[fileSize];
+		ReadFile(hFile, (void*)pchBuffer, fileSize, &numOfBytes, NULL);
+		file.clear();
+		file.append(pchBuffer);
+		manager->addLight(&file);
+
+		lightNumber += 1;
+	}
+
+
+	delete [] pchBuffer;
+	FindClose(hFileFind);
+	CloseHandle(hFile);
+	return TRUE;
+}
+bool openLight(tempLight_class* light, std::string* file)
+{
+	std::string str;
+	DWORD distToStruct(0);
+	std::vector<float> Diffuse;
+	std::vector<float> Ambient;
+	std::vector<float> Specular;
+	std::vector<float> Attenuation;
+	DWORD lightType;
+	float Phi, Theta, Range, Falloff;
+
+	str.clear();
+	str.append("Type:");
+	lightType = getDwValue(&str, file, 0);
+	if (lightType == UNKNOWN_VALUE)
+	{	return true;}
+
+	str.clear();
+	str.append("Diffuse:");
+	Diffuse.clear();
+	Diffuse = getArrayFlValue(&str, file, 0);
+	if (Diffuse[0] == UNKNOWN_VALUE)
+	{	return true;}
+
+	str.clear();
+	str.append("Ambient:");
+	Ambient.clear();
+	Ambient = getArrayFlValue(&str, file, 0);
+	if (Ambient[0] == UNKNOWN_VALUE)
+	{	return true;}
+
+	str.clear();
+	str.append("Specular:");
+	Specular.clear();
+	Specular = getArrayFlValue(&str, file, 0);
+	if (Specular[0] == UNKNOWN_VALUE)
+		{	return true;}
+
+	str.clear();
+	str.append("Phi:");
+	Phi = getFlValue(&str, file, 0);
+	if (Phi == UNKNOWN_VALUE)
+	{	return true;}
+
+	str.clear();
+	str.append("Theta:");
+	Theta = getFlValue(&str, file, 0);
+	if (Theta == UNKNOWN_VALUE)
+	{	return true;}
+
+	str.clear();
+	str.append("Range:");
+	Range = getFlValue(&str, file, 0);
+	if (Range == UNKNOWN_VALUE)
+	{	return true;}
+
+	str.clear();
+	str.append("Falloff:");
+	Falloff = getFlValue(&str, file, 0);
+	if (Falloff == UNKNOWN_VALUE)
+	{	return true;}
+
+	str.clear();
+	str.append("Attenuation:");
+	Attenuation.clear();
+	Attenuation = getArrayFlValue(&str, file, 0);
+	if (Attenuation[0] == UNKNOWN_VALUE)
+	{	return true;}
+
+	light->loadLight(lightType, Diffuse, Ambient, Specular, Phi, Theta, Range, Falloff, Attenuation);
+
+	return TRUE;
+}
 bool openObjects(temp_manager* manager, std::wstring fileName)
 {
 	std::wstring projectPath;
 	std::wstring pathToFile;
 	std::wstring pathToObjects;
 	std::string  file;
+	DWORD fileSize(0);
 	DWORD objectNumber(0);
 	WIN32_FIND_DATAW findData;
 	OFSTRUCT fileInfo;
-	char chBuffer[1024];
 	HANDLE hFileFind, hFile;
 	DWORD numOfBytes(0);
 	DWORD nameSize = fileName.size();
@@ -120,16 +270,17 @@ bool openObjects(temp_manager* manager, std::wstring fileName)
 	
 	hFileFind = FindFirstFile(projectPath.c_str(), &findData);
 	if (hFileFind == INVALID_HANDLE_VALUE)
-	{	MessageBox(NULL, L"Can't load Objects", NULL, MB_OK);
-		return FALSE;}
+	{	return FALSE;}
 
 	pathToFile.append(L"Objects\\");
 	pathToFile.append(findData.cFileName);
 
 	hFile = CreateFile(pathToFile.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL,  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	ReadFile(hFile, chBuffer, sizeof(chBuffer), &numOfBytes, NULL);
+	fileSize = GetFileSize(hFile, NULL);
+	char* pchBuffer = new char[fileSize];
+	ReadFile(hFile, (void*)pchBuffer, fileSize, &numOfBytes, NULL);
 	file.clear();
-	file.append(chBuffer);
+	file.append(pchBuffer);
 	manager->addObject(&file);
 	objectNumber += 1;
 
@@ -143,16 +294,16 @@ bool openObjects(temp_manager* manager, std::wstring fileName)
 
 		//Похоже он как-то неправильно переключается с файла на файл
 		hFile = CreateFile(pathToFile.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL,  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		ZeroMemory(chBuffer, sizeof(chBuffer));
-		ReadFile(hFile, chBuffer, sizeof(chBuffer), &numOfBytes, NULL);
+		ZeroMemory(pchBuffer, sizeof(pchBuffer));
+		ReadFile(hFile, pchBuffer, sizeof(pchBuffer), &numOfBytes, NULL);
 		file.clear();
-		file.append(chBuffer);
+		file.append(pchBuffer);
 		manager->addObject(&file);
 
 		objectNumber += 1;
 	}
 
-
+	delete [] pchBuffer;
 	FindClose(hFileFind);
 	CloseHandle(hFile);
 	return TRUE;
@@ -162,6 +313,7 @@ bool openObjectVertices(tempObject_class* object, std::string* file)
 	std::string str;
 	std::string wstrBuffer2;
 	std::vector<float> values;
+	std::vector<DWORD> linkedVerts;
 	char chBuffer[1024];
 	DWORD vertexNumber(0);
 
@@ -173,17 +325,24 @@ bool openObjectVertices(tempObject_class* object, std::string* file)
 		str.append(chBuffer);
 		str.append(":");
 
-		values = getArrayFlValue(&str, file);
+		values = getArrayFlValue(&str, file, 0);
+		if (values[0] == UNKNOWN_VALUE)
+		{	return true;}
 
-		if (values[0] == std::string::npos)
-		{
-			return false;
-		}
-		object->loadVertex(values);
+		str.clear();
+		str.append("LinkedVerts");
+		sprintf(chBuffer, "%d", vertexNumber);
+		str.append(chBuffer);
+		str.append(":");
+
+		linkedVerts = getArrayDwValue(&str, file, 0);
+		if (values[0] == UNKNOWN_VALUE)
+		{	return true;}
+
+		object->loadVertex(values, (DWORD)values.at(6), linkedVerts);
 		vertexNumber += 1;
 	}
 }
-
 bool openObjectIndices(tempObject_class* object, std::string* file)
 {
 	std::string str;									
@@ -193,11 +352,8 @@ bool openObjectIndices(tempObject_class* object, std::string* file)
 	str.append("Indices:");
 	values.clear();
 	values = getArrayDwValue(&str, file, 0);
-
-	if (values[0] == std::string::npos)
-	{
-		return false;
-	}
+	if (values[0] == UNKNOWN_VALUE)
+	{	return true;}
 	object->loadIndices(values);
 }
 bool openObjectAttributes(tempObject_class* object, std::string* file)
@@ -209,10 +365,8 @@ bool openObjectAttributes(tempObject_class* object, std::string* file)
 	str.append("Attributes:");
 	values.clear();
 	values = getArrayDwValue(&str, file, 0);
-	if (values[0] == std::string::npos)
-	{
-		return false;
-	}
+	if (values[0] == UNKNOWN_VALUE)
+	{	return true;}
 	object->loadAttributes(values);
 }
 bool openObjectAdjacency(tempObject_class* object, std::string* file)
@@ -224,10 +378,8 @@ bool openObjectAdjacency(tempObject_class* object, std::string* file)
 	str.append("Adjacency:");
 	values.clear();
 	values = getArrayDwValue(&str, file, 0);
-	if (values[0] == std::string::npos-1)
-	{
-		return false;
-	}
+	if (values[0] == UNKNOWN_VALUE)
+	{	return true;}
 	object->loadAdjacency(values);
 }
 
@@ -249,28 +401,28 @@ bool openObjectTriangles(tempObject_class* object, std::string* file)
 		str.append(chBuffer);
 		distToStruct = file->find(str.c_str());
 		triangleID = getDwValue(&str, file, distToStruct);
-		if (triangleID == std::string::npos-1)
-		{	return false;}
+		if (triangleID == UNKNOWN_VALUE)
+		{	return true;}
 
 		str.clear();
 		str.append("Verts-Fathers:");
 		vertsFathers.clear();
 		vertsFathers = getArrayDwValue(&str, file, distToStruct);
-		if (vertsFathers[0] == std::string::npos-1)
-		{	return false;}
+		if (vertsFathers[0] == UNKNOWN_VALUE)
+		{	return true;}
 
 		str.clear();
 		str.append("Verts:");
 		verts.clear();
 		verts = getArrayDwValue(&str, file, distToStruct);
-		if (verts[0] == std::string::npos-1)
-		{	return false;}
+		if (verts[0] == UNKNOWN_VALUE)
+		{	return true;}
 
 		str.clear();
 		str.append("SubsetID:");
 		subsetID = getDwValue(&str, file, distToStruct);
-		if (subsetID == std::string::npos-1)
-		{	return false;}
+		if (subsetID == UNKNOWN_VALUE)
+		{	return true;}
 
 		object->loadTriangle(triangleID, verts, vertsFathers, subsetID);
 		triangleNumber += 1;
@@ -278,6 +430,70 @@ bool openObjectTriangles(tempObject_class* object, std::string* file)
 	return TRUE;
 }
 
+bool openObjectMaterials(tempObject_class* object, std::string* file)
+{
+	std::string str;
+	std::string wstrBuffer2;
+	DWORD distToStruct(0);
+	std::vector<float> Diffuse;
+	std::vector<float> Ambient;
+	std::vector<float> Specular;
+	std::vector<float> Emissive;
+	float Power;
+	char chBuffer[1024];
+	DWORD materialID(0);
+	DWORD materialNumber(0);
+
+	while(TRUE)
+	{
+		str.clear();
+		str.append("Material:");
+		sprintf(chBuffer, "%d", materialNumber);
+		str.append(chBuffer);
+		distToStruct = file->find(str.c_str());
+		materialID = getDwValue(&str, file, distToStruct);
+		if (materialID == UNKNOWN_VALUE)
+		{	return true;}
+
+		str.clear();
+		str.append("Diffuse:");
+		Diffuse.clear();
+		Diffuse = getArrayFlValue(&str, file, distToStruct);
+		if (Diffuse[0] == UNKNOWN_VALUE)
+		{	return true;}
+
+		str.clear();
+		str.append("Ambient:");
+		Ambient.clear();
+		Ambient = getArrayFlValue(&str, file, distToStruct);
+		if (Ambient[0] == UNKNOWN_VALUE)
+		{	return true;}
+
+		str.clear();
+		str.append("Specular:");
+		Specular.clear();
+		Specular = getArrayFlValue(&str, file, distToStruct);
+		if (Specular[0] == UNKNOWN_VALUE)
+		{	return true;}
+
+		str.clear();
+		str.append("Emissive:");
+		Emissive.clear();
+		Emissive = getArrayFlValue(&str, file, distToStruct);
+		if (Emissive[0] == UNKNOWN_VALUE)
+		{	return true;}
+
+		str.clear();
+		str.append("Power:");
+		Power = getFlValue(&str, file, distToStruct);
+		if (Power == UNKNOWN_VALUE)
+		{	return true;}
+
+		object->loadMaterial(Ambient, Diffuse, Emissive, Specular, Power);
+		materialNumber += 1;
+	}
+	return TRUE;
+}
 DWORD getDwValue(std::string* name, std::string* file, DWORD pos)
 {
 	std::string wstrBuffer2;
@@ -293,7 +509,7 @@ DWORD getDwValue(std::string* name, std::string* file, DWORD pos)
 		distTo = found + nameSize;
 	}
 	else
-		return found-1;
+		return UNKNOWN_VALUE;
 
 	found = file->find(";", distTo);
 	if (found != std::string::npos)
@@ -301,14 +517,43 @@ DWORD getDwValue(std::string* name, std::string* file, DWORD pos)
 		valueSize = found - distTo;
 	}
 	else
-		return found-1;
+		return UNKNOWN_VALUE;
 
 	std::string strValue = file->substr(distTo, valueSize);
 
 	return dwValue = atoi(strValue.c_str());
 }
+float getFlValue(std::string* name, std::string* file, DWORD pos)
+{
+	std::string wstrBuffer2;
+	float nameSize(0), distTo(0), valueSize(0);
+	float flValue;
+	float found(0);
+
+	nameSize  = name->size();
+
+	found = file->find(*name, pos);
+	if (found != std::string::npos)
+	{
+		distTo = found + nameSize;
+	}
+	else
+		return UNKNOWN_VALUE;
+
+	found = file->find(";", distTo);
+	if (found != std::string::npos)
+	{
+		valueSize = found - distTo;
+	}
+	else
+		return UNKNOWN_VALUE;
+
+	std::string strValue = file->substr(distTo, valueSize);
+
+	return flValue = (float)atof(strValue.c_str());
+}
 //Вот только меня мучает один вопрос: как можно слушать буквы?
-std::vector<float> getArrayFlValue(std::string* name, std::string* file)
+std::vector<float> getArrayFlValue(std::string* name, std::string* file, DWORD pos)
 {
 	std::string wstrBuffer2;
 	std::vector<std::string> strValues;
@@ -320,13 +565,13 @@ std::vector<float> getArrayFlValue(std::string* name, std::string* file)
 	DWORD found(0);
 
 	nameSize  = name->size();
-	found = file->find(*name);
+	found = file->find(*name, pos);
 	if (found != std::string::npos)
 	{
 		distToValue = found + nameSize;
 	}
 	else
-	{	values.push_back(std::string::npos-1);
+	{	values.push_back(UNKNOWN_VALUE);
 		return values;
 	}
 
@@ -336,7 +581,7 @@ std::vector<float> getArrayFlValue(std::string* name, std::string* file)
 		distToEnd = found;
 	}
 	else
-	{	values.push_back(std::string::npos-1);
+	{	values.push_back(UNKNOWN_VALUE);
 		return values;
 	}
 
@@ -384,7 +629,7 @@ std::vector<DWORD> getArrayDwValue(std::string* name, std::string* file, DWORD p
 		distToValue = found + nameSize;
 	}
 	else
-	{	values.push_back(std::string::npos-1);
+	{	values.push_back(UNKNOWN_VALUE);
 		return values;}
 
 	found = file->find(";", distToValue);
@@ -393,7 +638,7 @@ std::vector<DWORD> getArrayDwValue(std::string* name, std::string* file, DWORD p
 		distToEnd = found;
 	}
 	else
-	{	values.push_back(std::string::npos-1);
+	{	values.push_back(UNKNOWN_VALUE);
 		return values;}
 
 	while(TRUE)
@@ -539,8 +784,24 @@ void saveFullObject(object_class* object, std::wstring file)
 		strVertices.append(chBuffer);
 		sprintf(chBuffer, "%.4f,", vertices[counter].nY);
 		strVertices.append(chBuffer);
-		sprintf(chBuffer, "%.4f,;\n", vertices[counter].nZ);
+		sprintf(chBuffer, "%.4f,", vertices[counter].nZ);
 		strVertices.append(chBuffer);
+		sprintf(chBuffer, "%d,;\n", (DWORD)object->getVertexSphere(counter)->vertType);
+		strVertices.append(chBuffer);
+
+		strVertices.append("LinkedVerts");
+		sprintf(chBuffer, "%d:", counter);
+		strVertices.append(chBuffer);
+		if(object->getVertexSphere(counter)->numLinkedVerts == 0)
+			strVertices.append("-1,");
+
+		for(DWORD counter_2(0); counter_2 != object->getVertexSphere(counter)->numLinkedVerts;)
+		{
+			sprintf(chBuffer, "%d,", (DWORD)object->getVertexSphere(counter)->linkedVertices[counter_2]);
+			strVertices.append(chBuffer);
+			counter_2 += 1;
+		}
+		strVertices.append(";\n");
 		counter++;
 	}
 	strVertices.append("VertsEnd;\n");
@@ -598,7 +859,7 @@ void saveFullObject(object_class* object, std::wstring file)
 		}
 		strTriangles.append(";\n");
 
-		strTriangles.append("Verts:\n");
+		strTriangles.append("Verts:");
 		for(DWORD counter_2(0); counter_2 != 3;)
 		{
 			sprintf(chBuffer, "%d,", triangles[counter]->verticesID[counter_2]);
@@ -607,7 +868,7 @@ void saveFullObject(object_class* object, std::wstring file)
 		}
 		strTriangles.append(";\n");
 
-		strTriangles.append("SubsetID:\n");
+		strTriangles.append("SubsetID:");
 		sprintf(chBuffer, "%d;", triangles[counter]->subsetID);
 		strTriangles.append(chBuffer);
 
@@ -624,6 +885,7 @@ void saveFullObject(object_class* object, std::wstring file)
 		WriteFile(hFile, strTriangles.c_str(), (DWORD)strTriangles.size(), &wmWritten, NULL );
 	}
 
+	std::string strMaterialID;
 	std::string strDiffuse;
 	std::string strAmbient;
 	std::string strSpecular;
@@ -632,56 +894,62 @@ void saveFullObject(object_class* object, std::wstring file)
 
 	for(DWORD counter(0); counter != object->getNumMaterials();)
 	{
+		strMaterialID.clear();
 		strDiffuse.clear();
 		strAmbient.clear();
 		strSpecular.clear();
 		strEmissive.clear();
 		strPower.clear();
 
-		strDiffuse.append("Diffuse: \n");
-		sprintf(chBuffer, "%f ; ", object->getMaterialClass(counter)->getMaterial()->Diffuse.r);
+		strMaterialID.append("Material:");
+		sprintf(chBuffer, "%d;\n", object->getMaterialClass(counter)->getMaterialID());
+		strMaterialID.append(chBuffer);
+
+		strDiffuse.append("Diffuse:");
+		sprintf(chBuffer, "%f,", object->getMaterialClass(counter)->getMaterial()->Diffuse.r);
 		strDiffuse.append(chBuffer);
-		sprintf(chBuffer, "%f ; ", object->getMaterialClass(counter)->getMaterial()->Diffuse.g);
+		sprintf(chBuffer, "%f,", object->getMaterialClass(counter)->getMaterial()->Diffuse.g);
 		strDiffuse.append(chBuffer);
-		sprintf(chBuffer, "%f ; ", object->getMaterialClass(counter)->getMaterial()->Diffuse.b);
+		sprintf(chBuffer, "%f,", object->getMaterialClass(counter)->getMaterial()->Diffuse.b);
 		strDiffuse.append(chBuffer);
-		sprintf(chBuffer, "%f ; \n", object->getMaterialClass(counter)->getMaterial()->Diffuse.a);
+		sprintf(chBuffer, "%f,;\n", object->getMaterialClass(counter)->getMaterial()->Diffuse.a);
 		strDiffuse.append(chBuffer);
 
-		strAmbient.append("Ambient: \n");
-		sprintf(chBuffer, "%f ; ", object->getMaterialClass(counter)->getMaterial()->Ambient.r);
+		strAmbient.append("Ambient:");
+		sprintf(chBuffer, "%f,", object->getMaterialClass(counter)->getMaterial()->Ambient.r);
 		strAmbient.append(chBuffer);
-		sprintf(chBuffer, "%f ; ", object->getMaterialClass(counter)->getMaterial()->Ambient.g);
+		sprintf(chBuffer, "%f,", object->getMaterialClass(counter)->getMaterial()->Ambient.g);
 		strAmbient.append(chBuffer);
-		sprintf(chBuffer, "%f ; ", object->getMaterialClass(counter)->getMaterial()->Ambient.b);
+		sprintf(chBuffer, "%f,", object->getMaterialClass(counter)->getMaterial()->Ambient.b);
 		strAmbient.append(chBuffer);
-		sprintf(chBuffer, "%f ; \n", object->getMaterialClass(counter)->getMaterial()->Ambient.a);
+		sprintf(chBuffer, "%f,;\n", object->getMaterialClass(counter)->getMaterial()->Ambient.a);
 		strAmbient.append(chBuffer);
 
-		strSpecular.append("Specular: \n");
-		sprintf(chBuffer, "%f ; ", object->getMaterialClass(counter)->getMaterial()->Specular.r);
+		strSpecular.append("Specular:");
+		sprintf(chBuffer, "%f,", object->getMaterialClass(counter)->getMaterial()->Specular.r);
 		strSpecular.append(chBuffer);
-		sprintf(chBuffer, "%f ; ", object->getMaterialClass(counter)->getMaterial()->Specular.g);
+		sprintf(chBuffer, "%f,", object->getMaterialClass(counter)->getMaterial()->Specular.g);
 		strSpecular.append(chBuffer);
-		sprintf(chBuffer, "%f ; ", object->getMaterialClass(counter)->getMaterial()->Specular.b);
+		sprintf(chBuffer, "%f,", object->getMaterialClass(counter)->getMaterial()->Specular.b);
 		strSpecular.append(chBuffer);
-		sprintf(chBuffer, "%f ; \n", object->getMaterialClass(counter)->getMaterial()->Specular.a);
+		sprintf(chBuffer, "%f,;\n", object->getMaterialClass(counter)->getMaterial()->Specular.a);
 		strSpecular.append(chBuffer);
 
-		strEmissive.append("Emissive: \n");
-		sprintf(chBuffer, "%f ; ", object->getMaterialClass(counter)->getMaterial()->Emissive.r);
+		strEmissive.append("Emissive:");
+		sprintf(chBuffer, "%f,", object->getMaterialClass(counter)->getMaterial()->Emissive.r);
 		strEmissive.append(chBuffer);
-		sprintf(chBuffer, "%f ; ", object->getMaterialClass(counter)->getMaterial()->Emissive.g);
+		sprintf(chBuffer, "%f,", object->getMaterialClass(counter)->getMaterial()->Emissive.g);
 		strEmissive.append(chBuffer);
-		sprintf(chBuffer, "%f ; ", object->getMaterialClass(counter)->getMaterial()->Emissive.b);
+		sprintf(chBuffer, "%f,", object->getMaterialClass(counter)->getMaterial()->Emissive.b);
 		strEmissive.append(chBuffer);
-		sprintf(chBuffer, "%f ; \n", object->getMaterialClass(counter)->getMaterial()->Emissive.a);
+		sprintf(chBuffer, "%f,;\n", object->getMaterialClass(counter)->getMaterial()->Emissive.a);
 		strEmissive.append(chBuffer);
 
-		strPower.append("Power: \n");
-		sprintf(chBuffer, "%f ; \n\n", object->getMaterialClass(counter)->getMaterial()->Power);
+		strPower.append("Power:");
+		sprintf(chBuffer, "%f;\n", object->getMaterialClass(counter)->getMaterial()->Power);
 		strPower.append(chBuffer);
 
+		WriteFile(hFile, strMaterialID.c_str(), (DWORD)strMaterialID.size(), &wmWritten, NULL );
 		WriteFile(hFile, strDiffuse.c_str(), (DWORD)strDiffuse.size(), &wmWritten, NULL );
 		WriteFile(hFile, strAmbient.c_str(), (DWORD)strAmbient.size(), &wmWritten, NULL );
 		WriteFile(hFile, strSpecular.c_str(), (DWORD)strSpecular.size(), &wmWritten, NULL );
@@ -714,57 +982,63 @@ void saveFullMaterial(material_class* material, std::wstring file)
 	hFile = CreateFile(objectID.c_str(), GENERIC_READ|GENERIC_WRITE, 
 		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); 
 
+	std::string strMaterialID;
+	strMaterialID.append("Diffuse:");
+	sprintf(chBuffer, "%d;\n", material->getMaterialID());
+	strMaterialID.append(chBuffer);
+
 	std::string strDiffuse;
-	strDiffuse.append("Diffuse: \n");
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Diffuse.r);
+	strDiffuse.append("Diffuse:");
+	sprintf(chBuffer, "%f,", material->getMaterial()->Diffuse.r);
 	strDiffuse.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Diffuse.g);
+	sprintf(chBuffer, "%f,", material->getMaterial()->Diffuse.g);
 	strDiffuse.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Diffuse.b);
+	sprintf(chBuffer, "%f,", material->getMaterial()->Diffuse.b);
 	strDiffuse.append(chBuffer);
-	sprintf(chBuffer, "%f ; \n", material->getMaterial()->Diffuse.a);
+	sprintf(chBuffer, "%f,;\n", material->getMaterial()->Diffuse.a);
 	strDiffuse.append(chBuffer);
 
 	std::string strAmbient;
-	strAmbient.append("Ambient: \n");
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Ambient.r);
+	strAmbient.append("Ambient:");
+	sprintf(chBuffer, "%f,", material->getMaterial()->Ambient.r);
 	strAmbient.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Ambient.g);
+	sprintf(chBuffer, "%f,", material->getMaterial()->Ambient.g);
 	strAmbient.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Ambient.b);
+	sprintf(chBuffer, "%f,", material->getMaterial()->Ambient.b);
 	strAmbient.append(chBuffer);
-	sprintf(chBuffer, "%f ; \n", material->getMaterial()->Ambient.a);
+	sprintf(chBuffer, "%f,;\n", material->getMaterial()->Ambient.a);
 	strAmbient.append(chBuffer);
 
 	std::string strSpecular;
-	strSpecular.append("Specular: \n");
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Specular.r);
+	strSpecular.append("Specular:");
+	sprintf(chBuffer, "%f,", material->getMaterial()->Specular.r);
 	strSpecular.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Specular.g);
+	sprintf(chBuffer, "%f,", material->getMaterial()->Specular.g);
 	strSpecular.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Specular.b);
+	sprintf(chBuffer, "%f,", material->getMaterial()->Specular.b);
 	strSpecular.append(chBuffer);
-	sprintf(chBuffer, "%f ; \n", material->getMaterial()->Specular.a);
+	sprintf(chBuffer, "%f,;\n", material->getMaterial()->Specular.a);
 	strSpecular.append(chBuffer);
 
 	std::string strEmissive;
-	strEmissive.append("Emissive: \n");
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Emissive.r);
+	strEmissive.append("Emissive:");
+	sprintf(chBuffer, "%f,", material->getMaterial()->Emissive.r);
 	strEmissive.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Emissive.g);
+	sprintf(chBuffer, "%f,", material->getMaterial()->Emissive.g);
 	strEmissive.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Emissive.b);
+	sprintf(chBuffer, "%f,", material->getMaterial()->Emissive.b);
 	strEmissive.append(chBuffer);
-	sprintf(chBuffer, "%f ; \n", material->getMaterial()->Emissive.a);
+	sprintf(chBuffer, "%f,;\n", material->getMaterial()->Emissive.a);
 	strEmissive.append(chBuffer);
 
 	std::string strPower;
-	strPower.append("Power: \n");
-	sprintf(chBuffer, "%f ; ", material->getMaterial()->Power);
+	strPower.append("Power:");
+	sprintf(chBuffer, "%f;", material->getMaterial()->Power);
 	strPower.append(chBuffer);
 
 	if (hFile != INVALID_HANDLE_VALUE) 
 	{
+		WriteFile(hFile, strMaterialID.c_str(), (DWORD)strMaterialID.size(), &wmWritten, NULL );
 		WriteFile(hFile, strDiffuse.c_str(), (DWORD)strDiffuse.size(), &wmWritten, NULL );
 		WriteFile(hFile, strAmbient.c_str(), (DWORD)strAmbient.size(), &wmWritten, NULL );
 		WriteFile(hFile, strSpecular.c_str(), (DWORD)strSpecular.size(), &wmWritten, NULL );
@@ -798,76 +1072,70 @@ void saveFullLight(light_class* light, std::wstring file)
 		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); 
 
 	std::string strType;
-	strType.append("Type: \n");
-	if(light->getLight()->Type == D3DLIGHT_DIRECTIONAL)
-		strType.append("Directional ;\n");
-	else
-	if(light->getLight()->Type == D3DLIGHT_SPOT)
-		strType.append("Spot ;\n");
-	else
-	if(light->getLight()->Type == D3DLIGHT_POINT)
-		strType.append("Point ;\n");
+	strType.append("Type:");
+	sprintf(chBuffer, "%d;\n", (DWORD)light->getLight()->Type);
+	strType.append(chBuffer);
 
 	std::string strDiffuse;
-	strDiffuse.append("Diffuse: \n");
-	sprintf(chBuffer, "%f ; ", light->getLight()->Diffuse.r);
+	strDiffuse.append("Diffuse:");
+	sprintf(chBuffer, "%.4f,", light->getLight()->Diffuse.r);
 	strDiffuse.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", light->getLight()->Diffuse.g);
+	sprintf(chBuffer, "%.4f,", light->getLight()->Diffuse.g);
 	strDiffuse.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", light->getLight()->Diffuse.b);
+	sprintf(chBuffer, "%.4f,", light->getLight()->Diffuse.b);
 	strDiffuse.append(chBuffer);
-	sprintf(chBuffer, "%f ; \n", light->getLight()->Diffuse.a);
+	sprintf(chBuffer, "%.4f,;\n", light->getLight()->Diffuse.a);
 	strDiffuse.append(chBuffer);
 
 	std::string strAmbient;
-	strAmbient.append("Ambient: \n");
-	sprintf(chBuffer, "%f ; ", light->getLight()->Ambient.r);
+	strAmbient.append("Ambient:");
+	sprintf(chBuffer, "%.4f,", light->getLight()->Ambient.r);
 	strAmbient.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", light->getLight()->Ambient.g);
+	sprintf(chBuffer, "%.4f,", light->getLight()->Ambient.g);
 	strAmbient.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", light->getLight()->Ambient.b);
+	sprintf(chBuffer, "%.4f,", light->getLight()->Ambient.b);
 	strAmbient.append(chBuffer);
-	sprintf(chBuffer, "%f ; \n", light->getLight()->Ambient.a);
+	sprintf(chBuffer, "%.4f,;\n", light->getLight()->Ambient.a);
 	strAmbient.append(chBuffer);
 
 	std::string strSpecular;
-	strSpecular.append("Specular: \n");
-	sprintf(chBuffer, "%f ; ", light->getLight()->Specular.r);
+	strSpecular.append("Specular:");
+	sprintf(chBuffer, "%.4f,", light->getLight()->Specular.r);
 	strSpecular.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", light->getLight()->Specular.g);
+	sprintf(chBuffer, "%.4f,", light->getLight()->Specular.g);
 	strSpecular.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", light->getLight()->Specular.b);
+	sprintf(chBuffer, "%.4f,", light->getLight()->Specular.b);
 	strSpecular.append(chBuffer);
-	sprintf(chBuffer, "%f ; \n", light->getLight()->Specular.a);
+	sprintf(chBuffer, "%.4f,;\n", light->getLight()->Specular.a);
 	strSpecular.append(chBuffer);
 
 	std::string strPhi;
-	strPhi.append("Phi: \n");
-	sprintf(chBuffer, "%f ; \n", light->getLight()->Phi);
+	strPhi.append("Phi:");
+	sprintf(chBuffer, "%.4f;\n", light->getLight()->Phi);
 	strPhi.append(chBuffer);
 
 	std::string strTheta;
-	strTheta.append("Theta: \n");
-	sprintf(chBuffer, "%f ; \n", light->getLight()->Theta);
+	strTheta.append("Theta:");
+	sprintf(chBuffer, "%.4f;\n", light->getLight()->Theta);
 	strTheta.append(chBuffer);
 
 	std::string strRange;
-	strRange.append("Range: \n");
-	sprintf(chBuffer, "%f ; \n", light->getLight()->Range);
+	strRange.append("Range:");
+	sprintf(chBuffer, "%.4f;\n", light->getLight()->Range);
 	strRange.append(chBuffer);
 
 	std::string strFalloff;
-	strFalloff.append("Falloff: \n");
-	sprintf(chBuffer, "%f ; \n", light->getLight()->Falloff);
+	strFalloff.append("Falloff:");
+	sprintf(chBuffer, "%.4f;\n", light->getLight()->Falloff);
 	strFalloff.append(chBuffer);
 
 	std::string strAttenuation;
-	strAttenuation.append("Attenuation: \n");
-	sprintf(chBuffer, "%f ; ", light->getLight()->Attenuation0);
+	strAttenuation.append("Attenuation:");
+	sprintf(chBuffer, "%.4f,", light->getLight()->Attenuation0);
 	strAttenuation.append(chBuffer);
-	sprintf(chBuffer, "%f ; ", light->getLight()->Attenuation1);
+	sprintf(chBuffer, "%.4f,", light->getLight()->Attenuation1);
 	strAttenuation.append(chBuffer);
-	sprintf(chBuffer, "%f ;  \n", light->getLight()->Attenuation2);
+	sprintf(chBuffer, "%.4f,;\n", light->getLight()->Attenuation2);
 	strAttenuation.append(chBuffer);
 
 	if (hFile != INVALID_HANDLE_VALUE) 

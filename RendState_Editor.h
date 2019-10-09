@@ -74,6 +74,8 @@ public:
 		DWORD indent(1);
 		for(DWORD counter(0); counter != rendState->numElements;)
 		{
+			counter++;
+			counter--;
 			SendMessage(RSEWindow->getItemHWND(RSEComboboxStartID + indent), CB_SETCURSEL, *rendState->rendStateValue[counter], 0L);
 			indent += 2;
 			counter += 1;

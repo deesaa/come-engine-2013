@@ -46,7 +46,7 @@ private:
 
 public:
 	void initObjectBase(IDirect3DDevice9* bDevice, DWORD numObject, HWND bSubsetsList, botStatusBar_Class* bBSBar,
-		rendStateTypes_class* bRendStateTypes)
+		rendStateTypes_class* bRendStateTypes, bool isVoid)
 	{
 		device = bDevice;
 		BSBar = bBSBar;
@@ -73,7 +73,8 @@ public:
 			&vpb,
 			0);
 	
-		this->baseObject();
+		if(isVoid == false)
+			this->baseObject();
 
 		DWORD numVertices = mesh->GetNumVertices();
 		DWORD numFaces = mesh->GetNumFaces();
@@ -679,6 +680,97 @@ public:
 		}
 		return numRelevantTris;
 	}
+
+	void loadObject(tempObject_class* tempObject)
+	{
+		vpb->Lock(NULL, NULL, (void**)&particles, NULL);
+		mesh->LockVertexBuffer(0, (void**)&vertices);
+		for(DWORD counter(0); counter != tempObject->numVerts;)
+		{
+			vertices[counter] = *tempObject->vertices[counter];
+			vertexSphere[counter] = new sphere_struct;
+			*vertexSphere[counter] = sphere_struct(vertices[counter].pos, counter, counter, 
+				0.3f, FALSE, counter, tempObject->vertexSphere[counter]->vertType);
+
+			for(DWORD counter_2(0); counter_2 != tempObject->vertexSphere[counter]->numLinkedVerts;)
+			{
+				vertexSphere[counter]->linkVert(tempObject->vertexSphere[counter]->linkedVertices[counter_2]);
+				counter_2 += 1;
+			}
+
+			particles[counter] = particle(vertices[counter].pos, 0.5f);
+
+			numCreatedVerts += 1;
+			counter += 1;
+		}
+		mesh->UnlockVertexBuffer();
+		vpb->Unlock();
+
+		mesh->LockIndexBuffer(0, (void**)&indices);
+		for(DWORD counter(0); counter != tempObject->numIndices;)
+		{
+			indices[counter] = *tempObject->indices[counter];
+			counter += 1;
+		}
+		mesh->UnlockIndexBuffer();
+
+
+		mesh->LockAttributeBuffer(0, &attributeBuffer);
+		for(DWORD counter(0); counter != tempObject->numAttributes;)
+		{
+			attributeBuffer[counter] = *tempObject->attributeBuffer[counter];
+			counter += 1;
+		}
+		mesh->UnlockAttributeBuffer();
+
+		for(DWORD counter(0); counter != tempObject->numFaces;)
+		{
+			triangles[counter] = new triangle;
+			
+			*triangles[counter] = triangle(Full, 
+				tempObject->triangles[counter]->verticesID[0], 
+				tempObject->triangles[counter]->verticesID[1], 
+				tempObject->triangles[counter]->verticesID[2], 
+				counter, tempObject->triangles[counter]->subsetID, 
+				tempObject->triangles[counter]->subsetID, 
+				tempObject->triangles[counter]->fathers[0], 
+				tempObject->triangles[counter]->fathers[1], 
+				tempObject->triangles[counter]->fathers[2]);
+			
+			numCreatedFaces += 1;
+			counter += 1;
+		}
+
+		for(DWORD counter(0); counter != tempObject->numMaterials;)
+		{
+
+			material[counter] = new material_class;
+			material[counter]->initMaterialBase(device, counter);
+			material[counter]->getMaterial()->Ambient = tempObject->materials[counter]->Ambient;
+			material[counter]->getMaterial()->Diffuse = tempObject->materials[counter]->Diffuse;
+			material[counter]->getMaterial()->Specular = tempObject->materials[counter]->Specular;
+			material[counter]->getMaterial()->Emissive = tempObject->materials[counter]->Emissive;
+			material[counter]->getMaterial()->Power = tempObject->materials[counter]->Power;
+
+			texture[counter] = new texture_class;
+			texture[counter]->initBaseForTexture(device);
+
+			rendState[counter] = new rendState_class;
+			rendState[counter]->initRendStateClass(device, rendStateTypes);
+			rendState[counter]->addRendState(0, 2);
+			rendState[counter]->addRendState(1, 0);
+			rendState[counter]->addRendState(2, 0);
+			rendState[counter]->addRendState(3, 0);
+
+			numMaterials += 1;
+			numRendState += 1;
+			numTextures += 1;
+			numSubsets += 1;
+			counter += 1;
+		}
+		pickedSubset = 0;
+	}
+
 	LPCTSTR getObjectName()
 	{	return objectName;}
 	DWORD getObjectID()
@@ -702,6 +794,12 @@ public:
 	{
 		return triangles;
 	}
+
+	sphere_struct* getVertexSphere(DWORD vertexNumber)
+	{
+		return vertexSphere[vertexNumber];
+	}
+
 	void saveObjectAs(HINSTANCE bhInstace, HWND bWindow)
 	{
 		saveAs(bhInstace, bWindow, this);
