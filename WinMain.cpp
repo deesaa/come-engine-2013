@@ -7,6 +7,8 @@ MSG  msg;
 IDirect3DDevice9* device;
 HWND objectCreatorWindow;
 
+char buffer[256];
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	window_class windows(windowName, className, hInstance, MainProc);			//Создания базового GUI
@@ -14,9 +16,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	directx9_class device1(windows.getWindowHandle(), hInstance);				//Подключение точки вывода DirectX к окну
 
 	device = device1.getDevice();							//Вывод выше сделанных объектов в глобальную видимость 
-	objectCreatorWindow = windows.getWindowHandle();
+	objectCreatorWindow = windows.getWindowHandle();		//Получение дескриптора окна, в которое идет вывод DirectX
 
-	object_creator OC(device);
+	object_creator OC(device, objectCreatorWindow, hInstance);
 
 	
 	while(true)
@@ -35,8 +37,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				0x0000fff0, 1.0f, 0);
 			device->BeginScene();
 
+			OC.applyKBChanges();
 			OC.redraw();
-
+				
 			device->EndScene();
 			device->Present(0, 0, 0, 0); 
 		}

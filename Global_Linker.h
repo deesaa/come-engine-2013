@@ -20,6 +20,7 @@ void setMatrices(D3DXMATRIX* worldMatrix, D3DXMATRIX* viewMatrix, D3DXMATRIX* pr
 //Собственно включение всех компонентов "движка"
 #include "Constants.h"
 #include "Matrices_Class.h"
+#include "DirectXInput_Class.h"
 #include "Window_Base.h"
 #include "DirectX_Base.h"
 #include "OC_Base.h"
