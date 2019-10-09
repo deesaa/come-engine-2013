@@ -1,3 +1,4 @@
+enum moveBy{View, World};
 
 class viewMatrices_class
 {
@@ -154,26 +155,52 @@ public:
 		D3DXMatrixTranslation(&worldMatrix, x, y, z);
 	}
 
-	void worldMatrixMove(float dX, float dY, float dZ, short moveType)
+	void worldMatrixMove(float dX, float dY, float dZ, short moveType, moveBy moveSpace)
 	{
-		switch(moveType)
+		if(moveSpace == View)
 		{
-		case MOVE_FORWARD:
-			break;
-		case MOVE_BACK:
-			break;
-		case MOVE_UP:
-			pos += viewUp * fabs(dY);
-			break;
-		case MOVE_DOWN:
-			pos -= viewUp * fabs(dY);
-			break;
-		case MOVE_RIGHT:
-			pos += viewRight * fabs(dX);
-			break;
-		case MOVE_LEFT:
-			pos -= viewRight * fabs(dX);
-			break;
+			switch(moveType)
+			{
+			case MOVE_FORWARD:
+				break;
+			case MOVE_BACK:
+				break;
+			case MOVE_UP:
+				pos += viewUp * fabs(dY);
+				break;
+			case MOVE_DOWN:
+				pos -= viewUp * fabs(dY);
+				break;
+			case MOVE_RIGHT:
+				pos += viewRight * fabs(dX);
+				break;
+			case MOVE_LEFT:
+				pos -= viewRight * fabs(dX);
+				break;
+			}
+		}
+
+		if(moveSpace == World)
+		{
+			switch(moveType)
+			{
+			case MOVE_FORWARD:
+				break;
+			case MOVE_BACK:
+				break;
+			case MOVE_UP:
+				pos += D3DXVECTOR3(0.0f, 1.0f, 0.0f) * fabs(dY);
+				break;
+			case MOVE_DOWN:
+				pos -= D3DXVECTOR3(0.0f, 1.0f, 0.0f) * fabs(dY);
+				break;
+			case MOVE_RIGHT:
+				pos += D3DXVECTOR3(1.0f, 0.0f, 0.0f) * fabs(dX);
+				break;
+			case MOVE_LEFT:
+				pos -= D3DXVECTOR3(1.0f, 0.0f, 0.0f) * fabs(dX);
+				break;
+			}
 		}
 	}
 

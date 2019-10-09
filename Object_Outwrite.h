@@ -294,8 +294,10 @@ bool openObjects(temp_manager* manager, std::wstring fileName)
 
 		//Похоже он как-то неправильно переключается с файла на файл
 		hFile = CreateFile(pathToFile.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL,  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		ZeroMemory(pchBuffer, sizeof(pchBuffer));
-		ReadFile(hFile, pchBuffer, sizeof(pchBuffer), &numOfBytes, NULL);
+		fileSize = GetFileSize(hFile, NULL);
+		delete [] pchBuffer;
+		char* pchBuffer = new char[fileSize];
+		ReadFile(hFile, pchBuffer, fileSize, &numOfBytes, NULL);
 		file.clear();
 		file.append(pchBuffer);
 		manager->addObject(&file);
@@ -497,9 +499,9 @@ bool openObjectMaterials(tempObject_class* object, std::string* file)
 DWORD getDwValue(std::string* name, std::string* file, DWORD pos)
 {
 	std::string wstrBuffer2;
-	DWORD nameSize(0), distTo(0), valueSize(0);
-	DWORD dwValue;
-	DWORD found(0);
+	float nameSize(0), distTo(0), valueSize(0);
+	float dwValue;
+	float found(0);
 
 	nameSize  = name->size();
 
@@ -746,7 +748,7 @@ void saveFullObject(object_class* object, std::wstring file)
 	DWORD numFaces = object->getNumFaces();
 	DWORD* attributes = object->getAttributes();
 	DWORD* adjacencyInfo = object->getAdjacencyInfo();
-	triangle** triangles = object->getTriangles();
+	std::vector<triangle>* triangles = object->getTriangles();
 
 	int radix(8);
 	char chBuffer[32];
@@ -848,12 +850,12 @@ void saveFullObject(object_class* object, std::wstring file)
 	for(DWORD counter(0); counter != numFaces;)
 	{
 		strTriangles.append("TriangleID:");
-		sprintf(chBuffer, "%d;\n", triangles[counter]->triangleID);
+		sprintf(chBuffer, "%d;\n", triangles->at(counter).triangleID);
 		strTriangles.append(chBuffer);
 		strTriangles.append("Verts-Fathers:");
 		for(DWORD counter_2(0); counter_2 != 3;)
 		{
-			sprintf(chBuffer, "%d,", triangles[counter]->fathers[counter_2]);
+			sprintf(chBuffer, "%d,", triangles->at(counter).fathers[counter_2]);
 			strTriangles.append(chBuffer);
 			counter_2 += 1;
 		}
@@ -862,14 +864,14 @@ void saveFullObject(object_class* object, std::wstring file)
 		strTriangles.append("Verts:");
 		for(DWORD counter_2(0); counter_2 != 3;)
 		{
-			sprintf(chBuffer, "%d,", triangles[counter]->verticesID[counter_2]);
+			sprintf(chBuffer, "%d,", triangles->at(counter).verticesID[counter_2]);
 			strTriangles.append(chBuffer);
 			counter_2 += 1;
 		}
 		strTriangles.append(";\n");
 
 		strTriangles.append("SubsetID:");
-		sprintf(chBuffer, "%d;", triangles[counter]->subsetID);
+		sprintf(chBuffer, "%d;", triangles->at(counter).subsetID);
 		strTriangles.append(chBuffer);
 
 		counter++;

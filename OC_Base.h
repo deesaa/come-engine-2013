@@ -30,6 +30,7 @@ private:
 	POINT clickedPoint; 
 	float clickX, clickY;
 	ray_struct clickRay;
+	moveBy moveSpace;
 
 	object_manager* manager;			//Дескриптор менеджера объектов
 	DWORD pickedObject;					//Выбранный в данный момент объект(на него переключается управление)
@@ -59,6 +60,7 @@ public:
 		windowHandle = bWindowHandle;
 		hInstace = bhInstance;
 		axisX = axisY = axisZ = FALSE;
+		moveSpace = View;
 		dX = dY = dZ = 0.0f;
 		AngleX = AngleY = 0.0f;
 		clickX = clickY = 0.0f;
@@ -151,6 +153,11 @@ public:
 			axisZ = FALSE;
 		else
 			axisZ = TRUE;}
+
+	void setMoveSpace()
+	{
+
+	}
 
 	void renameObject(HWND objectsList, HWND nameEditor)
 	{
@@ -251,9 +258,9 @@ public:
 			}
 
 			if(pickType == Object)
-				manager->moveObject(pickedObject, dX, dY, dZ);	
+				manager->moveObject(pickedObject, dX, dY, dZ, moveSpace);	
 			if(pickType == Light)
-				manager->moveLight(pickedLight, dX, dY, dZ);
+				manager->moveLight(pickedLight, dX, dY, dZ, moveSpace);
 			if (pickType == Cam)
 				manager->rotateCam(pickedCam, dX, dY);	
 			if(pickType == Vertex)

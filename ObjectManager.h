@@ -131,11 +131,11 @@ public:
 			object[objectNumber]->renameObject(objectsList, nameEditor, objectNumber);
 	}
 
-	void moveObject(DWORD objectNumber, float x, float y, float z)
+	void moveObject(DWORD objectNumber, float x, float y, float z, moveBy moveSpace)
 	{
 		objectNumber--;
 		if(objectNumber < numObject)
-			object[objectNumber]->moveObject(x, y, z);
+			object[objectNumber]->moveObject(x, y, z, moveSpace);
 	}
 
 	void rotateObject(DWORD objectNumber, int AXIS, float Angle)
@@ -170,11 +170,11 @@ public:
 		object[objectNumber]->pickSubset(subsetNumber);
 	}
 
-	void moveLight(DWORD lightNumber, float x, float y, float z)
+	void moveLight(DWORD lightNumber, float x, float y, float z, moveBy moveSpace)
 	{
 		lightNumber--;
 		if(lightNumber < numLight)
-			light[lightNumber]->moveObject(x, y, z);
+			light[lightNumber]->moveObject(x, y, z, moveSpace);
 	}
 
 	void rotateLight(DWORD lightNumber, int AXIS, float Angle)

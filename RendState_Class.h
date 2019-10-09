@@ -5,43 +5,37 @@ private:
 	rendStateTypes_class* rendStateTypes;
 
 public:
-	DWORD* rendStateType[64];
-	DWORD* rendStateValue[64];
+	std::vector<DWORD> vecRendStateType;
+	std::vector<DWORD> vecRendStateValue;
 	DWORD numElements;
+
+	bool isShader;
 
 	void initRendStateClass(IDirect3DDevice9* bDevice, rendStateTypes_class* bRendStateTypes)
 	{
 		device = bDevice;
 		rendStateTypes = bRendStateTypes;
 		numElements = 0;
-	}
+		isShader = FALSE;
 
-	void addRendState(DWORD RSType, DWORD RSValue)
-	{
-		rendStateType[numElements]   = new DWORD;
-		*rendStateType[numElements]  = RSType;
-		rendStateValue[numElements]  = new DWORD;
-		*rendStateValue[numElements] = RSValue;
-		numElements += 1;
-	}
-
-	void setRendState()
-	{
-		for(DWORD counter(0); counter != numElements;)
+		for(DWORD counter(0); counter != rendStateTypes->numInitedTypes;)
 		{
-			device->SetRenderState(rendStateTypes->rendStateType[*rendStateType[counter]]->rendStateType, 
-				rendStateTypes->rendStateType[*rendStateType[counter]]->rendStateValues[*rendStateValue[counter]]);
+			vecRendStateType.push_back(counter);
+			vecRendStateValue.push_back(0);
+			numElements += 1;
 			counter += 1;
 		}
 	}
 
-	~rendState_class()
+	void setRendState()
 	{
-		for(;numElements != 0;)
 		{
-			numElements -= 1;
-			delete rendStateType[numElements];
-			delete rendStateValue[numElements];
+			for(DWORD counter(0); counter != numElements;)
+			{
+				device->SetRenderState(rendStateTypes->rendStateType[vecRendStateType.at(counter)]->rendStateType, 
+					rendStateTypes->rendStateType[vecRendStateType.at(counter)]->rendStateValues[vecRendStateValue.at(counter)]);
+				counter += 1;
+			}
 		}
 	}
 };

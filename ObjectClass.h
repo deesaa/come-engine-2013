@@ -26,11 +26,12 @@ private:
 	DWORD* optimizedAdjacencyInfo;
 	D3DXATTRIBUTERANGE* attributeTable; 
 
-	material_class* material[64];
-	texture_class* texture[64];
+	std::vector<material_class> vecMaterials;
+	std::vector<texture_class> vecTextures;
+	std::vector<rendState_class> vecRendState;
 	rendState_class* rendState[64];
-	sphere_struct* vertexSphere[512];
-	triangle* triangles[512];
+	std::vector<sphere_struct> vecVertexSphere;
+	std::vector<triangle> vecTriangles;
 	IDirect3DVertexBuffer9* vpb;
 	particle* particles;
 	DWORD numPickedVerts;
@@ -66,7 +67,7 @@ public:
 		D3DXCreateMeshFVF(256, 512, D3DXMESH_MANAGED, vertex::FVF, device, &mesh);
 
 		device->CreateVertexBuffer(
-			512,						//Хватает примерно на 65 вершин!
+			2048,						//Хватает примерно на 65 вершин!
 			D3DUSAGE_DYNAMIC | D3DUSAGE_POINTS | D3DUSAGE_WRITEONLY,
 			particle::FVF,
 			D3DPOOL_DEFAULT,
@@ -98,18 +99,14 @@ public:
 	{
 		this->createNewFoundation();
 		
-		material[numMaterials] = new material_class;
-		material[numMaterials]->initMaterialBase(device, numMaterials);
+		vecMaterials.push_back(material_class());
+		vecMaterials.at(numMaterials).initMaterialBase(device, numMaterials);
 
-		texture[numTextures] = new texture_class;
-		texture[numTextures]->initBaseForTexture(device);
+		vecTextures.push_back(texture_class()); 
+		vecTextures.at(numTextures).initBaseForTexture(device);
 
 		rendState[numRendState] = new rendState_class;
 		rendState[numRendState]->initRendStateClass(device, rendStateTypes);
-		rendState[numRendState]->addRendState(0, 2);
-		rendState[numRendState]->addRendState(1, 0);
-		rendState[numRendState]->addRendState(2, 0);
-		rendState[numRendState]->addRendState(3, 0);
 
 		SendMessage(subsetsList, LB_INSERTSTRING, numSubsets, (LPARAM)(LPCTSTR)L"Subset");
 		pickedSubset = numSubsets;
@@ -141,18 +138,16 @@ public:
 		vpb->Lock(NULL, NULL, (void**)&particles, NULL);
 		for(short i(0); i != 3;)
 		{
-			vertexSphere[numCreatedVerts+i] = new sphere_struct;
-			*vertexSphere[numCreatedVerts+i] = sphere_struct(vertices[numCreatedVerts+i].pos, numCreatedVerts+i, numCreatedFaces*3+i, 
-				0.3f, FALSE, numCreatedVerts+i, Father);
+			vecVertexSphere.push_back(sphere_struct(vertices[numCreatedVerts+i].pos, numCreatedVerts+i, numCreatedFaces*3+i, 
+				0.3f, FALSE, numCreatedVerts+i, Father));
 
 			particles[numCreatedVerts+i] = particle(vertices[numCreatedVerts+i].pos, 0.5f);
 			i++;
 		}
 		vpb->Unlock();
 
-		triangles[numCreatedFaces] = new triangle;
-		*triangles[numCreatedFaces] = triangle(Full, numCreatedVerts, numCreatedVerts+1, numCreatedVerts+2, 
-			numCreatedFaces, numSubsets, numMaterials, numCreatedVerts, numCreatedVerts+1, numCreatedVerts+2);
+		vecTriangles.push_back(triangle(Full, numCreatedVerts, numCreatedVerts+1, numCreatedVerts+2, 
+			numCreatedFaces, numSubsets, numMaterials, numCreatedVerts, numCreatedVerts+1, numCreatedVerts+2));
 
 		numCreatedVerts += 3;
 		numCreatedFaces += 1;
@@ -186,20 +181,17 @@ public:
 			vpb->Lock(NULL, NULL, (void**)&particles, NULL);
 			for(short i(0); i != 3;)
 			{
-				vertexSphere[numCreatedVerts+i] = new sphere_struct;
-				*vertexSphere[numCreatedVerts+i] = sphere_struct(vertices[numCreatedVerts+i].pos, numCreatedVerts+i, numCreatedFaces*3+i, 
-					0.3f, FALSE, numCreatedVerts+i, Child);
-
-				vertexSphere[vertsID[i]]->linkVert(numCreatedVerts+i);
+				vecVertexSphere.push_back(sphere_struct(vertices[numCreatedVerts+i].pos, numCreatedVerts+i, numCreatedFaces*3+i, 
+					0.3f, FALSE, numCreatedVerts+i, Child));
+				vecVertexSphere.at(vertsID[i]).linkVert(numCreatedVerts+i);
 
 				particles[numCreatedVerts+i] = particle(vertices[numCreatedVerts+i].pos, 0.5f);
 				i++;
 			}
 			vpb->Unlock();
 
-			triangles[numCreatedFaces] = new triangle;
-			*triangles[numCreatedFaces] = triangle(Full, numCreatedVerts, numCreatedVerts+1, numCreatedVerts+2, 
-				numCreatedFaces, numSubsets-1, numMaterials-1, vertsID[0], vertsID[1], vertsID[2]);
+			vecTriangles.push_back(triangle(Full, numCreatedVerts, numCreatedVerts+1, numCreatedVerts+2, 
+				numCreatedFaces, numSubsets-1, numMaterials-1, vertsID[0], vertsID[1], vertsID[2]));
 
 			mesh->GenerateAdjacency(0.001f, adjacencyInfo);
 			D3DXComputeNormals(mesh, adjacencyInfo);
@@ -227,20 +219,17 @@ public:
 				attributeBuffer[numCreatedFaces] = numSubsets-1; 
 				mesh->UnlockAttributeBuffer();
 
-				vertexSphere[numCreatedVerts] = new sphere_struct;
-				*vertexSphere[numCreatedVerts] = sphere_struct(vertices[numCreatedVerts].pos, numCreatedVerts, numCreatedFaces*3, 
-					0.3f, FALSE, numCreatedVerts, Father);
+				vecVertexSphere.push_back(sphere_struct(vertices[numCreatedVerts].pos, numCreatedVerts, numCreatedFaces*3, 
+					0.3f, FALSE, numCreatedVerts, Father));
 
-				vertexSphere[numCreatedVerts+1] = new sphere_struct;
-				*vertexSphere[numCreatedVerts+1] = sphere_struct(vertices[numCreatedVerts+1].pos, numCreatedVerts+1, numCreatedFaces*3+1, 
-					0.3f, FALSE, numCreatedVerts+1, Child);
+				vecVertexSphere.push_back(sphere_struct(vertices[numCreatedVerts+1].pos, numCreatedVerts+1, numCreatedFaces*3+1, 
+					0.3f, FALSE, numCreatedVerts+1, Child));
 
-				vertexSphere[numCreatedVerts+2] = new sphere_struct;
-				*vertexSphere[numCreatedVerts+2] = sphere_struct(vertices[numCreatedVerts+2].pos, numCreatedVerts+2, numCreatedFaces*3+2, 
-					0.3f, FALSE, numCreatedVerts+2, Child);
+				vecVertexSphere.push_back(sphere_struct(vertices[numCreatedVerts+2].pos, numCreatedVerts+2, numCreatedFaces*3+2, 
+					0.3f, FALSE, numCreatedVerts+2, Child));
 
-				vertexSphere[vertsID[1]]->linkVert(numCreatedVerts+1);
-				vertexSphere[vertsID[0]]->linkVert(numCreatedVerts+2);
+				vecVertexSphere.at(vertsID[1]).linkVert(numCreatedVerts+1);
+				vecVertexSphere.at(vertsID[0]).linkVert(numCreatedVerts+2);
 
 				vpb->Lock(NULL, NULL, (void**)&particles, NULL);
 				for(short i(0); i != 3;)
@@ -250,9 +239,8 @@ public:
 				}
 				vpb->Unlock();
 
-				triangles[numCreatedFaces] = new triangle;
-				*triangles[numCreatedFaces] = triangle(Full, numCreatedVerts, numCreatedVerts+1, numCreatedVerts+2, 
-					numCreatedFaces, numSubsets-1, numMaterials-1, numCreatedVerts, vertsID[1], vertsID[0]);
+				vecTriangles.push_back(triangle(Full, numCreatedVerts, numCreatedVerts+1, numCreatedVerts+2, 
+					numCreatedFaces, numSubsets-1, numMaterials-1, numCreatedVerts, vertsID[1], vertsID[0]));
 
 				mesh->GenerateAdjacency(0.001f, adjacencyInfo);
 				D3DXComputeNormals(mesh, adjacencyInfo);
@@ -263,7 +251,7 @@ public:
 		}
 	}
 
-	void LoadTexture4Verts()
+	void LoadTexture4Verts()				// Переделать!
 	{
 		DWORD vertsID[4];
 		DWORD textureVerts[4];
@@ -271,7 +259,7 @@ public:
 		this->findPickedVerts(found, textureVerts, 4);
 		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE && found[3] == TRUE)
 		{
-			texture[pickedSubset]->loadTexture4Verts(textureVerts, vertices, vertexSphere);
+			//texture[pickedSubset]->loadTexture4Verts(textureVerts, vertices, vertexSphere);
 		}
 	}
 
@@ -323,24 +311,20 @@ public:
 				{
 					attributeBuffer[relevantTriangle[counter]] = numSubsets; 
 
-					triangles[relevantTriangle[counter]]->subsetID   = numSubsets;
-					triangles[relevantTriangle[counter]]->materialID = numMaterials;
+					vecTriangles.at(relevantTriangle[counter]).subsetID   = numSubsets;
+					vecTriangles.at(relevantTriangle[counter]).materialID = numMaterials;
 					counter += 1;
 				}
 				mesh->UnlockAttributeBuffer();
 
-				material[numSubsets] = new material_class;
-				material[numSubsets]->initAbsolutelyWhiteMaterial(device, numMaterials);
+				vecMaterials.push_back(material_class());
+				vecMaterials.at(numSubsets).initAbsolutelyWhiteMaterial(device, numMaterials);
 
-				texture[numSubsets] = new texture_class;
-				texture[numSubsets]->initBaseForTexture(device);
+				vecTextures.push_back(texture_class());
+				vecTextures.at(numSubsets).initBaseForTexture(device);
 
 				rendState[numRendState] = new rendState_class;
 				rendState[numRendState]->initRendStateClass(device, rendStateTypes);
-				rendState[numRendState]->addRendState(0, 2);
-				rendState[numRendState]->addRendState(1, 0);
-				rendState[numRendState]->addRendState(2, 0);
-				rendState[numRendState]->addRendState(3, 0);
 
 				SendMessage(subsetsList, LB_INSERTSTRING, numSubsets, (LPARAM)(LPCTSTR)L"Subset");
 			
@@ -364,23 +348,23 @@ public:
 		}
 	}
 
-	void moveObject(float dX, float dY, float dZ)
+	void moveObject(float dX, float dY, float dZ, moveBy moveSpace)
 	{	
 		if(dX > 0)
-			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_RIGHT);
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_RIGHT, moveSpace);
 		if(dX < 0)
-			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_LEFT);
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_LEFT, moveSpace);
 		if(dY > 0)
-			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_DOWN);
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_DOWN, moveSpace);
 		if(dY < 0)
-			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_UP);
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_UP, moveSpace);
 	}
 
 	void moveVertex(DWORD vertexNumber, float dX, float dY, float dZ)
 	{
 		vertexNumber--;
 	
-		if(vertexSphere[vertexNumber]->vertType == Father)
+		if(vecVertexSphere.at(vertexNumber).vertType == Father)
 		{
 			mesh->LockVertexBuffer(0, (void**)&vertices);
 			if(dX > 0)
@@ -392,14 +376,14 @@ public:
 			if(dY < 0)
 				worldMatrices.moveVert(&vertices[vertexNumber].pos, dX, dY, dZ, MOVE_UP);
 
-			particles[vertexNumber].pos = vertexSphere[vertexNumber]->center = vertices[vertexNumber].pos;
+			particles[vertexNumber].pos = vecVertexSphere.at(vertexNumber).center = vertices[vertexNumber].pos;
 
-			for(DWORD counter(0); counter != vertexSphere[vertexNumber]->numLinkedVerts;)
+			for(DWORD counter(0); counter != vecVertexSphere.at(vertexNumber).numLinkedVerts;)
 			{
-				particles[vertexSphere[vertexNumber]->linkedVertices[counter]].pos = 
-				vertexSphere[vertexSphere[vertexNumber]->linkedVertices[counter]]->center = 
-				vertices[vertexSphere[vertexNumber]->linkedVertices[counter]].pos =
-				vertexSphere[vertexNumber]->center;
+				particles[vecVertexSphere.at(vertexNumber).linkedVertices[counter]].pos = 
+				vecVertexSphere.at(vecVertexSphere.at(vertexNumber).linkedVertices[counter]).center = 
+				vertices[vecVertexSphere.at(vertexNumber).linkedVertices[counter]].pos =
+				vecVertexSphere.at(vertexNumber).center;
 				counter++;
 			}
 			BSBar->writeVertPos(&vertices[vertexNumber].pos);
@@ -413,13 +397,13 @@ public:
 		DWORD vertsID;
 
 		this->findPickedVerts(&found, &vertsID, 1);
-		if(found == TRUE && vertexSphere[vertsID]->numLinkedVerts != 0)
+		if(found == TRUE && vecVertexSphere.at(vertsID).numLinkedVerts != 0)
 		{
-			for(DWORD counter(0); counter != vertexSphere[vertsID]->numLinkedVerts;)
+			for(DWORD counter(0); counter != vecVertexSphere.at(vertsID).numLinkedVerts;)
 			{
-				vertexSphere[vertexSphere[vertsID]->linkedVertices[counter]]->vertType = Father;
+				vecVertexSphere.at(vecVertexSphere.at(vertsID).linkedVertices[counter]).vertType = Father;
 
-				vertexSphere[vertsID]->linkedVertices[counter] = 0;
+				vecVertexSphere.at(vertsID).linkedVertices[counter] = 0;
 				counter += 1;
 			}
 
@@ -429,15 +413,15 @@ public:
 			{
 				for(DWORD counter_3(0); counter_3 != 3;)
 				{
-					if(triangles[relevantTris[counter_2]]->fathers[counter_3] == vertsID)
+					if(vecTriangles.at(relevantTris[counter_2]).fathers[counter_3] == vertsID)
 					{
-						triangles[relevantTris[counter_2]]->fathers[counter_3] = triangles[relevantTris[counter_2]]->verticesID[counter_3];
+						vecTriangles.at(relevantTris[counter_2]).fathers[counter_3] = vecTriangles.at(relevantTris[counter_2]).verticesID[counter_3];
 					}
 					counter_3 += 1;
 				}
 				counter_2 += 1;
 			}
-			vertexSphere[vertsID]->numLinkedVerts = 0;
+			vecVertexSphere.at(vertsID).numLinkedVerts = 0;
 		}
 	}
 	void uniteVertices()
@@ -448,22 +432,22 @@ public:
 		this->findPickedVerts(found, vertsID, 2);
 		if(found[0] == TRUE && found[1] == TRUE)
 		{
-			vertexSphere[vertsID[0]]->linkVert(vertsID[1]);		//К вершине vertsID[0] привинчиваем вершину vertsID[1]
-			vertexSphere[vertsID[1]]->vertType = Child;			//Скрываем вершину vertsID[1]
-			vertexSphere[vertsID[1]]->isPicked = FALSE;
+			vecVertexSphere.at(vertsID[0]).linkVert(vertsID[1]);		//К вершине vertsID[0] привинчиваем вершину vertsID[1]
+			vecVertexSphere.at(vertsID[1]).vertType = Child;			//Скрываем вершину vertsID[1]
+			vecVertexSphere.at(vertsID[1]).isPicked = FALSE;
 
-			particles[vertsID[1]].pos = vertexSphere[vertsID[1]]->center = vertices[vertsID[1]].pos;
+			particles[vertsID[1]].pos = vecVertexSphere.at(vertsID[1]).center = vertices[vertsID[1]].pos;
 
-			for(DWORD counter(0); counter != vertexSphere[vertsID[1]]->numLinkedVerts;)
+			for(DWORD counter(0); counter != vecVertexSphere.at(vertsID[1]).numLinkedVerts;)
 			{
-				vertexSphere[vertsID[0]]->linkVert(vertexSphere[vertsID[1]]->linkedVertices[counter]);
-				vertexSphere[vertsID[1]]->linkedVertices[counter] = 0;
-				vertexSphere[vertexSphere[vertsID[1]]->linkedVertices[counter]]->isPicked = FALSE;
+				vecVertexSphere.at(vertsID[0]).linkVert(vecVertexSphere.at(vertsID[1]).linkedVertices[counter]);
+				vecVertexSphere.at(vertsID[1]).linkedVertices[counter] = 0;
+				vecVertexSphere.at(vecVertexSphere.at(vertsID[1]).linkedVertices[counter]).isPicked = FALSE;
 
-				particles[vertexSphere[vertsID[1]]->linkedVertices[counter]].pos = 
-				vertexSphere[vertexSphere[vertsID[1]]->linkedVertices[counter]]->center = 
-				vertices[vertexSphere[vertsID[1]]->linkedVertices[counter]].pos =
-				vertexSphere[vertsID[1]]->center;
+				particles[vecVertexSphere[vertsID[1]].linkedVertices[counter]].pos = 
+				vecVertexSphere.at(vecVertexSphere.at(vertsID[1]).linkedVertices[counter]).center = 
+				vertices[vecVertexSphere[vertsID[1]].linkedVertices[counter]].pos =
+				vecVertexSphere.at(vertsID[1]).center;
 
 				counter += 1;
 			}
@@ -475,17 +459,17 @@ public:
 			{
 				for(DWORD counter_2(0); counter_2 != 3;)
 				{
-					if(triangles[relevantTris_2[counter]]->fathers[counter_2] == vertsID[1])
+					if(vecTriangles.at(relevantTris_2[counter]).fathers[counter_2] == vertsID[1])
 					{
 						/**********/
 						for(DWORD counter_3(0); counter_3 != numFoundTris_1;)
 						{
 							for(DWORD counter_4(0); counter_4 != 3;)
 							{
-								if(triangles[relevantTris_1[counter_3]]->fathers[counter_4] == vertsID[0])
+								if(vecTriangles.at(relevantTris_1[counter_3]).fathers[counter_4] == vertsID[0])
 								{
-									triangles[relevantTris_2[counter]]->fathers[counter_2] = 
-									triangles[relevantTris_1[counter_3]]->fathers[counter_4];
+									vecTriangles.at(relevantTris_2[counter]).fathers[counter_2] = 
+									vecTriangles.at(relevantTris_1[counter_3]).fathers[counter_4];
 								}
 								counter_4 += 1;
 							}
@@ -502,7 +486,7 @@ public:
 			
 
 
-			vertexSphere[vertsID[1]]->numLinkedVerts = 0;
+			vecVertexSphere.at(vertsID[1]).numLinkedVerts = 0;
 		}
 	}
 	void rotateXObject(float Angle)
@@ -532,10 +516,10 @@ public:
 		{
 			for(int counter = 0; counter != numCreatedVerts;)
 			{
-				D3DXVECTOR3 v = clickRay.origin - vertexSphere[counter]->center;
+				D3DXVECTOR3 v = clickRay.origin - vecVertexSphere.at(counter).center;
 
 				float b = 2.0f * D3DXVec3Dot(&clickRay.direction, &v);
-				float c = D3DXVec3Dot(&v, &v) - (vertexSphere[counter]->radius * vertexSphere[counter]->radius);
+				float c = D3DXVec3Dot(&v, &v) - (vecVertexSphere.at(counter).radius * vecVertexSphere.at(counter).radius);
 
 				float discriminant = (b * b) - (4.0f * c);
 
@@ -548,17 +532,17 @@ public:
 
 					if(s0 >= 0.0f || s1 >= 0.0f)
 					{
-						if(vertexSphere[counter]->isPicked == FALSE)
+						if(vecVertexSphere.at(counter).isPicked == FALSE)
 						{
 							numPickedVerts++;
 							BSBar->writeNumPickedVerts(numPickedVerts);
-							vertexSphere[counter]->isPicked = TRUE;
+							vecVertexSphere.at(counter).isPicked = TRUE;
 						}
 						else
 						{
 							numPickedVerts--;
 							BSBar->writeNumPickedVerts(numPickedVerts);
-							vertexSphere[counter]->isPicked = FALSE;
+							vecVertexSphere.at(counter).isPicked = FALSE;
 						}
 						
 						if(numPickedVerts == 3)
@@ -577,14 +561,14 @@ public:
 								{
 									for(DWORD counter(0); counter != numRelevantTris;)
 									{
-										pickedSubset = triangles[relevantTriangle[counter]]->subsetID;
+										pickedSubset = vecTriangles.at(relevantTriangle[counter]).subsetID;
 										counter += 1;
 									}
 								}
 							}
 						}
-						if(vertexSphere[counter]->vertType == Father)
-							return vertexSphere[counter]->vertexID+1;
+						if(vecVertexSphere.at(counter).vertType == Father)
+							return vecVertexSphere.at(counter).vertexID+1;
 					}
 				}
 				counter++;
@@ -608,14 +592,14 @@ public:
 	{
 		for(DWORD counter(0); counter != numCreatedVerts;)
 		{
-			vertexSphere[counter]->isPicked = FALSE;
+			vecVertexSphere.at(counter).isPicked = FALSE;
 			counter += 1;
 		}
 		numPickedVerts = 0;
 	}
 	D3DMATERIAL9* getMaterial()
 	{
-		return material[pickedSubset]->getMaterial();
+		return vecMaterials.at(pickedSubset).getMaterial();
 	}
 
 	rendState_class* getRendState()
@@ -641,9 +625,9 @@ public:
 		{
 			for(;counter != numCreatedVerts;)
 			{
-				if(vertexSphere[counter]->isPicked)
+				if(vecVertexSphere.at(counter).isPicked)
 				{
-					vertsID[i] = vertexSphere[counter]->startVertex;
+					vertsID[i] = vecVertexSphere.at(counter).startVertex;
 					found[i] = TRUE;
 					counter++;
 					break;
@@ -662,11 +646,11 @@ public:
 		{
 			for(short counter_2(0); counter_2 != 3;)
 			{
-				if(triangles[counter]->fathers[0] == vertsID[counter_2])
+				if(vecTriangles.at(counter).fathers[0] == vertsID[counter_2])
 					relevantVerts += 1;
-				if(triangles[counter]->fathers[1] == vertsID[counter_2])
+				if(vecTriangles.at(counter).fathers[1] == vertsID[counter_2])
 					relevantVerts += 1;
-				if(triangles[counter]->fathers[2] == vertsID[counter_2])
+				if(vecTriangles.at(counter).fathers[2] == vertsID[counter_2])
 					relevantVerts += 1;
 
 				if(relevantVerts == numNeeded)
@@ -688,13 +672,13 @@ public:
 		for(DWORD counter(0); counter != tempObject->numVerts;)
 		{
 			vertices[counter] = *tempObject->vertices[counter];
-			vertexSphere[counter] = new sphere_struct;
-			*vertexSphere[counter] = sphere_struct(vertices[counter].pos, counter, counter, 
-				0.3f, FALSE, counter, tempObject->vertexSphere[counter]->vertType);
 
+			vecVertexSphere.push_back(sphere_struct(vertices[counter].pos, counter, counter, 
+				0.3f, FALSE, counter, tempObject->vertexSphere[counter]->vertType));
+		
 			for(DWORD counter_2(0); counter_2 != tempObject->vertexSphere[counter]->numLinkedVerts;)
 			{
-				vertexSphere[counter]->linkVert(tempObject->vertexSphere[counter]->linkedVertices[counter_2]);
+				vecVertexSphere.at(counter).linkVert(tempObject->vertexSphere[counter]->linkedVertices[counter_2]);
 				counter_2 += 1;
 			}
 
@@ -724,10 +708,8 @@ public:
 		mesh->UnlockAttributeBuffer();
 
 		for(DWORD counter(0); counter != tempObject->numFaces;)
-		{
-			triangles[counter] = new triangle;
-			
-			*triangles[counter] = triangle(Full, 
+		{		
+			vecTriangles.push_back(triangle(Full, 
 				tempObject->triangles[counter]->verticesID[0], 
 				tempObject->triangles[counter]->verticesID[1], 
 				tempObject->triangles[counter]->verticesID[2], 
@@ -735,7 +717,7 @@ public:
 				tempObject->triangles[counter]->subsetID, 
 				tempObject->triangles[counter]->fathers[0], 
 				tempObject->triangles[counter]->fathers[1], 
-				tempObject->triangles[counter]->fathers[2]);
+				tempObject->triangles[counter]->fathers[2]));
 			
 			numCreatedFaces += 1;
 			counter += 1;
@@ -744,23 +726,19 @@ public:
 		for(DWORD counter(0); counter != tempObject->numMaterials;)
 		{
 
-			material[counter] = new material_class;
-			material[counter]->initMaterialBase(device, counter);
-			material[counter]->getMaterial()->Ambient = tempObject->materials[counter]->Ambient;
-			material[counter]->getMaterial()->Diffuse = tempObject->materials[counter]->Diffuse;
-			material[counter]->getMaterial()->Specular = tempObject->materials[counter]->Specular;
-			material[counter]->getMaterial()->Emissive = tempObject->materials[counter]->Emissive;
-			material[counter]->getMaterial()->Power = tempObject->materials[counter]->Power;
+			vecMaterials.push_back(material_class());
+			vecMaterials.at(counter).initMaterialBase(device, counter);
+			vecMaterials.at(counter).getMaterial()->Ambient = tempObject->materials[counter]->Ambient;
+			vecMaterials.at(counter).getMaterial()->Diffuse = tempObject->materials[counter]->Diffuse;
+			vecMaterials.at(counter).getMaterial()->Specular = tempObject->materials[counter]->Specular;
+			vecMaterials.at(counter).getMaterial()->Emissive = tempObject->materials[counter]->Emissive;
+			vecMaterials.at(counter).getMaterial()->Power = tempObject->materials[counter]->Power;
 
-			texture[counter] = new texture_class;
-			texture[counter]->initBaseForTexture(device);
+			vecTextures.push_back(texture_class());
+			vecTextures.at(counter).initBaseForTexture(device);
 
 			rendState[counter] = new rendState_class;
 			rendState[counter]->initRendStateClass(device, rendStateTypes);
-			rendState[counter]->addRendState(0, 2);
-			rendState[counter]->addRendState(1, 0);
-			rendState[counter]->addRendState(2, 0);
-			rendState[counter]->addRendState(3, 0);
 
 			numMaterials += 1;
 			numRendState += 1;
@@ -790,14 +768,14 @@ public:
 	{	return attributeBuffer;}
 	DWORD* getAdjacencyInfo()
 	{	return adjacencyInfo;}
-	triangle** getTriangles()
+	std::vector<triangle>* getTriangles()
 	{
-		return triangles;
+		return &vecTriangles;
 	}
 
 	sphere_struct* getVertexSphere(DWORD vertexNumber)
 	{
-		return vertexSphere[vertexNumber];
+		return &vecVertexSphere.at(vertexNumber);
 	}
 
 	void saveObjectAs(HINSTANCE bhInstace, HWND bWindow)
@@ -823,18 +801,18 @@ public:
 
 		for(DWORD vert = 0; vert != numCreatedVerts; vert++)
 		{
-			if(vertexSphere[vert]->isPicked == TRUE)
+			if(vecVertexSphere.at(vert).isPicked == TRUE)
 			{
-				device->DrawPrimitive(D3DPT_POINTLIST, vertexSphere[vert]->startVertex, 1);
+				device->DrawPrimitive(D3DPT_POINTLIST, vecVertexSphere.at(vert).startVertex, 1);
 			}
 		}
 
 		for(DWORD subset(0); subset != numSubsets; subset++)
 		{
 			if(numMaterials)
-				material[subset]->resetMaterial();
+				vecMaterials.at(subset).resetMaterial();
 			if(numTextures)
-				texture[subset]->resetTexture();
+				vecTextures.at(subset).resetTexture();
 			if(numRendState)
 				rendState[subset]->setRendState();
 
@@ -849,20 +827,12 @@ public:
 
 	material_class* getMaterialClass(DWORD materialNumber)
 	{
-		return material[materialNumber];
+		return &vecMaterials.at(materialNumber);
 	}
 
 	~object_class()
 	{	
 		//saveFullObject(this);
-
-		for(;numMaterials != 0;)
-		{
-			numMaterials--;
-			//saveFullMaterial(material[numMaterials]->getThis());
-			delete material[numMaterials];
-			material[numMaterials] = NULL;
-		}
 
 		for(;numRendState != 0;)
 		{
@@ -870,28 +840,7 @@ public:
 			delete rendState[numRendState];
 			rendState[numRendState] = NULL;
 		}
-
-		for(;numTextures != 0;)
-		{
-			numTextures--;
-			delete texture[numTextures];
-			texture[numTextures] = NULL;
-		}
-
-		for(;numCreatedFaces != 0;)
-		{
-			numCreatedFaces--;
-			delete triangles[numCreatedFaces];
-			triangles[numCreatedFaces] = NULL;
-		}
-
-		for(;numCreatedVerts != 0;)
-		{
-			numCreatedVerts--;
-			delete vertexSphere[numCreatedVerts];
-			vertexSphere[numCreatedVerts] = NULL;
-		}
-
+		
 		vpb->Release();
 
 		delete adjacencyInfo;

@@ -122,16 +122,16 @@ public:
 		worldMatrices.worldMatrixRotateY(0.0f);
 		worldMatrices.worldMatrixRotateZ(0.0f);
 	}
-	void moveObject(float dX, float dY, float dZ)
+	void moveObject(float dX, float dY, float dZ, moveBy moveSpace)
 	{	
 		if(dX > 0)
-			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_RIGHT);
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_RIGHT, moveSpace);
 		if(dX < 0)
-			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_LEFT);
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_LEFT, moveSpace);
 		if(dY > 0)
-			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_DOWN);
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_DOWN, moveSpace);
 		if(dY < 0)
-			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_UP);
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_UP, moveSpace);
 	}
 
 	void rotateXObject(float Angle)

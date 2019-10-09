@@ -39,11 +39,11 @@ public:
 		rendStateType[numInitedTypes] = new rendState_struct;
 		strType = L"RS_FILLMODE";
 		strValues.clear();
-		strValues.push_back(L"FILL_WIREFRAME");
-		strValues.push_back(L"FILL_POINT");
 		strValues.push_back(L"FILL_SOLID");
+		strValues.push_back(L"FILL_POINT");
+		strValues.push_back(L"FILL_WIREFRAME");
 		{
-			DWORD values[] = {D3DFILL_WIREFRAME, D3DFILL_POINT, D3DFILL_SOLID};
+			DWORD values[] = {D3DFILL_SOLID, D3DFILL_POINT, D3DFILL_WIREFRAME};
 			*rendStateType[numInitedTypes] = rendState_struct(strType, strValues, strValues.size(), D3DRS_FILLMODE, values);
 		}
 		numInitedTypes += 1;
@@ -80,6 +80,56 @@ public:
 		{
 			DWORD values[] = {TRUE, FALSE};
 			*rendStateType[numInitedTypes] = rendState_struct(strType, strValues, strValues.size(), D3DRS_LIGHTING, values);
+		}
+		numInitedTypes += 1;
+
+		rendStateType[numInitedTypes] = new rendState_struct;
+		strType = L"RS_ALPHABLEND";
+		strValues.clear();
+		strValues.push_back(L"ALPHABLEND_FALSE");
+		strValues.push_back(L"ALPHABLEND_TRUE");
+		{
+			DWORD values[] = {FALSE, TRUE};
+			*rendStateType[numInitedTypes] = rendState_struct(strType, strValues, strValues.size(), D3DRS_ALPHABLENDENABLE, values);
+		}
+		numInitedTypes += 1;
+
+		rendStateType[numInitedTypes] = new rendState_struct;
+		strType = L"RS_SRCBLEND";
+		strValues.clear();
+		strValues.push_back(L"BLEND_SRCALPHA");
+		strValues.push_back(L"BLEND_INVSRCALPHA");	
+		strValues.push_back(L"BLEND_INVSRCCOLOR");	
+		strValues.push_back(L"BLEND_INVSRCALPHA");	
+		strValues.push_back(L"BLEND_INVDESTALPHA");	
+		strValues.push_back(L"BLEND_INVDESTCOLOR");	
+		strValues.push_back(L"BLEND_SRCALPHASAT");	
+		strValues.push_back(L"BLEND_INVSRCALPHA");
+		strValues.push_back(L"BLEND_BOTHINVSRCALPHA");
+		{
+			DWORD values[] = {D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA, D3DBLEND_INVSRCCOLOR, 
+				D3DBLEND_INVSRCALPHA, D3DBLEND_INVDESTALPHA, D3DBLEND_INVDESTCOLOR, 
+				D3DBLEND_SRCALPHASAT, D3DBLEND_INVSRCALPHA, D3DBLEND_BOTHINVSRCALPHA};
+			*rendStateType[numInitedTypes] = rendState_struct(strType, strValues, strValues.size(), D3DRS_SRCBLEND, values);
+		}
+		numInitedTypes += 1;
+
+		rendStateType[numInitedTypes] = new rendState_struct;
+		strType = L"RS_DESTBLEND";
+		strValues.clear();
+		strValues.push_back(L"BLEND_INVSRCALPHA");	
+		strValues.push_back(L"BLEND_SRCALPHA");	
+		strValues.push_back(L"BLEND_INVSRCCOLOR");	
+		strValues.push_back(L"BLEND_INVSRCALPHA");	
+		strValues.push_back(L"BLEND_INVDESTALPHA");	
+		strValues.push_back(L"BLEND_INVDESTCOLOR");	
+		strValues.push_back(L"BLEND_SRCALPHASAT");	
+		strValues.push_back(L"BLEND_INVSRCALPHA");
+		{
+			DWORD values[] = {D3DBLEND_INVSRCALPHA, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCCOLOR, 
+				D3DBLEND_INVSRCALPHA, D3DBLEND_INVDESTALPHA, D3DBLEND_INVDESTCOLOR, 
+				D3DBLEND_SRCALPHASAT, D3DBLEND_INVSRCALPHA};
+			*rendStateType[numInitedTypes] = rendState_struct(strType, strValues, strValues.size(), D3DRS_DESTBLEND, values);
 		}
 		numInitedTypes += 1;
 	}

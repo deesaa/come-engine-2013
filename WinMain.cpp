@@ -487,11 +487,21 @@ LRESULT CALLBACK RSEDlgWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 		{
 		case ID_ESSBUTTON2:
 			rendStateEditor->setChanges();
+			return 0;	
+		case ID_ESSBUTTON3:
+			rendStateEditor->swapMode();
+			return 0;
+		case  ID_ESSBUTTON4:
+			rendStateEditor->loadShader();
 			return 0;
 		case IDCANCEL:
 			EndDialog(hwnd, TRUE);
 			return 0;
 		}
+		return 0;
+
+	case WM_HELP:
+		rendStateEditor->showErrorBuffer();
 		return 0;
 	}
 	return 0;
