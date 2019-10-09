@@ -9,20 +9,20 @@ HWND objectCreatorWindow, COButton;
 
 char buffer[256];
 
-object_manager* manager;
-object_creator* OC;
-window_class* windows;
+object_manager* manager;	//Менеджер объектов
+object_creator* OC;			//Создатель и редактор объектов
+window_class* windows;		//Windows-окна (GUI)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	windows = new window_class;
+	windows = new window_class;	
 	windows->initWindows(windowName, className, hInstance, MainProc);	//Создания базового GUI
 
-	directx9_class device1(windows->getWindowHandle(), hInstance);		//Подключение точки вывода DirectX к окну
+	directx9_class device1(windows->getWindowHandle(GET_D3DWINDOW), hInstance);		//Подключение точки вывода DirectX к окну
 
-	device = device1.getDevice();							//Вывод выше сделанных объектов в глобальную видимость 
-	objectCreatorWindow = windows->getWindowHandle();		//Получение дескриптора окна, в которое идет вывод DirectX
-	COButton			= windows->getCOButtonHandle();		//Получение дескриптора кнопки, создающей новый объект
+	device				= device1.getDevice();				//Получение устройства видеокарты
+	objectCreatorWindow = windows->getWindowHandle(GET_D3DWINDOW);		//Получение дескриптора окна, в которое идет вывод DirectX
+	COButton			= windows->getWindowHandle(GET_OCCREATEOBJECT);		//Получение дескриптора кнопки, создающей новый объект
 
 	manager = new object_manager;	//Выделяем память на менеджер объектов
 	manager->initManager(device);	//Инициализируем менеджер объектов
@@ -82,21 +82,27 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			return 0;
 		case ID_BUTTON2:
-			OC->pickObject(manager->createNewObject(windows->getObjectsList()));
+			//Созданный объект принимает управление и добавляется в лист объектов
+			OC->pickObject(manager->createNewObject(windows->getWindowHandle(GET_OBJECTLIST)));
 			return 0;
 		case ID_LISTBOX1:
 			switch(HIWORD(wParam))
 			{
 			case LBN_SELCHANGE:
+				//Объект, выбранный из листа объектов, принимает управление 
 				OC->pickObject(windows->takeObjectFromList());
+				return 0;
+			default:
 				return 0;
 			}
 			return 0;
 		case ID_BUTTON3:
-			OC->renameObject(windows->getObjectsList(), windows->getNameEditor());
+			MessageBox(windows->getWindowHandle(GET_D3DWINDOW), L"THIS SHIT DOESN'T WORK!", L"STAAAPH", MB_ICONSTOP);
+			//У выбранного в данный момент объекта изменяется навзвание /*НЕ РАБОТАЕТ*/
+			//OC->renameObject(windows->getWindowHandle(GET_OBJECTLIST), windows->getWindowHandle(GET_OBJECTNAMEEDITOR));
 			return 0;
-		default:
-			return DefWindowProc(hwnd, msg, wParam, lParam);
+		case ID_EDIT1:
+			return 0;
 		}
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -109,4 +115,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 /************************************************************************/
 /*				         © ALL COPYRIGHTS RESERVED	                    */
+/************************************************************************/
+/************************************************************************/
+/*				         © АЛЛ КАПИРАЙТС РЕСЕРВЕД                       */
 /************************************************************************/

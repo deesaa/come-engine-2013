@@ -95,6 +95,7 @@ public:
 
 	void renameObject(HWND objectsList, HWND nameEditor, UINT objectNumber)
 	{
+		objectNumber;	
 		SendMessage(nameEditor, EM_LIMITTEXT, (WPARAM)80, NULL);
 		SendMessage(nameEditor, EM_GETLINE, 0, (LPARAM)buffer);
 		
@@ -102,7 +103,7 @@ public:
 		
 		SendMessage(objectsList, LB_DELETESTRING, (WPARAM)objectNumber, NULL);
 		SendMessage(objectsList, LB_INSERTSTRING, (WPARAM)objectNumber, (LPARAM)objectName);
-		SetWindowText(nameEditor, L"\0");
+		
 	}
 
 	LPCTSTR getObjectName()

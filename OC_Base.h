@@ -98,6 +98,7 @@ public:
 	void renameObject(HWND objectsList, HWND nameEditor)
 	{
 		manager->renameObject(pickedObject, objectsList, nameEditor);
+		SetFocus(windowHandle);
 	}
 
 	void applyKBMChanges()
