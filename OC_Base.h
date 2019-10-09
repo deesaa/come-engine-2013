@@ -36,6 +36,7 @@ private:
 	picked pickType;
 
 	bool NewTriButtonLocked;
+	bool SwapVertsButtonLocked;
 public:
 	object_creator(){}
 
@@ -53,7 +54,8 @@ public:
 		KBDevice = d3dInput.getKBDevice();
 		MDevice = d3dInput.getMDevice();
 
-		NewTriButtonLocked = FALSE;
+		NewTriButtonLocked	  = FALSE;
+		SwapVertsButtonLocked = FALSE;
 
 		manager = bManager;						//Сохранение дескриптора менеджера объектов
 		pickedObject = NULL;					
@@ -204,7 +206,7 @@ public:
 			if(pickType == Light)
 				manager->rotateLight(pickedLight, ROTATION_AXIS_X, AngleX);
 			if(pickType == Cam)
-				manager->moveCam(pickedCam, MOVE_FORVARD);
+				manager->moveCam(pickedCam, MOVE_FORWARD);
 		}
 
 		if (KBBuffer[DIK_S] & 0x8000f)
@@ -251,6 +253,19 @@ public:
 		}
 		else
 			NewTriButtonLocked = FALSE;
+
+
+		if (KBBuffer[DIK_C] & 0x8000f)
+		{
+			if(SwapVertsButtonLocked == FALSE)
+			{
+				if(pickType == Object)
+					manager->swapIndices(pickedObject);
+			}
+			SwapVertsButtonLocked = TRUE;
+		}
+		else
+			SwapVertsButtonLocked = FALSE;
 	}
 
 	~object_creator() 

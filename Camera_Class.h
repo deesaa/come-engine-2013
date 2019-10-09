@@ -1,4 +1,4 @@
-#define MOVE_FORVARD 1
+#define MOVE_FORWARD 1
 #define MOVE_BACK	 2
 #define MOVE_UP		 3
 #define MOVE_DOWN	 4
@@ -42,7 +42,7 @@ public:
 	{
 		switch(moveType)
 		{
-		case MOVE_FORVARD:
+		case MOVE_FORWARD:
 			pos += look * 0.025;
 			break;
 		case MOVE_BACK:

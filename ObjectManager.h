@@ -184,6 +184,12 @@ public:
 		object[objectNumber]->createNewTriangle();
 	}
 
+	void swapIndices(DWORD objectNumber)
+	{
+		objectNumber--;
+		object[objectNumber]->swapIndices();
+	}
+
 	void rotateCam(DWORD camNumber, float dX, float dY)
 	{
 		camNumber--;

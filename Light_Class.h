@@ -116,7 +116,7 @@ public:
 		if(dY > 0)
 			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_BACK);
 		if(dY < 0)
-			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_FORVARD);
+			worldMatrices.worldMatrixMove(dX, dY, dZ, MOVE_FORWARD);
 	}
 
 	void rotateXObject(float Angle)

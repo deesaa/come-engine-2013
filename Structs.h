@@ -1,11 +1,15 @@
 enum triangleType{Full, Vert};
 
-struct sphere_struct
+class sphere_struct
 {
+public:
 	D3DXVECTOR3 center;
 	float radius;
 	DWORD vertexID;
+	DWORD indexID;
 	bool isPicked;
+	DWORD startVertex;
+	DWORD startIndex;
 };
 
 struct ray_struct
@@ -45,3 +49,8 @@ struct COVertex
 	}
 };
 const DWORD COVertex::FVF = D3DFVF_XYZ;
+
+DWORD FtoDw(float f)
+{
+	return *((DWORD*)&f);
+}
