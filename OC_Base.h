@@ -38,8 +38,13 @@ private:
 	float dX, dY, dZ;					//Статическое храниние информации о передвижении мыши (для передвижения объектов)
 	float AngleX, AngleY, AngleZ;		//Углы для поворота объектов
 
+	object_manager* manager;			//Дескриптор менеджера объектов
+	UINT pickedObject;					//Выбранный в данный момент объект(на него переключается управление)
+
 public:
-	object_creator(IDirect3DDevice9* bDevice, HWND bWindowHandle, HINSTANCE bhInstance)
+	object_creator(){}
+
+	void initObjectCreator(IDirect3DDevice9* bDevice, HWND bWindowHandle, HINSTANCE bhInstance, object_manager* bManager)
 	{
 		device = bDevice;					//Сохранение дестрипторов устройства, окна, приложения
 		windowHandle = bWindowHandle;
@@ -56,6 +61,9 @@ public:
 		d3dInput.createKBMInput(windowHandle);
 		KBDevice = d3dInput.getKBDevice();
 		MDevice = d3dInput.getMDevice();
+
+		manager = bManager;						//Сохранение дескриптора менеджера объектов
+		pickedObject = NULL;					//Выбранного объекта при инициализации не может быть
 
 		matrices.worldMatrixRotateX(0.0f);		//Установка углов наклона в 0 (для правильного начального отображения)
 		matrices.worldMatrixRotateY(0.0f);
@@ -80,6 +88,11 @@ public:
 			D3DPOOL_MANAGED,
 			&ib,
 			0);
+	}
+
+	void TakeCreatedObject(UINT bPickedObject)
+	{
+		pickedObject = bPickedObject;
 	}
 
 	void applyKBChanges()

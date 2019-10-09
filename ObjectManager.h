@@ -11,7 +11,9 @@ private:
 	IDirect3DIndexBuffer9* ib;			//Буфер индексов
 
 public:
-	object_manager(IDirect3DDevice9* bDevice)
+	object_manager(){}
+
+	void initManager(IDirect3DDevice9* bDevice)
 	{
 		device = bDevice;				//Сохранение устройства
 		numObject = 0;					//Установка начального кол-ва объектов
@@ -39,11 +41,20 @@ public:
 	}
 
 	//Создание абсолютно нового объекта
-	void createNewObject()
+	UINT createNewObject()
 	{
 		object[numObject] = new object_class;	//Выделение памяти для объекта
 		object[numObject]->initObjectBase(device, numObject, vb, ib); //Создание базы нового объекта
 		numObject++; //Инкремент счетчика объектов
+		return numObject;
+	}
+
+	void moveObject(UINT objectNumber, float x, float y, float z)
+	{
+		if(objectNumber < numObject)
+		{
+			object[objectNumber]->moveObject(x, y, z);
+		}
 	}
 
 	//Перерисовать объект

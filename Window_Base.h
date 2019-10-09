@@ -1,10 +1,11 @@
 #define ID_BUTTON1 1001
+#define ID_BUTTON2 1002
 #define ID_STATIC1 2001
 
 class window_class
 {
 private:
-	HWND mainWindow, OCButton, directXWindow;
+	HWND mainWindow, OCButton, COButton, directXWindow;
 	LPCTSTR mainWindowName, OCButtonName;
 public:
 	window_class(LPCTSTR windowName, LPCTSTR className, HINSTANCE hInstance, WNDPROC proc)
@@ -14,8 +15,11 @@ public:
 		mainWindow = CreateWindow(className, windowName, WS_OVERLAPPEDWINDOW|WS_VISIBLE, 
 			0, 0, Width, Height, NULL, NULL, hInstance, NULL);
 
-		OCButton   = CreateWindow(L"button", L"Create New Object", WS_CHILD|WS_VISIBLE|BS_CENTER, 
+		OCButton   = CreateWindow(L"button", L"Object Creator", WS_CHILD|WS_VISIBLE|BS_CENTER, 
 			12, 100, 190, 35, mainWindow, (HMENU)ID_BUTTON1, hInstance, NULL);
+
+		COButton   = CreateWindow(L"button", L"Create Object", WS_CHILD|BS_CENTER, 
+			102, 135, 100, 17, mainWindow, (HMENU)ID_BUTTON2, hInstance, NULL);
 
 		directXWindow = CreateWindow(L"static", NULL, WS_CHILD|WS_BORDER, 
 			217, 100, DirectXWidth, DirectXHeight, mainWindow, (HMENU)ID_STATIC1, hInstance, NULL);
@@ -24,6 +28,10 @@ public:
 	HWND getWindowHandle()
 	{
 		return directXWindow;
+	}
+	HWND getCOButtonHandle()
+	{
+		return COButton;
 	}
 };
 

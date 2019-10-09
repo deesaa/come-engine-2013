@@ -5,9 +5,12 @@ LPCTSTR  windowName = L"C.O.M.E. Engine, Build 1.006";
 
 MSG  msg;
 IDirect3DDevice9* device;
-HWND objectCreatorWindow;
+HWND objectCreatorWindow, COButton;
 
 char buffer[256];
+
+object_manager* manager;
+object_creator* OC;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -17,11 +20,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	device = device1.getDevice();							//Вывод выше сделанных объектов в глобальную видимость 
 	objectCreatorWindow = windows.getWindowHandle();		//Получение дескриптора окна, в которое идет вывод DirectX
+	COButton			= windows.getCOButtonHandle();		//Получение дескриптора кнопки, создающей новый объект
 
-	object_creator OC(device, objectCreatorWindow, hInstance);
+	manager = new object_manager;	//Выделяем память на менеджер объектов
+	manager->initManager(device);	//Инициализируем менеджер объектов
 	
-	object_manager manager(device);
-	manager.createNewObject();
+	OC = new object_creator;		//Выделяем память на редактор объектов
+	OC->initObjectCreator(device, objectCreatorWindow, hInstance, manager);	//Инициализируем редактор объектов
+	manager->createNewObject();
 	
 	while(true)
 	{
@@ -39,14 +45,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				0x0000fff0, 1.0f, 0);
 			device->BeginScene();
 
-			OC.applyKBChanges();
-			OC.redraw();
-			manager.redrawObject(0);
+			OC->applyKBChanges();
+			OC->redraw();
+			manager->redrawObject(0);
 				
 			device->EndScene();
 			device->Present(0, 0, 0, 0); 
 		}
 	}
+	delete manager;
+	delete OC;
 	return msg.wParam;
 }
 
@@ -59,9 +67,18 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 		case ID_BUTTON1:
 			if(IsWindowVisible(objectCreatorWindow))		//Видно ли окно?
+			{
 				ShowWindow(objectCreatorWindow, SW_HIDE);	//Да  - спрятать
+				ShowWindow(COButton, SW_HIDE);
+			}
 			else
+			{
 				ShowWindow(objectCreatorWindow, SW_NORMAL); //Нет - показать
+				ShowWindow(COButton, SW_NORMAL);
+			}
+			return 0;
+		case ID_BUTTON2:
+			OC->TakeCreatedObject(manager->createNewObject());
 			return 0;
 		}
 	case WM_DESTROY:

@@ -70,6 +70,11 @@ public:
 		ib->Unlock();
 	}
 
+	void moveObject(float x, float y, float z)
+	{
+		worldMatrices.worldMatrixMove(x, y, z);
+	}
+
 	void redraw()
 	{
 		worldMatrices.resetWorldMatrices();
