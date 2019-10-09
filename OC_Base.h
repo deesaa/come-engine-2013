@@ -200,7 +200,7 @@ public:
 
 	D3DMATERIAL9* getMaterialClass()
 	{
-		return manager->getMaterialClass(pickedObject);
+		return manager->getMaterial(pickedObject);
 	}
 	
 	rendState_class* getRendState()

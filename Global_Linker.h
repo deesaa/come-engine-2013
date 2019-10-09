@@ -4,6 +4,9 @@
 #include <windowsx.h>
 #include <CommDlg.h>
 #include <fstream>
+#include <stdio.h>
+#include <conio.h>
+#include <math.h>
 
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "dinput8.lib")
@@ -39,15 +42,27 @@ BOOL initPalette(HWND hwnd, D3DCOLORVALUE* mtrComponent);
 class object_class;
 class material_class;
 class light_class;
-void saveFullObject(object_class* object);
-void saveFullMaterial(material_class* material);
-void saveFullLight(light_class* light);
+class object_manager;
+class temp_manager;
+class tempObject_class;
+class tempLight_class;
+class tempCamera_class;
+void saveFullObject(object_class* object, std::wstring file);
+void saveFullMaterial(material_class* material, std::wstring file);
+void saveFullLight(light_class* light, std::wstring file);
+void saveProjectInfo(object_manager* manager, std::wstring file);
 void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
 void saveProject(HWND mainWindow);
+std::vector<float> getArrayFlValue(std::string* name, std::string* file);
+DWORD getDwValue(std::string* name, std::string* file);
+bool openObjectVertices(object_class* object, std::string* file);
+bool openProjectInfo(temp_manager* manager, std::string* file);
+bool openProject(object_manager* manager);
 
 //Собственно включение всех компонентов "движка"
 #include "Constants.h"
 #include "Structs.h"
+#include "Temp_Classes.h"
 #include "Camera_Class.h"
 #include "Matrices_Class.h"
 #include "DirectXInput_Class.h"

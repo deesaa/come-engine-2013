@@ -75,6 +75,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	manager->createNewCam(windows->getWindowHandle(GET_CAMOBJECTLIST));
 
+	/*HANDLE FileHandle;
+	OFSTRUCT fileInfo;
+	fileInfo.szPathName;
+	DWORD num;
+	FileHandle = (HANDLE)OpenFile("Settings.ini", &fileInfo, OF_READ| OF_SHARE_DENY_READ);
+	char Buf[128];
+	ZeroMemory(Buf, sizeof(Buf));
+	//if(FileHandle)
+	//{
+		ReadFile(FileHandle, Buf, sizeof(Buf), &num, NULL);
+		CloseHandle(FileHandle);
+	//} */
+
 	while(true)
 	{
 		if(PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -315,10 +328,10 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case VM_WNDLOCAT:
 			return 0;
 		case FM_FILESAVE:
-			saveProject(windows->getWindowHandle(GET_MAINWINDOW));
+			saveProject(windows->getWindowHandle(GET_MAINWINDOW), manager);
 			return 0;
 		case FM_FILEOPEN:
-
+			openProject(manager);
 			return 0;
 		case ID_EDIT1:
 			return 0;

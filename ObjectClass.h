@@ -707,7 +707,7 @@ public:
 	}
 	void saveObject()
 	{
-		saveFullObject(this);
+		//saveFullObject(this);
 	}
 	void redraw()
 	{
@@ -743,14 +743,24 @@ public:
 		}
 	}
 
+	DWORD getNumMaterials()
+	{
+		return numMaterials;
+	}
+
+	material_class* getMaterialClass(DWORD materialNumber)
+	{
+		return material[materialNumber];
+	}
+
 	~object_class()
 	{	
-		saveFullObject(this);
+		//saveFullObject(this);
 
 		for(;numMaterials != 0;)
 		{
 			numMaterials--;
-			saveFullMaterial(material[numMaterials]->getThis());
+			//saveFullMaterial(material[numMaterials]->getThis());
 			delete material[numMaterials];
 			material[numMaterials] = NULL;
 		}

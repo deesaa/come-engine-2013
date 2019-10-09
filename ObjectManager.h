@@ -11,7 +11,7 @@ private:
 
 	DWORD numObject;					//Счетчик объектов
 	DWORD numLight;						//Счетчик объектов света
-	DWORD numCam;
+	DWORD numCams;
 	DWORD numGlobal;
 	bool i;
 
@@ -36,7 +36,7 @@ public:
 		numObject = 0;					//Установка начального кол-ва объектов
 		numLight = 0;
 		numGlobal = 0;
-		numCam = 0;
+		numCams = 0;
 		i = true;
 	}
 
@@ -89,12 +89,12 @@ public:
 
 	UINT createNewCam(HWND camObjectList)
 	{
-		camera[numCam] = new camera_class;
-		camera[numCam]->initCamBase(device);
-		SendMessage(camObjectList, LB_INSERTSTRING, numCam, (LPARAM)camera[numCam]->getCamName());
-		numCam++;
+		camera[numCams] = new camera_class;
+		camera[numCams]->initCamBase(device);
+		SendMessage(camObjectList, LB_INSERTSTRING, numCams, (LPARAM)camera[numCams]->getCamName());
+		numCams++;
 		numGlobal++;
-		return numCam;
+		return numCams;
 	}
 
 	DWORD checkIntersectionWithObjects(ray_struct clickRay, interType intersectedType)
@@ -198,7 +198,7 @@ public:
 	void moveCam(DWORD camNumber, short moveType)
 	{
 		camNumber--;
-		if(camNumber < numCam)
+		if(camNumber < numCams)
 			camera[camNumber]->move(moveType);
 	}
 
@@ -229,14 +229,14 @@ public:
 	void rotateCam(DWORD camNumber, float dX, float dY)
 	{
 		camNumber--;
-		if(camNumber < numCam)
+		if(camNumber < numCams)
 			camera[camNumber]->rotate(dX, dY);		
 	}
 
 	void resetCam(DWORD camNumber)
 	{
 		camNumber--;
-		if(camNumber < numCam)
+		if(camNumber < numCams)
 			 camera[camNumber]->resetMatrices();
 	}
 
@@ -258,7 +258,7 @@ public:
 		object[objectNumber]->uniteVertices();
 	}
 
-	D3DMATERIAL9* getMaterialClass(DWORD objectNumber)
+	D3DMATERIAL9* getMaterial(DWORD objectNumber)
 	{
 		objectNumber--;
 		return object[objectNumber]->getMaterial();
@@ -295,6 +295,61 @@ public:
 	{
 		objectNumber--;
 		object[objectNumber]->saveObject();
+	}
+
+	DWORD getNumObjects()
+	{
+		return numObject;
+	}
+
+	object_class* getObject(DWORD objectNumber)
+	{
+		return object[objectNumber];
+	}
+
+	DWORD getNumLight()
+	{
+		return numLight;
+	}
+
+	light_class* getLight(DWORD lightNumber)
+	{
+		return light[lightNumber];
+	}
+
+	DWORD getNumMaterials(DWORD objectNumber)
+	{
+		return object[objectNumber]->getNumMaterials();
+	}
+
+	material_class* getMaterialClass(DWORD objectNumber, DWORD materialNumber)
+	{
+		return object[objectNumber]->getMaterialClass(materialNumber);
+	}
+
+	void setNumObjects(DWORD bNumObjects)
+	{
+		numObject = bNumObjects; 
+	}
+
+	void setNumLight(DWORD bNumLight)
+	{
+		numLight = bNumLight;
+	}
+
+	void setNumCams(DWORD bNumCams)
+	{
+		numCams = bNumCams;
+	}
+
+	void setNumGlobal()
+	{
+		numGlobal = numObject+numLight+numCams;
+	}
+
+	DWORD getNumCams()
+	{
+		return numCams;
 	}
 
 	//Перерисовать объект
@@ -338,23 +393,31 @@ public:
 		for(;numObject != 0;)
 		{
 			numObject--;
-			delete object[numObject];
-			object[numObject] = NULL;
+			if(object[numObject] != NULL)
+			{
+				delete object[numObject];
+				object[numObject] = NULL;
+			}
 		}
 		
 		for(;numLight != 0;)
 		{
 			numLight--;
-			saveFullLight(light[numLight]->getThis());
-			delete light[numLight];
-			light[numLight] = NULL;
+			if(light[numLight] != NULL)
+			{
+				delete light[numLight];
+				light[numLight] = NULL;
+			}
 		}
 
-		for(;numCam != 0;)
+		for(;numCams != 0;)
 		{
-			numCam--;
-			delete camera[numCam];
-			camera[numCam] = NULL;
+			numCams--;
+			if(camera[numCams] != NULL)
+			{
+				delete camera[numCams];
+				camera[numCams] = NULL;
+			}
 		}
 	}
 };
