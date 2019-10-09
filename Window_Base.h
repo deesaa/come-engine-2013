@@ -1,14 +1,19 @@
 #define ID_BUTTON1  1001
 #define ID_BUTTON2  1002
+#define ID_BUTTON3  1003
+
 #define ID_STATIC1  2001
 
 #define ID_LISTBOX1 3001
+
+#define ID_EDIT1    4001
 
 class window_class
 {
 private:
 	HWND mainWindow, OCButton, COButton, directXWindow;
 	HWND objectsList;
+	HWND OSButton1, OSEdit1;
 	LPCTSTR mainWindowName, OCButtonName;
 public:
 	void initWindows(LPCTSTR windowName, LPCTSTR className, HINSTANCE hInstance, WNDPROC proc)
@@ -29,6 +34,12 @@ public:
 
 		objectsList = CreateWindow(L"listbox", NULL, WS_CHILD|LBS_STANDARD|WS_VISIBLE, 
 			1360, 100, 200, 705, mainWindow, (HMENU)ID_LISTBOX1, hInstance, NULL);
+
+		OSEdit1 = CreateWindow(L"edit", NULL, WS_CHILD|WS_BORDER|WS_VISIBLE|ES_LEFT|ES_AUTOHSCROLL, 
+			35, 403, 150, 20, mainWindow, (HMENU)ID_EDIT1, hInstance, NULL);
+
+		OSButton1 = CreateWindow(L"button", L"Set", WS_CHILD|WS_VISIBLE, 
+			92, 424, 40, 20, mainWindow, (HMENU)ID_BUTTON3, hInstance, NULL);
 	}
 
 	UINT takeObjectFromList()
@@ -47,6 +58,10 @@ public:
 	HWND getObjectsList()
 	{
 		return objectsList;
+	}
+	HWND getNameEditor()
+	{
+		return OSEdit1;
 	}
 };
 

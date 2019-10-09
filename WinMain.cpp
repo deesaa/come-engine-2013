@@ -18,7 +18,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	windows = new window_class;
 	windows->initWindows(windowName, className, hInstance, MainProc);	//Создания базового GUI
 
-	directx9_class device1(windows->getWindowHandle(), hInstance);				//Подключение точки вывода DirectX к окну
+	directx9_class device1(windows->getWindowHandle(), hInstance);		//Подключение точки вывода DirectX к окну
 
 	device = device1.getDevice();							//Вывод выше сделанных объектов в глобальную видимость 
 	objectCreatorWindow = windows->getWindowHandle();		//Получение дескриптора окна, в которое идет вывод DirectX
@@ -92,6 +92,11 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				return 0;
 			}
 			return 0;
+		case ID_BUTTON3:
+			OC->renameObject(windows->getObjectsList(), windows->getNameEditor());
+			return 0;
+		default:
+			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 	case WM_DESTROY:
 		PostQuitMessage(0);

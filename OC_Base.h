@@ -95,6 +95,11 @@ public:
 		pickedObject = bPickedObject;
 	}
 
+	void renameObject(HWND objectsList, HWND nameEditor)
+	{
+		manager->renameObject(pickedObject, objectsList, nameEditor);
+	}
+
 	void applyKBMChanges()
 	{
 		

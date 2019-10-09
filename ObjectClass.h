@@ -16,6 +16,7 @@ class object_class
 private:
 	IDirect3DDevice9* device;
 	UINT ObjectID;
+	char buffer[256];
 	LPCTSTR objectName;
 
 	IDirect3DVertexBuffer9* vb;
@@ -92,7 +93,19 @@ public:
 		worldMatrices.worldMatrixRotateZ(Angle);
 	}
 
-	LPCTSTR getObjctName()
+	void renameObject(HWND objectsList, HWND nameEditor, UINT objectNumber)
+	{
+		SendMessage(nameEditor, EM_LIMITTEXT, (WPARAM)80, NULL);
+		SendMessage(nameEditor, EM_GETLINE, 0, (LPARAM)buffer);
+		
+		objectName = (LPCTSTR)buffer;
+		
+		SendMessage(objectsList, LB_DELETESTRING, (WPARAM)objectNumber, NULL);
+		SendMessage(objectsList, LB_INSERTSTRING, (WPARAM)objectNumber, (LPARAM)objectName);
+		SetWindowText(nameEditor, L"\0");
+	}
+
+	LPCTSTR getObjectName()
 	{
 		return objectName;
 	}

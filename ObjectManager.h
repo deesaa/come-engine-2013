@@ -45,18 +45,24 @@ public:
 	{
 		object[numObject] = new object_class;	//Выделение памяти для объекта
 		object[numObject]->initObjectBase(device, numObject, vb, ib); //Создание базы нового объекта
-		SendMessage(objectList, LB_ADDSTRING, 0, (LPARAM)object[numObject]->getObjctName());
+		SendMessage(objectList, LB_ADDSTRING, 0, (LPARAM)object[numObject]->getObjectName());
 		numObject++; //Инкремент счетчика объектов
 		return numObject;
+	}
+
+	void renameObject(UINT objectNumber, HWND objectsList, HWND nameEditor)
+	{
+		objectNumber--;
+		if(objectNumber < numObject)
+			object[objectNumber]->renameObject(objectsList, nameEditor, objectNumber);
+		
 	}
 
 	void moveObject(UINT objectNumber, float x, float y, float z)
 	{
 		objectNumber--;
 		if(objectNumber < numObject)
-		{
 			object[objectNumber]->moveObject(x, y, z);
-		}
 	}
 
 	void rotateObject(UINT objectNumber, int AXIS, float Angle)
