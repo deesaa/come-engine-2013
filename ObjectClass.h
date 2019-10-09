@@ -545,7 +545,19 @@ public:
 
 	LPCTSTR getObjectName()
 	{	return objectName;}
+	DWORD getObjectID()
+	{	return ObjectID;}
 
+	ID3DXMesh* getMehs()
+	{	return mesh;}
+	vertex* getVertices()
+	{	return vertices;}
+	WORD* getIndices()
+	{	return indices;}
+	DWORD getNumVerts()
+	{	return numCreatedVerts;}
+	DWORD getNumFaces()
+	{	return numCreatedFaces;}
 	void redraw()
 	{
 		worldMatrices.resetMatrices();
@@ -583,6 +595,8 @@ public:
 
 	~object_class()
 	{
+		saveFullObject(this);
+
 		for(;numMaterials != 0;)
 		{
 			numMaterials--;

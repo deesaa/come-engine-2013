@@ -1,6 +1,7 @@
 //Включение всяких технических библиотек, в которых лезть не надо
 #include <windows.h>
 #include <CommDlg.h>
+#include <fstream>
 
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "dinput8.lib")
@@ -32,6 +33,9 @@ void setAllMatrices(D3DXMATRIX* worldMatrix, D3DXMATRIX* viewMatrix, D3DXMATRIX*
 void setViewMatrices(D3DXMATRIX* viewMatrix, D3DXMATRIX* projMatrix, IDirect3DDevice9* device);
 BOOL initPalette(HWND hwnd, D3DCOLORVALUE* mtrComponent);
 
+class object_class;
+void saveFullObject(object_class* object);
+
 //Собственно включение всех компонентов "движка"
 #include "Constants.h"
 #include "Structs.h"
@@ -47,3 +51,4 @@ BOOL initPalette(HWND hwnd, D3DCOLORVALUE* mtrComponent);
 #include "DirectX_Base.h"
 #include "OC_Base.h"
 #include "Object_Settings.h"
+#include "Object_Outwrite.h"
