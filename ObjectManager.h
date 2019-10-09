@@ -227,6 +227,12 @@ public:
 			camera[camNumber]->resetMatrices();
 	}
 
+	void loadTexture(DWORD objectNumber)
+	{
+		objectNumber--;
+		return object[objectNumber]->simplyLoadTexture();
+	}
+
 	D3DMATERIAL9* getMaterialClass(DWORD objectNumber)
 	{
 		objectNumber--;

@@ -44,6 +44,7 @@ void saveAs(HINSTANCE bhInstace, HWND bWindow, object_class* object);
 #include "Matrices_Class.h"
 #include "DirectXInput_Class.h"
 #include "Material_Class.h"
+#include "Texture_Class.h"
 #include "Light_Class.h"
 #include "ObjectClass.h"
 #include "ObjectManager.h"

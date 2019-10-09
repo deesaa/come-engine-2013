@@ -1,36 +1,6 @@
 
 enum interType{interObject, interVertex};
 
-struct vertex	
-{
-	D3DXVECTOR3 pos;
-	float nX, nY, nZ;
-	static const DWORD FVF;
-
-	vertex(){}
-	vertex(float bX, float bY, float bZ, float bnX, float bnY, float bnZ)
-	{
-		pos = D3DXVECTOR3(bX, bY, bZ);
-		nX = bnX; nY = bnY; nZ = bnZ;
-	}
-};
-const DWORD vertex::FVF = D3DFVF_XYZ | D3DFVF_NORMAL;
-
-struct particle
-{
-	D3DXVECTOR3 pos;
-	float size;
-	static const DWORD FVF;
-
-	particle(){}
-	particle(D3DXVECTOR3 bPos, float bSize)
-	{
-		pos = bPos;
-		size = bSize;
-	}
-};
-const DWORD particle::FVF = D3DFVF_XYZ | D3DFVF_PSIZE;
-
 class object_class
 {
 private:
@@ -55,6 +25,7 @@ private:
 	D3DXATTRIBUTERANGE* attributeTable; 
 
 	material_class* material[64];
+	texture_class* texture[64];
 	sphere_struct* vertexSphere[512];
 	std::vector<triangle> triangless;
 	triangle* triangles[512];
@@ -68,6 +39,7 @@ private:
 	DWORD numCreatedVerts;
 
 	DWORD numMaterials;
+	DWORD numTextures;
 
 public:
 	void initObjectBase(IDirect3DDevice9* bDevice, DWORD numObject, HWND bSubsetsList)
@@ -79,6 +51,7 @@ public:
 		numSubsets      = 0;
 		pickedSubset    = -1;
 		numMaterials	= 0;
+		numTextures		= 0;
 		numCreatedVerts = 0;
 		numCreatedFaces = 0;
 		numPickedVerts  = 0;
@@ -120,19 +93,23 @@ public:
 		material[numMaterials] = new material_class;
 		material[numMaterials]->initMaterialBase(device);
 
+		texture[numTextures] = new texture_class;
+		texture[numTextures]->initBaseForTexture(device);
+
 		SendMessage(subsetsList, LB_INSERTSTRING, numSubsets, (LPARAM)(LPCTSTR)L"Subset");
 		pickedSubset = numSubsets;
 
 		numSubsets	 += 1;
 		numMaterials += 1;
+		numTextures  += 1;
 	}
 
 	void createNewFoundation()
 	{
 		mesh->LockVertexBuffer(0, (void**)&vertices);
-		vertices[numCreatedVerts  ] = vertex( 0.0f, 1.0f,  0.0f, 0.0f, 0.0f, 0.0f);
-		vertices[numCreatedVerts+1] = vertex( 1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f);	
-		vertices[numCreatedVerts+2] = vertex(-1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f);
+		vertices[numCreatedVerts  ] = vertex( 1.0f,  3.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+		vertices[numCreatedVerts+1] = vertex( 3.0f,  3.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);	
+		vertices[numCreatedVerts+2] = vertex( 1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 		mesh->UnlockVertexBuffer();
 
 		mesh->LockIndexBuffer(0, (void**)&indices);
@@ -145,12 +122,12 @@ public:
 		attributeBuffer[numCreatedFaces] = numSubsets; 
 		mesh->UnlockAttributeBuffer();
 
-		vpb->Lock(numCreatedVerts, 3, (void**)&particles, NULL);
+		vpb->Lock(NULL, NULL, (void**)&particles, NULL);
 		for(short i(0); i != 3;)
 		{
 			vertexSphere[numCreatedVerts+i] = new sphere_struct;
 			*vertexSphere[numCreatedVerts+i] = sphere_struct(vertices[numCreatedVerts+i].pos, numCreatedVerts+i, numCreatedFaces*3+i, 
-				0.3f, FALSE, numCreatedVerts+i);
+				0.3f, FALSE, numCreatedVerts+i, Father);
 
 			particles[numCreatedVerts+i] = particle(vertices[numCreatedVerts+i].pos, 0.5f);
 			i++;
@@ -159,7 +136,7 @@ public:
 
 		triangles[numCreatedFaces] = new triangle;
 		*triangles[numCreatedFaces] = triangle(Full, numCreatedVerts, numCreatedVerts+1, numCreatedVerts+2, 
-			numCreatedFaces, numSubsets, numMaterials);
+			numCreatedFaces, numSubsets, numMaterials, numCreatedVerts, numCreatedVerts+1, numCreatedVerts+2);
 
 		numCreatedVerts += 3;
 		numCreatedFaces += 1;
@@ -170,26 +147,48 @@ public:
 		bool found[3] = {FALSE, FALSE, FALSE};
 		DWORD vertsID[3];
 		
-		 this->findRelevantVertices(found, vertsID);
+		this->findRelevantVertices(found, vertsID);
 
 		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE)
 		{
-			mesh->LockIndexBuffer(0, (void**)&indices);
-			indices[numCreatedFaces*3  ] = vertsID[0];
-			indices[numCreatedFaces*3+1] = vertsID[1];
-			indices[numCreatedFaces*3+2] = vertsID[2];
-			mesh->UnlockIndexBuffer();
+			mesh->LockVertexBuffer(0, (void**)&vertices);
+			vertices[numCreatedVerts  ] = vertices[vertsID[0]];
+			vertices[numCreatedVerts+1] = vertices[vertsID[1]];
+			vertices[numCreatedVerts+2] = vertices[vertsID[2]];
+			mesh->UnlockVertexBuffer();
 
-			mesh->GenerateAdjacency(0.0001f, adjacencyInfo);
+			mesh->LockIndexBuffer(0, (void**)&indices);
+			indices[numCreatedVerts  ] = numCreatedVerts;
+			indices[numCreatedVerts+1] = numCreatedVerts+1; 
+			indices[numCreatedVerts+2] = numCreatedVerts+2;
+			mesh->UnlockIndexBuffer();
 
 			mesh->LockAttributeBuffer(0, &attributeBuffer); 
 			attributeBuffer[numCreatedFaces] = numSubsets-1; 
 			mesh->UnlockAttributeBuffer();
 
-			triangles[numCreatedFaces] = new triangle;
-			*triangles[numCreatedFaces] = triangle(Ind, vertsID[0], vertsID[1], vertsID[2], 
-				numCreatedFaces, numSubsets-1, numMaterials-1);
+			vpb->Lock(NULL, NULL, (void**)&particles, NULL);
+			for(short i(0); i != 3;)
+			{
+				vertexSphere[numCreatedVerts+i] = new sphere_struct;
+				*vertexSphere[numCreatedVerts+i] = sphere_struct(vertices[numCreatedVerts+i].pos, numCreatedVerts+i, numCreatedFaces*3+i, 
+					0.3f, FALSE, numCreatedVerts+i, Child);
 
+				vertexSphere[vertsID[i]]->linkVert(numCreatedVerts+i);
+
+				particles[numCreatedVerts+i] = particle(vertices[numCreatedVerts+i].pos, 0.5f);
+				i++;
+			}
+			vpb->Unlock();
+
+			triangles[numCreatedFaces] = new triangle;
+			*triangles[numCreatedFaces] = triangle(Full, numCreatedVerts, numCreatedVerts+1, numCreatedVerts+2, 
+				numCreatedFaces, numSubsets-1, numMaterials-1, vertsID[0], vertsID[1], vertsID[2]);
+
+			mesh->GenerateAdjacency(0.001f, adjacencyInfo);
+			D3DXComputeNormals(mesh, adjacencyInfo);
+
+			numCreatedVerts += 3;
 			numCreatedFaces += 1;
 		}
 		else
@@ -197,16 +196,16 @@ public:
 			if(found[0] == TRUE && found[1] == TRUE)
 			{
 				mesh->LockVertexBuffer(0, (void**)&vertices);
-				vertices[numCreatedVerts] = vertex(-3.0f, 0.0f,  1.0f, 0.0f, 0.0f, 0.0f); //New Vertex
+				vertices[numCreatedVerts]   = vertex( 3.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f); //New Vertex
+				vertices[numCreatedVerts+1] = vertices[vertsID[1]];
+				vertices[numCreatedVerts+2] = vertices[vertsID[0]];
 				mesh->UnlockVertexBuffer();
 
 				mesh->LockIndexBuffer(0, (void**)&indices);
-				indices[numCreatedFaces*3  ] = numCreatedVerts;
-				indices[numCreatedFaces*3+1] = vertsID[0];
-				indices[numCreatedFaces*3+2] = vertsID[1];
+				indices[numCreatedVerts  ] = numCreatedVerts;
+				indices[numCreatedVerts+1] = numCreatedVerts+1; 
+				indices[numCreatedVerts+2] = numCreatedVerts+2;
 				mesh->UnlockIndexBuffer();
-
-				mesh->GenerateAdjacency(0.0001f, adjacencyInfo);
 
 				mesh->LockAttributeBuffer(0, &attributeBuffer); 
 				attributeBuffer[numCreatedFaces] = numSubsets-1; 
@@ -214,19 +213,49 @@ public:
 
 				vertexSphere[numCreatedVerts] = new sphere_struct;
 				*vertexSphere[numCreatedVerts] = sphere_struct(vertices[numCreatedVerts].pos, numCreatedVerts, numCreatedFaces*3, 
-					0.3f, FALSE, numCreatedVerts);
+					0.3f, FALSE, numCreatedVerts, Father);
+
+				vertexSphere[numCreatedVerts+1] = new sphere_struct;
+				*vertexSphere[numCreatedVerts+1] = sphere_struct(vertices[numCreatedVerts+1].pos, numCreatedVerts+1, numCreatedFaces*3+1, 
+					0.3f, FALSE, numCreatedVerts+1, Child);
+
+				vertexSphere[numCreatedVerts+2] = new sphere_struct;
+				*vertexSphere[numCreatedVerts+2] = sphere_struct(vertices[numCreatedVerts+2].pos, numCreatedVerts+2, numCreatedFaces*3+2, 
+					0.3f, FALSE, numCreatedVerts+2, Child);
+
+				vertexSphere[vertsID[1]]->linkVert(numCreatedVerts+1);
+				vertexSphere[vertsID[0]]->linkVert(numCreatedVerts+2);
+
+				vpb->Lock(NULL, NULL, (void**)&particles, NULL);
+				for(short i(0); i != 3;)
+				{
+					particles[numCreatedVerts+i] = particle(vertices[numCreatedVerts+i].pos, 0.5f);
+					i++;
+				}
+				vpb->Unlock();
 
 				triangles[numCreatedFaces] = new triangle;
-				*triangles[numCreatedFaces] = triangle(Vert, numCreatedVerts, vertsID[0], vertsID[1], 
-					numCreatedFaces, numSubsets-1, numMaterials-1);
+				*triangles[numCreatedFaces] = triangle(Full, numCreatedVerts, numCreatedVerts+1, numCreatedVerts+2, 
+					numCreatedFaces, numSubsets-1, numMaterials-1, numCreatedVerts, vertsID[1], vertsID[0]);
 
-				particles[numCreatedVerts] = particle(vertices[numCreatedVerts].pos, 0.5f);
+				mesh->GenerateAdjacency(0.001f, adjacencyInfo);
+				D3DXComputeNormals(mesh, adjacencyInfo);
 
-				numCreatedVerts += 1;
+				numCreatedVerts += 3;
 				numCreatedFaces += 1;
 			}
 		}
-		D3DXComputeNormals(mesh, adjacencyInfo);
+	}
+
+	void simplyLoadTexture()
+	{
+		DWORD vertsID[4];
+		bool found[4];
+		this->findFourRelevantVertices(found, vertsID);
+		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE && found[3] == TRUE)
+		{
+			texture[pickedSubset]->loadTexture(vertsID, vertices, vertexSphere);	
+		}
 	}
 
 	void swapIndices()
@@ -239,26 +268,32 @@ public:
 
 		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE)   //Три вершины найдены
 		{
-			DWORD relevantTriangle(-1);
+			DWORD relevantTriangle[24];
+			DWORD numRelevantTris(0);
+			this->findRelevantTriangles(vertsID, relevantTriangle, &numRelevantTris);
 
-			this->findRelevantTriangles(vertsID, &relevantTriangle);
-
-			if(relevantTriangle != -1 && numPickedVerts == 3)
+			if(numPickedVerts == 3)
 			{
 				DWORD indexBuffer;										
-
+				
 				mesh->LockIndexBuffer(0, (void**)&indices);
-				indexBuffer = indices[relevantTriangle*3+2];					//Меняем местами второй и третий индекс
-				indices[relevantTriangle*3+2] = indices[relevantTriangle*3+1];
-				indices[relevantTriangle*3+1] = indexBuffer;
+				for(DWORD counter(0); counter != numRelevantTris;)
+				{
+					indexBuffer = indices[relevantTriangle[counter]*3+2];					//Меняем местами второй и третий индекс
+					indices[relevantTriangle[counter]*3+2] = indices[relevantTriangle[counter]*3+1];
+					indices[relevantTriangle[counter]*3+1] = indexBuffer;
+					counter += 1;
+				}
 				mesh->UnlockIndexBuffer();
+
+				mesh->GenerateAdjacency(0.001f, adjacencyInfo);
+				D3DXComputeNormals(mesh, adjacencyInfo);
 			}
 		}
 	}
 
 	void newSubset()
 	{
-		int counter(0);
 		bool found[3] = {FALSE, FALSE, FALSE};
 		DWORD vertsID[3];
 
@@ -266,26 +301,35 @@ public:
 
 		if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE)   //Три вершины найдены
 		{
-			DWORD relevantTriangle(-1);
-			this->findRelevantTriangles(vertsID, &relevantTriangle);
+			DWORD relevantTriangle[24];
+			DWORD numRelevantTris(0);
+			this->findRelevantTriangles(vertsID, relevantTriangle, &numRelevantTris);
 
-			if(relevantTriangle != -1 && numPickedVerts == 3)
+			if(numPickedVerts == 3)
 			{
 				mesh->LockAttributeBuffer(0, &attributeBuffer); 
-				attributeBuffer[relevantTriangle] = numSubsets; 
+				for(DWORD counter(0); counter != numRelevantTris;)
+				{
+					attributeBuffer[relevantTriangle[counter]] = numSubsets; 
+
+					triangles[relevantTriangle[counter]]->subsetID   = numSubsets;
+					triangles[relevantTriangle[counter]]->materialID = numMaterials;
+					counter += 1;
+				}
 				mesh->UnlockAttributeBuffer();
 
-				material[numMaterials] = new material_class;
-				material[numMaterials]->initAbsolutelyWhiteMaterial(device);
+				material[numSubsets] = new material_class;
+				material[numSubsets]->initAbsolutelyWhiteMaterial(device);
 
-				triangles[relevantTriangle]->subsetID   = numSubsets;
-				triangles[relevantTriangle]->materialID = numMaterials;
+				texture[numSubsets] = new texture_class;
+				texture[numSubsets]->initBaseForTexture(device);
 
 				SendMessage(subsetsList, LB_INSERTSTRING, numSubsets, (LPARAM)(LPCTSTR)L"Subset");
 			
 				pickedSubset = numSubsets;
-				numSubsets += 1;
-				numMaterials++;
+				numSubsets	 += 1;
+				numMaterials += 1;
+				numTextures  += 1;
 			}
 		}
 	}
@@ -317,18 +361,30 @@ public:
 	{
 		vertexNumber--;
 	
-		mesh->LockVertexBuffer(0, (void**)&vertices);
-		if(dX > 0)
-			worldMatrices.moveVert(&vertices[vertexNumber].pos, dX, dY, dZ, MOVE_RIGHT);
-		if(dX < 0)
-			worldMatrices.moveVert(&vertices[vertexNumber].pos, dX, dY, dZ, MOVE_LEFT);
-		if(dY > 0)
-			worldMatrices.moveVert(&vertices[vertexNumber].pos, dX, dY, dZ, MOVE_DOWN);
-		if(dY < 0)
-			worldMatrices.moveVert(&vertices[vertexNumber].pos, dX, dY, dZ, MOVE_UP);
+		if(vertexSphere[vertexNumber]->vertType == Father)
+		{
+			mesh->LockVertexBuffer(0, (void**)&vertices);
+			if(dX > 0)
+				worldMatrices.moveVert(&vertices[vertexNumber].pos, dX, dY, dZ, MOVE_RIGHT);
+			if(dX < 0)
+				worldMatrices.moveVert(&vertices[vertexNumber].pos, dX, dY, dZ, MOVE_LEFT);
+			if(dY > 0)
+				worldMatrices.moveVert(&vertices[vertexNumber].pos, dX, dY, dZ, MOVE_DOWN);
+			if(dY < 0)
+				worldMatrices.moveVert(&vertices[vertexNumber].pos, dX, dY, dZ, MOVE_UP);
 
-		particles[vertexNumber].pos = vertexSphere[vertexNumber]->center = vertices[vertexNumber].pos;
-		mesh->UnlockVertexBuffer();	
+			particles[vertexNumber].pos = vertexSphere[vertexNumber]->center = vertices[vertexNumber].pos;
+
+			for(DWORD counter(0); counter != vertexSphere[vertexNumber]->numLinkedVerts;)
+			{
+				particles[vertexSphere[vertexNumber]->linkedVertices[counter]].pos = 
+				vertexSphere[vertexSphere[vertexNumber]->linkedVertices[counter]]->center = 
+				vertices[vertexSphere[vertexNumber]->linkedVertices[counter]].pos =
+				vertexSphere[vertexNumber]->center;
+				counter++;
+			}
+			mesh->UnlockVertexBuffer();	
+		}
 	}
 
 	void rotateXObject(float Angle)
@@ -388,7 +444,6 @@ public:
 						
 						if(numPickedVerts == 3)
 						{
-							int counter(0);
 							bool found[3] = {FALSE, FALSE, FALSE};
 							DWORD vertsID[3];
 
@@ -396,13 +451,17 @@ public:
 	
 							if(found[0] == TRUE && found[1] == TRUE && found[2] == TRUE)   //Три вершины найдены
 							{
-								DWORD relevantTriangle(-1);
+								DWORD relevantTriangle[24];
+								DWORD numRelevantTris(0);
+								this->findRelevantTriangles(vertsID, relevantTriangle, &numRelevantTris);
 
-								this->findRelevantTriangles(vertsID, &relevantTriangle);
-
-								if(relevantTriangle != -1 && numPickedVerts == 3)
+								if(numPickedVerts == 3)
 								{
-									pickedSubset = triangles[relevantTriangle]->subsetID;
+									for(DWORD counter(0); counter != numRelevantTris;)
+									{
+										pickedSubset = triangles[relevantTriangle[counter]]->subsetID;
+										counter += 1;
+									}
 								}
 							}
 						}
@@ -442,6 +501,26 @@ public:
 		SendMessage(objectsList, LB_INSERTSTRING, (WPARAM)objectNumber, (LPARAM)objectName);
 	}
 
+	void findFourRelevantVertices(bool found[], DWORD vertsID[])
+	{
+		int counter(0);
+		for(short i(0); i != 4;)
+		{
+			for(;counter != numCreatedVerts;)
+			{
+				if(vertexSphere[counter]->isPicked)
+				{
+					vertsID[i] = vertexSphere[counter]->startVertex;
+					found[i] = TRUE;
+					counter++;
+					break;
+				}
+				counter++;
+			}
+			i++;
+		}
+	}
+
 	void findRelevantVertices(bool found[], DWORD vertsID[])
 	{
 		int counter(0);
@@ -462,30 +541,29 @@ public:
 		}
 	}
 
-	void findRelevantTriangles(DWORD vertsID[], DWORD* relevantTriangle)
+	void findRelevantTriangles(DWORD vertsID[], DWORD relevantTriangle[], DWORD* numRelevantTris)
 	{
-		short relevantVertices(0);
-		for(DWORD tri(0); tri != numCreatedFaces;)	//Проверяем отношение выбранных вершин к какому-то одному полигону					
+		DWORD relevantVerts(0);
+		for(DWORD counter(0); counter != numCreatedFaces;)
 		{
-			for(short i(0); i != 3;)								
+			for(short counter_2(0); counter_2 != 3;)
 			{
-				if(triangles[tri]->verticesID[i] == vertsID[0])
-					relevantVertices++;
-				if(triangles[tri]->verticesID[i] == vertsID[1])
-					relevantVertices++;
-				if(triangles[tri]->verticesID[i] == vertsID[2])
-					relevantVertices++;
+				if(triangles[counter]->fathers[0] == vertsID[counter_2])
+					relevantVerts += 1;
+				if(triangles[counter]->fathers[1] == vertsID[counter_2])
+					relevantVerts += 1;
+				if(triangles[counter]->fathers[2] == vertsID[counter_2])
+					relevantVerts += 1;
 
-				if(relevantVertices == 3)
-				{	*relevantTriangle = tri;
-				break;}
-				i++;
+				if(relevantVerts == 3)
+				{	relevantTriangle[*numRelevantTris] = counter;
+					*numRelevantTris += 1;}
+				counter_2 += 1;
 			}
-			relevantVertices = 0;
-			tri++;
+			relevantVerts = 0;
+			counter += 1;
 		}
 	}
-
 	LPCTSTR getObjectName()
 	{	return objectName;}
 	DWORD getObjectID()
@@ -535,7 +613,11 @@ public:
 
 		for(DWORD subset(0); subset != numSubsets; subset++)
 		{
-			material[subset]->resetMaterial();
+			if(numMaterials)
+				material[subset]->resetMaterial();
+			if(numTextures)
+				texture[subset]->resetTexture();
+
 			mesh->DrawSubset(subset);
 		}
 	}
@@ -549,6 +631,13 @@ public:
 			numMaterials--;
 			delete material[numMaterials];
 			material[numMaterials] = NULL;
+		}
+
+		for(;numTextures != 0;)
+		{
+			numTextures--;
+			delete texture[numTextures];
+			texture[numTextures] = NULL;
 		}
 
 		for(;numCreatedFaces != 0;)

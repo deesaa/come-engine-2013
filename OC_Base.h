@@ -40,6 +40,7 @@ private:
 	bool SwapVertsButtonLocked;
 	bool NewSubsetButtonLocked;
 	bool SaveObjectButtonLocked;
+	bool LoadTextureButtonLocked;
 public:
 	object_creator(){}
 
@@ -58,10 +59,11 @@ public:
 		KBDevice = d3dInput.getKBDevice();
 		MDevice = d3dInput.getMDevice();
 
-		NewTriButtonLocked	   = FALSE;
-		SwapVertsButtonLocked  = FALSE;
-		NewSubsetButtonLocked  = FALSE;
-		SaveObjectButtonLocked = FALSE;
+		NewTriButtonLocked	    = FALSE;
+		SwapVertsButtonLocked   = FALSE;
+		NewSubsetButtonLocked   = FALSE;
+		SaveObjectButtonLocked  = FALSE;
+		LoadTextureButtonLocked = FALSE;
 
 		manager = bManager;						//Сохранение дескриптора менеджера объектов
 		pickedObject = NULL;					
@@ -302,6 +304,18 @@ public:
 		}
 		else
 			SaveObjectButtonLocked = FALSE;
+
+		if (KBBuffer[DIK_T] & 0x8000f)
+		{
+			if(LoadTextureButtonLocked == FALSE)
+			{
+				if(pickType == Object)
+					manager->loadTexture(pickedObject);
+			}
+			LoadTextureButtonLocked = TRUE;
+		}
+		else
+			LoadTextureButtonLocked = FALSE;
 	}
 
 	~object_creator() 
