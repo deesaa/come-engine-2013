@@ -23,27 +23,40 @@ private:
 	HINSTANCE hInstace;
 	fullMatrices_class matrices;		//Объект класса набора матриц (мира, вида, проэктирования) для сетки редактора объектов
 
-	IDirect3DVertexBuffer9* vb;
-	IDirect3DIndexBuffer9* ib;
+	IDirect3DVertexBuffer9* vb;			//Буфер вершин сетки
+	IDirect3DIndexBuffer9* ib;			//Буфер индексов сетки
 
 	COVertex* vertices;					//Вершины сетки редактора объектов
 	WORD* indices;						//Индексы сетки редактора объектов
 
-	d3dInput_class d3dInput;
-	IDirectInputDevice8* KBDevice;
-	char buffer[256];					// Буфер для хранения состояния клавиотуры
+	d3dInput_class d3dInput;			//Объект класса устройств ввода(клавиотура, мышь)
+	IDirectInputDevice8* KBDevice;		//Клавиотура
+	IDirectInputDevice8* MDevice;		//Мышь
+	char KBBuffer[256];					//Буфер для хранения состояния клавиотуры
+	DIMOUSESTATE MBuffer;				//Буфер для хранения состояния мыши
+
+	float dX, dY, dZ;					//Статическое храниние информации о передвижении мыши (для передвижения объектов)
+	float AngleX, AngleY, AngleZ;		//Углы для поворота объектов
 
 public:
 	object_creator(IDirect3DDevice9* bDevice, HWND bWindowHandle, HINSTANCE bhInstance)
 	{
-		device = bDevice;
+		device = bDevice;					//Сохранение дестрипторов устройства, окна, приложения
 		windowHandle = bWindowHandle;
 		hInstace = bhInstance;
+		dX = 0; dY = 0;	dZ = 0;
+		AngleX = 0.0f; AngleY = 0.0f;
 		this->createBuffers();  //Создание буфера вершин и индексов					
 		COFillBuffers(vb, ib, vertices, indices);  //Заполнение буфера вершин и интексов сетки редактора объектов
 		matrices.fillMatrices(0, 0, 0, 0.5f, device);  //Заполнение и установка всех трех матриц
-		d3dInput.fillInputClass(windowHandle, hInstace);
+		d3dInput.createInput(hInstace);
+		d3dInput.createKBMInput(windowHandle);
 		KBDevice = d3dInput.getKBDevice();
+		MDevice = d3dInput.getMDevice();
+
+		matrices.worldMatrixRotateX(0.0f);		//Установка углов наклона в 0 (для правильного начального отображения)
+		matrices.worldMatrixRotateY(0.0f);
+		matrices.worldMatrixRotateZ(0.0f);
 	}
 
 	//Создание буфера вершин и индексов	
@@ -68,25 +81,77 @@ public:
 
 	void applyKBChanges()
 	{
-		if(FAILED(KBDevice->GetDeviceState(sizeof(buffer),buffer)))
+		
+		if(FAILED(KBDevice->GetDeviceState(sizeof(KBBuffer), KBBuffer)))
 			KBDevice->Acquire();
-		if (buffer[DIK_RIGHT] & 0x80) 
-			device->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
-			0x00000000, 1.0f, 0);
+
+		if(FAILED(MDevice->GetDeviceState(sizeof(DIMOUSESTATE), &MBuffer)))
+			MDevice->Acquire();
+		
+		if (KBBuffer[DIK_W] & 0x80)
+		{
+			AngleX += 0.001f;
+			if(AngleX >= 6.28f)
+				AngleX = 0.0f;
+			matrices.worldMatrixRotateX(AngleX);
+		}
+
+		if (KBBuffer[DIK_S] & 0x80)
+		{
+			AngleX -= 0.001f;
+			if(AngleX >= 6.28f)
+				AngleX = 0.0f;
+			matrices.worldMatrixRotateX(AngleX);
+		}
+
+		if (KBBuffer[DIK_A] & 0x80)
+		{
+			AngleY += 0.001f;
+			if(AngleY >= 6.28f)
+				AngleY = 0.0f;
+			matrices.worldMatrixRotateY(AngleY);
+		}
+
+		if (KBBuffer[DIK_D] & 0x80)
+		{
+			AngleY -= 0.001f;
+			if(AngleY >= 6.28f)
+				AngleY = 0.0f;
+			matrices.worldMatrixRotateY(AngleY);
+		}
+			
+		if (MBuffer.rgbButtons[LEFT_BUTTON] & 0x80)
+		{
+			dX += MBuffer.lX * 0.02f;
+			dY -= MBuffer.lY * 0.02f;
+			matrices.worldMatrixMove(dX, dY, 0);
+		}
+		
+		if (MBuffer.rgbButtons[RIGHT_BUTTON] & 0x80)
+		{
+			dX = 0;
+			dY = 0;
+			matrices.worldMatrixMove(0, 0, 0);
+			matrices.worldMatrixRotateX(0.0f);		//Установка углов наклона в 0
+			matrices.worldMatrixRotateY(0.0f);
+			matrices.worldMatrixRotateZ(0.0f);
+		}
 	}
 
 	//Перерисовка редактора объектов
 	void redraw()	
 	{
+		matrices.resetWorldMatrices();
 		device->SetStreamSource(0, vb, 0, sizeof(COVertex));
 		device->SetIndices(ib);
 		device->SetFVF(COVertex::FVF);
-		device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,
-			0, 0, 4, 0, 2);
+		device->DrawIndexedPrimitive(D3DPT_LINELIST,
+			0, 0, 8, 0, 6);
 	}
 
 	~object_creator() 
 	{
+		d3dInput.Release();
 		ib->Release();
 		vb->Release();
 	}
@@ -96,14 +161,22 @@ public:
 void COFillBuffers(IDirect3DVertexBuffer9* vb, IDirect3DIndexBuffer9* ib, COVertex* vertices, WORD* indices)
 {
 	vb->Lock(NULL, NULL, (void**)&vertices, NULL);
-	vertices[0] = COVertex(-1.0f, -1.0f, -1.0f);
-	vertices[1] = COVertex(-1.0f,  1.0f, -1.0f);
-	vertices[2] = COVertex( 1.0f,  1.0f, -1.0f);
-	vertices[3] = COVertex( 1.0f, -1.0f, -1.0f);
+	vertices[0] = COVertex(-1, -1, -1);
+	vertices[1] = COVertex(1, -1, -1);
+	vertices[2] = COVertex(-1, 0, -1);
+	vertices[3] = COVertex(1, 0, -1);
+	vertices[4] = COVertex(-1, 1, -1);
+	vertices[5] = COVertex(1, 1, -1);
+	vertices[6] = COVertex(0, 1, -1);
+	vertices[7] = COVertex(0, -1, -1);
 	vb->Unlock();
 
 	ib->Lock(0, 0, (void**)&indices, 0);
-	indices[0]  = 0; indices[1]  = 1; indices[2]  = 2;
-	indices[3]  = 0; indices[4]  = 2; indices[5]  = 3;
+	indices[0]  = 0; indices[1]  = 1; 
+	indices[2]  = 2; indices[3]  = 3; 
+	indices[4]  = 4; indices[5]  = 5; 
+	indices[6]  = 0; indices[7]  = 4; 
+	indices[8]  = 7; indices[9]  = 6; 
+	indices[10] = 1; indices[11] = 5; 
 	ib->Unlock();
 }
