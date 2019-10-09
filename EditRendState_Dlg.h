@@ -5,17 +5,23 @@
 
 struct rendState
 {
-	std::wstring rendStateType;
-	std::wstring rendStateValue[32];
+	std::wstring strRendStateType;
+	std::wstring strRendStateValue[32];
+	D3DRENDERSTATETYPE rendStateType;
+	DWORD rendStateValue[32];
+	DWORD numValues;
 
 	rendState(){}
-	rendState(std::wstring type, std::vector<std::wstring> values, DWORD size)
+	rendState(std::wstring strType, D3DRENDERSTATETYPE type, std::vector<std::wstring> strValues, DWORD values[], DWORD size)
 	{
+		strRendStateType = strType;
 		rendStateType = type;
 		for(DWORD counter(0); counter != size;)
 		{
-			rendStateValue[counter] = values[counter];
+			strRendStateValue[counter] = strValues[counter];
+			rendStateValue[counter]	   = values[counter];
 			counter += 1;
+			numValues = counter;
 		}
 	}
 };
@@ -26,7 +32,12 @@ private:
 	HWND mainWindow;
 	HINSTANCE hInstance;
 
-	dlgWnd* RSSWindow;
+	std::vector<std::wstring> strValues;
+	std::wstring strType;
+
+	DWORD RSEComboboxID;
+	DWORD RSEComboboxStartID;
+	dlgWnd* RSEWindow;
 	DWORD numInitedTypes;
 	rendState* rendTypes[64];
 
@@ -37,12 +48,40 @@ public:
 	void initRendTypes()
 	{
 		rendTypes[numInitedTypes] = new rendState;
-		std::vector<std::wstring> values;
-		values.push_back(L"FILL_WIREFRAME");
-		values.push_back(L"FILL_POINT");
-		values.push_back(L"FILL_SOLID");
-		std::wstring type     = L"RS_FILLMODE";
-		*rendTypes[numInitedTypes] = rendState(type, values, values.size());
+		strType = L"RS_FILLMODE";
+		strValues.clear();
+		strValues.push_back(L"FILL_WIREFRAME");
+		strValues.push_back(L"FILL_POINT");
+		strValues.push_back(L"FILL_SOLID");
+		{
+			DWORD values[] = {D3DFILL_WIREFRAME, D3DFILL_POINT, D3DFILL_SOLID};
+			*rendTypes[numInitedTypes] = rendState(strType, D3DRS_FILLMODE, strValues, values, strValues.size());
+		}
+		numInitedTypes += 1;
+
+		rendTypes[numInitedTypes] = new rendState;
+		strType.clear();
+		strType = L"RS_CULLMODE";
+		strValues.clear();
+		strValues.push_back(L"CULL_CW");
+		strValues.push_back(L"CULL_NONE");
+		strValues.push_back(L"CULL_CCW");
+		{
+			DWORD values[] = {D3DCULL_CW, D3DCULL_NONE, D3DCULL_CCW};
+			*rendTypes[numInitedTypes] = rendState(strType, D3DRS_CULLMODE, strValues, values, strValues.size());
+		}
+		numInitedTypes += 1;
+
+		rendTypes[numInitedTypes] = new rendState;
+		strType.clear();
+		strType = L"RS_LIGHTING";
+		strValues.clear();
+		strValues.push_back(L"LIGHTING_TRUE");
+		strValues.push_back(L"LIGHTING_FALSE");
+		{
+			DWORD values[] = {TRUE, FALSE};
+			*rendTypes[numInitedTypes] = rendState(strType, D3DRS_LIGHTING, strValues, values, strValues.size());
+		}
 		numInitedTypes += 1;
 	}
 
@@ -51,6 +90,8 @@ public:
 		mainWindow = bMainWindow;
 		hInstance  = bhInstance;
 		numInitedTypes = 0;
+		RSEComboboxStartID = 32001;
+		RSEComboboxID	   = 32001;
 
 		RSSButton1 = CreateWindow(L"button", L"Global Render State", WS_CHILD|WS_VISIBLE, 
 			14, 802, 191, 20, mainWindow, (HMENU)ID_ESSBUTTON1, hInstance, NULL);
@@ -58,30 +99,46 @@ public:
 		RSSButton2 = CreateWindow(L"button", L"Edit Render State", WS_CHILD|WS_BORDER|WS_VISIBLE, 
 			25, 480, 170, 23, mainWindow, (HMENU)ID_ESSBUTTON2, hInstance, NULL);
 
-		RSSWindow = new dlgWnd;
-		RSSWindow->initDlgWnd(mainWindow, (DLGPROC)RSSDlgWndProc, hInstance);
-		RSSWindow->dlgTemplate(WS_SIZEBOX|WS_POPUP|WS_CHILD|WS_OVERLAPPEDWINDOW,
-			109, 50, 410, 400, "Render State");
-
-		RSSWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|CBS_SORT|CBS_DROPDOWNLIST, 
-			5, 5, 180, 80, ID_ESSCOMBOBOX1, "combobox", "");
-		RSSWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|CBS_SORT|CBS_DROPDOWNLIST, 
-			96, 5, 180, 80, ID_ESSCOMBOBOX2, "combobox", "");
-
-		RSSWindow->createModelessDlgWindow();
-
 		this->initRendTypes();
 
-		SendMessage(RSSWindow->getItemHWND(ID_ESSCOMBOBOX1), CB_ADDSTRING, NULL, (LPARAM)(LPCTSTR)rendTypes[0]->rendStateType.c_str());
-		//endMessage(RSSWindow->getItemHWND(ID_ESSCOMBOBOX1), CB_ADDSTRING, NULL, (LPARAM)L"RS_CULLMODE");
+		RSEWindow = new dlgWnd;
+		RSEWindow->initDlgWnd(mainWindow, (DLGPROC)RSSDlgWndProc, hInstance);
+		RSEWindow->dlgTemplate(WS_SIZEBOX|WS_POPUP|WS_CHILD|WS_OVERLAPPEDWINDOW,
+			109, 50, 410, 400, "Render State");
 
-		SendMessage(RSSWindow->getItemHWND(ID_ESSCOMBOBOX2), CB_ADDSTRING, NULL, (LPARAM)(LPCTSTR)rendTypes[0]->rendStateValue[0].c_str());
-		SendMessage(RSSWindow->getItemHWND(ID_ESSCOMBOBOX2), CB_ADDSTRING, NULL, (LPARAM)(LPCTSTR)rendTypes[0]->rendStateValue[1].c_str());
-		SendMessage(RSSWindow->getItemHWND(ID_ESSCOMBOBOX2), CB_ADDSTRING, NULL, (LPARAM)(LPCTSTR)rendTypes[0]->rendStateValue[2].c_str());
+		int x = 5;
+		for(DWORD counter(0); counter != numInitedTypes;)
+		{
+			RSEWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|CBS_DROPDOWNLIST, 
+				5, x, 180, 80, RSEComboboxID, "combobox", "");
+			RSEComboboxID += 1;
+
+			RSEWindow->dlgItemTemplate(WS_CHILD|WS_VISIBLE|CBS_DROPDOWNLIST, 
+				96, x, 180, 80, RSEComboboxID, "combobox", "");
+			RSEComboboxID += 1;
+
+			x += 15;
+			counter += 1;
+		}
+
+		RSEWindow->createModelessDlgWindow();
+
+		DWORD indent(0);
+		for(DWORD counter(0); counter != numInitedTypes;)
+		{
+			SendMessage(RSEWindow->getItemHWND(RSEComboboxStartID + indent), CB_ADDSTRING, NULL, (LPARAM)(LPCTSTR)rendTypes[counter]->strRendStateType.c_str());
+			for(DWORD counter_2(0); counter_2 != rendTypes[counter]->numValues;)
+			{
+				SendMessage(RSEWindow->getItemHWND(RSEComboboxStartID + indent + 1), CB_ADDSTRING, NULL, (LPARAM)(LPCTSTR)rendTypes[counter]->strRendStateValue[counter_2].c_str());
+				counter_2 += 1;
+			}
+			indent += 2;
+			counter += 1;
+		}
 	}
 
 	void showRSSettingsWnd()
-	{	RSSWindow->showDlgWindow();}
+	{	RSEWindow->showDlgWindow();}
 
 	~rendStateEditor_class()
 	{
@@ -90,6 +147,6 @@ public:
 			numInitedTypes -= 1;
 			delete rendTypes[numInitedTypes];
 		}
-		delete RSSWindow;
+		delete RSEWindow;
 	}
 };
