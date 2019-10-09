@@ -157,6 +157,11 @@ public:
 			return 0;
 	}
 
+	D3DMATERIAL9* getMaterial()
+	{
+		return material[0]->getMaterial();
+	}
+
 	void renameObject(HWND objectsList, HWND nameEditor, UINT objectNumber)
 	{
 		SendMessage(nameEditor, EM_LIMITTEXT, (WPARAM)80, NULL);

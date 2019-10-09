@@ -97,6 +97,12 @@ public:
 		}
 	}
 
+	D3DMATERIAL9* getMaterialClass(DWORD objectNumber)
+	{
+		objectNumber--;
+		return object[objectNumber]->getMaterial();
+	}
+
 	void redirectLight(DWORD lightNumber, int DIRECT_TYPE)
 	{
 		lightNumber--;

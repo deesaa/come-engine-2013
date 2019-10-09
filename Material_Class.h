@@ -15,6 +15,12 @@ public:
 		material.Emissive = D3DXCOLOR(0.15f, 0.0f, 0.0f, 1.0f); // нет свечения
 		material.Power = 9.0f;
 	}
+
+	D3DMATERIAL9* getMaterial()
+	{
+		return &material;
+	}
+
 	void resetMaterial()
 	{
 		device->SetMaterial(&material);

@@ -129,12 +129,21 @@ public:
 		clickRay.direction = D3DXVECTOR3(clickX, clickY, 1.0f);
 	}
 
-	void IfIntersectionPickObject()
+	bool IfIntersectionPickObject()
 	{
 		DWORD bPickedObject = manager->checkIntersectionWithObjects(clickRay);
 
 		if(bPickedObject != 0)
-			pickedObject = bPickedObject;		
+		{
+			pickedObject = bPickedObject;
+			return true;
+		}
+		return false;
+	}
+
+	D3DMATERIAL9* getMaterialClass()
+	{
+		return manager->getMaterialClass(pickedObject);
 	}
 
 	void applyKBMChanges()

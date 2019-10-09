@@ -1,7 +1,7 @@
 #include "Global_Linker.h"
 
 LPCTSTR  className  = L"C.O.M.E. Engine"; 
-LPCTSTR  windowName = L"C.O.M.E. Engine, Build 1.006.12";
+LPCTSTR  windowName = L"C.O.M.E. Engine, Build 1.006.16";
 
 MSG  msg;
 IDirect3DDevice9* device;
@@ -96,20 +96,21 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case ID_BUTTON2:
 			//Созданный объект принимает управление и добавляется в лист объектов
 			OC->pickObject(manager->createNewObject(windows->getWindowHandle(GET_OBJECTLIST)));
+	
+			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);							
+			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_NORMAL);
 
-			if(IsWindowVisible(windows->getWindowHandle(GET_LIGHTOBJECTLIST)))		
-				ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);							
-			if(!IsWindowVisible(windows->getWindowHandle(GET_OBJECTLIST)))	
-				ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_NORMAL);							
+			objectSettings->showObjectSettings(SW_NORMAL);
+			objectSettings->fillObjectSettings(OC->getMaterialClass());
 			return 0;
 
 		case ID_BUTTON4:	
 			OC->pickLight(manager->createNewDirectionLight(windows->getWindowHandle(GET_LIGHTOBJECTLIST)));
+			
+			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
+			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
 
-			if(!IsWindowVisible(windows->getWindowHandle(GET_LIGHTOBJECTLIST)))		
-				ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
-			if(IsWindowVisible(windows->getWindowHandle(GET_OBJECTLIST)))	
-				ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
+			objectSettings->showLightSettings(SW_NORMAL);
 			return 0;
 
 		case ID_LISTBOX1:
@@ -118,6 +119,8 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			case LBN_SELCHANGE:
 				//Объект, выбранный из листа объектов, принимает управление 
 				OC->pickObject(windows->takeObjectFromList());
+				objectSettings->showObjectSettings(SW_NORMAL);
+				objectSettings->fillObjectSettings(OC->getMaterialClass());
 				return 0;
 			default:
 				return 0;
@@ -130,6 +133,7 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Объект света, выбранный из листа объектов света, принимает управление 
 				OC->pickLight(windows->takeLightFromList());
 				manager->setOnlyPickedLight(OC->getPickedLight());	//И в действующие устанавливается только он
+				objectSettings->showLightSettings(SW_NORMAL);
 				return 0;
 			default:
 				return 0;
@@ -142,16 +146,16 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SetFocus(windows->getWindowHandle(GET_D3DWINDOW));
 			return 0;
 		case ID_BUTTON5:
-			if(IsWindowVisible(windows->getWindowHandle(GET_LIGHTOBJECTLIST)))		
-				ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);							
-			if(!IsWindowVisible(windows->getWindowHandle(GET_OBJECTLIST)))	
-				ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_NORMAL);
+			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_HIDE);							
+			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_NORMAL);
 			return 0;
-		case ID_BUTTON6:
-			if(!IsWindowVisible(windows->getWindowHandle(GET_LIGHTOBJECTLIST)))		
-				ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
-			if(IsWindowVisible(windows->getWindowHandle(GET_OBJECTLIST)))	
-				ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
+		case ID_BUTTON6:	
+			ShowWindow(windows->getWindowHandle(GET_LIGHTOBJECTLIST), SW_NORMAL);							
+			ShowWindow(windows->getWindowHandle(GET_OBJECTLIST), SW_HIDE);
+			return 0;
+		case ID_OSBUTTON1:
+			return 0;
+		case ID_OSBUTTON2:
 			return 0;
 		case ID_EDIT1:
 			return 0;
@@ -162,7 +166,11 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		GetCursorPos(&pOc);
 		ScreenToClient(windows->getWindowHandle(GET_D3DWINDOW), &pOc);
 		OC->createRayOfClick(pOc);
-		OC->IfIntersectionPickObject();
+		if(OC->IfIntersectionPickObject())
+		{
+			objectSettings->showObjectSettings(SW_NORMAL);
+			objectSettings->fillObjectSettings(OC->getMaterialClass());
+		}
 		wsprintf (textBuffer, L"pX: %d pY: %d", pOc.x, pOc.y);
 		SetWindowText (windows->getWindowHandle(GET_MAINWINDOW), textBuffer);
 		return 0;
@@ -175,6 +183,21 @@ HRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 }
 
+LRESULT CALLBACK OSWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch(msg)
+	{
+	case WM_COMMAND:
+		switch(LOWORD(wParam))
+		{
+		case ID_EOMBUTTON1:
+			objectSettings->applyChanges();
+
+		}
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+}
 
 /************************************************************************/
 /*				         © ALL COPYRIGHTS RESERVED	                    */

@@ -20,9 +20,9 @@ public:
 		ZeroMemory(&light, sizeof(light));
 
 		light.Type			= D3DLIGHT_DIRECTIONAL;
-		light.Diffuse		= D3DXCOLOR(0.0f, 1.0f, 1.0f, 1.0f);
-		light.Specular		= D3DXCOLOR(0.0f, 1.0f, 1.0f, 1.0f) * 0.6f;
-		light.Ambient		= D3DXCOLOR(0.0f, 1.0f, 1.0f, 1.0f) * 0.4f;
+		light.Diffuse		= D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+		light.Specular		= D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f) * 0.6f;
+		light.Ambient		= D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f) * 0.4f;
 		light.Direction		= D3DXVECTOR3(-0.5f, 1.5f, 0.0f);
 		device->SetLight(lightID, &light);
 		device->LightEnable(lightID, true);
